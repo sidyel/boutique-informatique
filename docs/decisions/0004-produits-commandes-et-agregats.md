@@ -86,9 +86,14 @@ Dans la même transaction que la suppression du compte, pour chaque commande du 
   aussi nom, e-mail, téléphone et adresse (`livraison_nom_complet = 'Client supprimé'`, e-mail technique
   `supprime-{id}@invalide.local`, téléphone à `NULL` — la contrainte `NOT NULL` de `telephone_client` sera
   assouplie par migration en phase 5 pour ce cas).
-- Les avis, questions et messages SAV du client sont anonymisés (« Client supprimé ») et non supprimés.
+- **Avis** : l'avis reste publié (note, titre, commentaire, photos, réponse de la boutique) et continue de
+  compter dans la note du produit, mais `nom_auteur` devient **« Client vérifié »** à la place du prénom et de
+  l'initiale (`utilisateur_id` passe déjà à `NULL` par la clé étrangère). Aucune donnée permettant de
+  reconnaître la personne ne reste affichée.
+- **Messages SAV** : conservés (historique de la demande), `nom_auteur` devient « Client supprimé ».
 - Purge des commandes au-delà de la durée légale : tâche planifiée, une fois la durée confirmée.
-- Tests : compte supprimé → données marketing effacées, données de facture intactes.
+- Tests : compte supprimé → données marketing effacées, données de facture intactes, avis toujours publié
+  et signé « Client vérifié ».
 
 ## 4. Numérotation : commandes avec trous, factures sans trou (phase 4)
 
