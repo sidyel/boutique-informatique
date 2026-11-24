@@ -50,3 +50,14 @@ docker compose -f infra/docker-compose.yml up -d --build
 cd backend && ./mvnw verify     # nécessite Docker (Testcontainers)
 cd frontend && npm test
 ```
+
+## Ports déjà utilisés sur la machine
+
+Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres projets. Ils sont tous configurables :
+
+| Service | Variable | Défaut |
+|---|---|---|
+| PostgreSQL exposé par docker-compose | `POSTGRES_PORT_HOTE` (shell) + `BASE_DONNEES_PORT` (`.env`) | 5432 |
+| Redis exposé par docker-compose | `REDIS_PORT_HOTE` (shell) + `REDIS_PORT` (`.env`) | 6379 |
+| Backend en dev | `PORT_BACKEND` (`.env`) | 8080 |
+| Frontend en dev | `npm start -- --port 4300` | 4200 |

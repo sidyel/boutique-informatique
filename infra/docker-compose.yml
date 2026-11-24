@@ -1,0 +1,86 @@
+# Environnement complet : PostgreSQL, Redis, backend, frontend SSR et nginx.
+#
+#   docker compose -f infra/docker-compose.yml up -d --build      # tout
+#   docker compose -f infra/docker-compose.yml up -d postgres redis   # dev local
+#
+# Ports exposés sur la machine : POSTGRES_PORT_HOTE (5432) et REDIS_PORT_HOTE (6379),
+# à définir dans le shell si ces ports sont déjà pris (et reporter dans BASE_DONNEES_PORT / REDIS_PORT).
+#
+# Les variables viennent du fichier .env à la racine du dépôt (voir .env.exemple).
+name: boutique
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: ../.env
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT_HOTE:-5432}:5432"
+    volumes:
+      - donnees-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    env_file: ../.env
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_MOT_DE_PASSE\" --appendonly yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT_HOTE:-6379}:6379"
+    volumes:
+      - donnees-redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_MOT_DE_PASSE\" --no-auth-warning ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      BASE_DONNEES_HOTE: postgres
+      REDIS_HOTE: redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 6
+
+  frontend:
+    build: ../frontend
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      PORT: 4000
+      API_URL_SERVEUR: http://backend:8080
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  donnees-postgres:
+  donnees-redis:

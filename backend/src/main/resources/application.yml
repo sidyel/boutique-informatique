@@ -11,10 +11,12 @@ spring:
       - optional:file:../.env[.properties]
       - optional:file:.env[.properties]
 
+  # POSTGRES_DB / POSTGRES_USER / POSTGRES_PASSWORD : noms imposés par l'image officielle PostgreSQL,
+  # réutilisés ici pour n'avoir qu'une seule source de vérité dans .env.
   datasource:
-    url: ${BASE_DONNEES_URL}
-    username: ${BASE_DONNEES_UTILISATEUR}
-    password: ${BASE_DONNEES_MOT_DE_PASSE}
+    url: jdbc:postgresql://${BASE_DONNEES_HOTE:localhost}:${BASE_DONNEES_PORT:5432}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     hikari:
       maximum-pool-size: ${BASE_DONNEES_POOL_MAX:10}
 

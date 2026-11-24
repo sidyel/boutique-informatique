@@ -1,9 +1,10 @@
-# Profil de développement local : valeurs par défaut alignées sur infra/docker-compose.yml.
+# Profil de développement local : valeurs par défaut alignées sur .env.exemple et infra/docker-compose.yml.
+POSTGRES_DB: boutique
+POSTGRES_USER: boutique
+POSTGRES_PASSWORD: boutique-dev
+REDIS_MOT_DE_PASSE: boutique-dev
+
 spring:
-  datasource:
-    url: ${BASE_DONNEES_URL:jdbc:postgresql://localhost:5432/boutique}
-    username: ${BASE_DONNEES_UTILISATEUR:boutique}
-    password: ${BASE_DONNEES_MOT_DE_PASSE:boutique}
   jpa:
     show-sql: false
     properties:
