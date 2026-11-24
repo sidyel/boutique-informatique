@@ -2,12 +2,14 @@ package sn.boutique.authentification.securite;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Clock;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import sn.boutique.noyau.erreur.ProblemesHttp;
 import tools.jackson.databind.json.JsonMapper;
 
 class VerificationOrigineFiltreTest {
@@ -15,7 +17,7 @@ class VerificationOrigineFiltreTest {
     private final VerificationOrigineFiltre filtre = new VerificationOrigineFiltre(
             List.of("https://boutique.sn", "https://www.boutique.sn/"),
             List.of("/api/auth/rafraichir", "/api/auth/deconnexion"),
-            new ReponsesSecurite(JsonMapper.builder().build()));
+            new ReponsesSecurite(JsonMapper.builder().build(), new ProblemesHttp(Clock.systemUTC())));
 
     @Test
     void laisserPasserLOrigineDuSite() throws Exception {

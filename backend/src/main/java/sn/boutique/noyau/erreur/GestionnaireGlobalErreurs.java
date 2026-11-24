@@ -31,6 +31,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
 
+    private final ProblemesHttp problemes;
+
+    public GestionnaireGlobalErreurs(ProblemesHttp problemes) {
+        this.problemes = problemes;
+    }
+
     private static final Map<Integer, String> DETAILS_PAR_DEFAUT = Map.ofEntries(
             Map.entry(400, "La requête est mal formée."),
             Map.entry(404, "La ressource demandée n'existe pas."),
@@ -134,13 +140,13 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     // Utilitaires
     // ---------------------------------------------------------------------
 
-    private static ProblemDetail construire(
+    private ProblemDetail construire(
             HttpStatus statut, String code, String detail, HttpServletRequest requete) {
-        return ProblemesHttp.creer(statut, code, detail, requete.getRequestURI());
+        return problemes.creer(statut, code, detail, requete.getRequestURI());
     }
 
-    private static void completer(ProblemDetail probleme, @Nullable String chemin) {
-        ProblemesHttp.completer(probleme, chemin);
+    private void completer(ProblemDetail probleme, @Nullable String chemin) {
+        problemes.completer(probleme, chemin);
     }
 
     private static String codeParDefaut(HttpStatusCode statut) {

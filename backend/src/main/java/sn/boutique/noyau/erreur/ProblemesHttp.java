@@ -1,20 +1,22 @@
 package sn.boutique.noyau.erreur;
 
 import java.net.URI;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
+import org.springframework.stereotype.Component;
 
 /**
  * Fabrique commune des réponses d'erreur ProblemDetail (RFC 9457) : utilisée par le gestionnaire global,
  * les filtres de sécurité (qui interviennent avant Spring MVC) et les contrôleurs.
  * Propriétés ajoutées : {@code code} (identifiant stable pour le frontend) et {@code horodatage}.
  */
-public final class ProblemesHttp {
+@Component
+public class ProblemesHttp {
 
     static final Map<Integer, String> TITRES = Map.ofEntries(
             Map.entry(400, "Requête invalide"),
@@ -31,10 +33,13 @@ public final class ProblemesHttp {
             Map.entry(500, "Erreur interne"),
             Map.entry(503, "Service indisponible"));
 
-    private ProblemesHttp() {
+    private final Clock horloge;
+
+    public ProblemesHttp(Clock horloge) {
+        this.horloge = horloge;
     }
 
-    public static ProblemDetail creer(HttpStatus statut, String code, String detail, @Nullable String chemin) {
+    public ProblemDetail creer(HttpStatus statut, String code, String detail, @Nullable String chemin) {
         ProblemDetail probleme = ProblemDetail.forStatusAndDetail(statut, detail);
         probleme.setTitle(titre(statut));
         probleme.setProperty("code", code);
@@ -47,10 +52,10 @@ public final class ProblemesHttp {
                 ? HttpStatus.resolve(statut.value()).getReasonPhrase() : "Erreur");
     }
 
-    static void completer(ProblemDetail probleme, @Nullable String chemin) {
+    public void completer(ProblemDetail probleme, @Nullable String chemin) {
         if (probleme.getInstance() == null && chemin != null) {
             probleme.setInstance(URI.create(chemin));
         }
-        probleme.setProperty("horodatage", Instant.now());
+        probleme.setProperty("horodatage", horloge.instant());
     }
 }

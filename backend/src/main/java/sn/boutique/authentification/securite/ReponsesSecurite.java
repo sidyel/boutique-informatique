@@ -26,20 +26,25 @@ import tools.jackson.databind.json.JsonMapper;
 public class ReponsesSecurite implements AuthenticationEntryPoint, AccessDeniedHandler {
 
     private final JsonMapper jsonMapper;
+    private final ProblemesHttp problemes;
 
     @Override
     public void commence(HttpServletRequest requete, HttpServletResponse reponse, AuthenticationException ex)
             throws IOException {
         reponse.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
-        ecrire(reponse, ProblemesHttp.creer(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE",
+        ecrire(reponse, problemes.creer(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE",
                 "Connectez-vous pour accéder à cette ressource.", requete.getRequestURI()));
     }
 
     @Override
     public void handle(HttpServletRequest requete, HttpServletResponse reponse, AccessDeniedException ex)
             throws IOException {
-        ecrire(reponse, ProblemesHttp.creer(HttpStatus.FORBIDDEN, "ACCES_REFUSE",
+        ecrire(reponse, problemes.creer(HttpStatus.FORBIDDEN, "ACCES_REFUSE",
                 "Vous n'avez pas les droits nécessaires pour cette action.", requete.getRequestURI()));
+    }
+
+    public ProblemesHttp problemes() {
+        return problemes;
     }
 
     public void ecrire(HttpServletResponse reponse, ProblemDetail probleme) throws IOException {

@@ -49,6 +49,7 @@ public class AuthControleur {
     private final AuthService authService;
     private final SessionService sessionService;
     private final CookieRafraichissement cookie;
+    private final ProblemesHttp problemes;
 
     @Operation(summary = "Créer un compte client",
             description = "Réponse identique si l'e-mail a déjà un compte (son titulaire est prévenu par e-mail).")
@@ -93,7 +94,7 @@ public class AuthControleur {
         log.info("Connexion refusée : {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(ProblemesHttp.creer(HttpStatus.UNAUTHORIZED, "IDENTIFIANTS_INVALIDES",
+                .body(problemes.creer(HttpStatus.UNAUTHORIZED, "IDENTIFIANTS_INVALIDES",
                         "E-mail ou mot de passe incorrect.", http.getRequestURI()));
     }
 
@@ -104,7 +105,7 @@ public class AuthControleur {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .header(HttpHeaders.SET_COOKIE, cookie.effacer().toString())
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(ProblemesHttp.creer(HttpStatus.UNAUTHORIZED, "SESSION_INVALIDE",
+                .body(problemes.creer(HttpStatus.UNAUTHORIZED, "SESSION_INVALIDE",
                         "Votre session a expiré. Veuillez vous reconnecter.", http.getRequestURI()));
     }
 

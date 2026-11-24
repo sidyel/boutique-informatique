@@ -101,9 +101,8 @@ public class SessionService {
     }
 
     /**
-     * Instant courant tronqué à la seconde : PostgreSQL stocke les dates à la microseconde et Max-Age
-     * s'exprime en secondes. Sans troncature, une fin de session relue en base (rôles internes) serait
-     * plus courte de quelques nanosecondes et le Max-Age perdrait une seconde.
+     * Instant courant tronqué à la seconde, l'unité de Max-Age : les fins de session tombent sur une
+     * seconde entière et le Max-Age du cookie est exact.
      */
     private Instant maintenant() {
         return horloge.instant().truncatedTo(ChronoUnit.SECONDS);

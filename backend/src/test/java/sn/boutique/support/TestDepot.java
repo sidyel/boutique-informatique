@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
+import sn.boutique.noyau.config.HorlogeConfig;
 import sn.boutique.TestcontainersConfiguration;
 import sn.boutique.noyau.audit.AuditConfig;
 
@@ -19,6 +20,6 @@ import sn.boutique.noyau.audit.AuditConfig;
 @Retention(RetentionPolicy.RUNTIME)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({TestcontainersConfiguration.class, AuditConfig.class})
+@Import({TestcontainersConfiguration.class, AuditConfig.class, HorlogeConfig.class})
 public @interface TestDepot {
 }

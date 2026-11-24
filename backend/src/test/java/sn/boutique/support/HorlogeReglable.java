@@ -10,17 +10,23 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import sn.boutique.noyau.config.HorlogeConfig;
 
 /**
- * Horloge que les tests font avancer (expiration des jetons, fin de verrouillage…).
+ * Horloge que les tests font avancer (expiration des jetons, fin de verrouillage…). Elle part de l'heure
+ * de l'horloge de production, à la même précision (microseconde).
  * Importer {@link Configuration} : le bean remplace l'horloge système grâce à {@code @Primary}.
  */
 public class HorlogeReglable extends Clock {
 
-    private final AtomicReference<Instant> maintenant = new AtomicReference<>(Instant.now());
+    private final AtomicReference<Instant> maintenant = new AtomicReference<>(maintenantSysteme());
 
     public void reinitialiser() {
-        maintenant.set(Instant.now());
+        maintenant.set(maintenantSysteme());
+    }
+
+    private static Instant maintenantSysteme() {
+        return new HorlogeConfig().horloge().instant();
     }
 
     public void avancer(Duration duree) {

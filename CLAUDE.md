@@ -50,6 +50,7 @@ Site e-commerce complet de vente de matériel informatique (PC portables, PC de 
 6. Toute modification de schéma passe par une **migration Flyway** (`V{numero}__description.sql`), jamais par `ddl-auto=update`.
 7. Les montants sont des **entiers en FCFA** (`Long`), jamais des `double`.
 8. Valider toutes les entrées côté serveur (Bean Validation) et renvoyer les erreurs au format `ProblemDetail`.
+9. **Heure : un seul bean `Clock` (`horloge`)**, en UTC et tronqué à la microseconde (précision de `timestamptz` dans PostgreSQL). Tout le code l'injecte et appelle `horloge.instant()` : jamais `Instant.now()`, `LocalDate.now()`, `System.currentTimeMillis()`… (l'audit JPA l'utilise aussi). Dans les tests, `HorlogeReglable` le remplace pour avancer le temps. Le test `RegleHorlogeTest` fait échouer la compilation en cas d'écart.
 
 ## Règles SEO (non négociables)
 - Toute page publique doit être **rendue côté serveur** avec un titre, une meta description, une URL canonique, les balises Open Graph et des données structurées JSON-LD adaptés.
