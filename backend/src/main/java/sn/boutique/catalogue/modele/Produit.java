@@ -87,16 +87,30 @@ public class Produit extends EntiteAuditee {
     @Column(nullable = false)
     private int nombreAvis;
 
-    /** Prix de la variante active la moins chère (null si aucune). Maintenu par trigger. */
+    /*
+     * ATTENTION — valeurs périmées dans la transaction (prixMinimum, stockTotal).
+     * Ces deux champs sont calculés par le trigger PostgreSQL, jamais par Hibernate. Un Produit déjà
+     * chargé garde donc les anciennes valeurs après la modification d'une de ses variantes, même
+     * après un flush. Tout service qui modifie des variantes puis renvoie le produit (phase 2 :
+     * catalogue, phase 6 : admin, stock) doit le relire avant de répondre :
+     *     produitDepot.saveAndFlush(produit); entityManager.refresh(produit);
+     * ou une nouvelle requête après flush. Un test de service vérifie ce cas (voir ADR 0004).
+     */
+
+    /** Prix de la variante active la moins chère (null si aucune). Maintenu par trigger : voir ci-dessus. */
     @Setter(AccessLevel.NONE)
     @Column(insertable = false, updatable = false)
     private Long prixMinimum;
 
-    /** Somme des stocks des variantes actives. Maintenu par trigger. */
+    /** Somme des stocks des variantes actives. Maintenu par trigger : voir ci-dessus. */
     @Setter(AccessLevel.NONE)
     @Column(insertable = false, updatable = false)
     private Integer stockTotal;
 
+    /**
+     * Retirer une variante de cette liste la supprime (orphanRemoval). Une variante déjà commandée
+     * ne peut pas l'être (clé étrangère ligne_commande en ON DELETE RESTRICT) : on la désactive.
+     */
     @OneToMany(mappedBy = "produit", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("prix ASC")
     private List<VarianteProduit> variantes = new ArrayList<>();

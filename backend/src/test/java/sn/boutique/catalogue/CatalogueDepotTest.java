@@ -2,13 +2,13 @@ package sn.boutique.catalogue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static sn.boutique.support.Contraintes.contrainteViolee;
 import static sn.boutique.support.FabriqueCatalogue.unique;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
 import jakarta.persistence.EntityManager;
-import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import sn.boutique.catalogue.depot.HistoriqueSlugDepot;
@@ -185,15 +185,5 @@ class CatalogueDepotTest {
                 .isEqualTo(42L);
         assertThat(historiqueSlugDepot.findByTypeEntiteAndAncienSlug(TypeEntiteSlug.CATEGORIE, ancien))
                 .isEmpty();
-    }
-
-    /** Nom de la contrainte PostgreSQL violée, quelle que soit l'exception Spring qui l'enveloppe. */
-    static String contrainteViolee(Throwable erreur) {
-        for (Throwable cause = erreur; cause != null; cause = cause.getCause()) {
-            if (cause instanceof ConstraintViolationException violation) {
-                return violation.getConstraintName();
-            }
-        }
-        return null;
     }
 }
