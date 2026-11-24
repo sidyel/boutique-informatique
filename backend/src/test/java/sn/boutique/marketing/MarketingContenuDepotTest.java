@@ -148,6 +148,8 @@ class MarketingContenuDepotTest {
 
         ParametresSite relus = parametresDepot.lire();
         assertThat(relus.getNomSite()).isEqualTo("Boutique informatique");
+        // Avis réservés aux acheteurs : actif par défaut (ADR 0004 §5)
+        assertThat(relus.isAvisReservesAuxAcheteurs()).isTrue();
         assertThat(relus.getWhatsapp()).isEqualTo("+221771234567");
         assertThat(relus.getLiensReseauxSociaux()).containsEntry("facebook", "https://facebook.com/exemple");
 

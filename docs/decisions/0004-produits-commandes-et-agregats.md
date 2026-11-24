@@ -87,13 +87,16 @@ Dans la même transaction que la suppression du compte, pour chaque commande du 
   `supprime-{id}@invalide.local`, téléphone à `NULL` — la contrainte `NOT NULL` de `telephone_client` sera
   assouplie par migration en phase 5 pour ce cas).
 - **Avis** : l'avis reste publié (note, titre, commentaire, photos, réponse de la boutique) et continue de
-  compter dans la note du produit, mais `nom_auteur` devient **« Client vérifié »** à la place du prénom et de
-  l'initiale (`utilisateur_id` passe déjà à `NULL` par la clé étrangère). Aucune donnée permettant de
-  reconnaître la personne ne reste affichée.
+  compter dans la note du produit, mais `nom_auteur` remplace le prénom et l'initiale par :
+  - **« Client vérifié »** si l'avis est lié à un achat vérifié (`achat_verifie = true`) ;
+  - **« Client »** sinon (ne jamais affirmer un achat qui n'a pas eu lieu).
+
+  `utilisateur_id` passe déjà à `NULL` par la clé étrangère. Aucune donnée permettant de reconnaître la
+  personne ne reste affichée.
 - **Messages SAV** : conservés (historique de la demande), `nom_auteur` devient « Client supprimé ».
 - Purge des commandes au-delà de la durée légale : tâche planifiée, une fois la durée confirmée.
 - Tests : compte supprimé → données marketing effacées, données de facture intactes, avis toujours publié
-  et signé « Client vérifié ».
+  et signé « Client vérifié » ou « Client » selon `achat_verifie`.
 
 ## 4. Numérotation : commandes avec trous, factures sans trou (phase 4)
 
@@ -120,3 +123,25 @@ Dans la même transaction que la suppression du compte, pour chaque commande du 
   PDF généré ; jamais modifiée ni supprimée (un remboursement donnera un **avoir**, numérotation séparée sur le
   même principe).
 - Tests : factures concurrentes (plusieurs threads) → numéros consécutifs sans doublon ; transaction annulée → pas de trou.
+
+## 5. Avis réservés aux acheteurs (phase 8)
+
+### Règle
+- Par défaut, **seuls les clients ayant une commande `LIVREE` contenant le produit** peuvent publier un avis
+  (n'importe quelle variante du produit). L'avis est alors toujours enregistré avec `achat_verifie = true`.
+- Vérification côté serveur au dépôt de l'avis (jamais sur la seule foi du frontend) : existe-t-il une
+  `ligne_commande` de ce produit dans une commande `LIVREE` de cet utilisateur ? Sinon : `403` au format
+  ProblemDetail, code `AVIS_RESERVE_AUX_ACHETEURS`, message « Seuls les clients ayant reçu ce produit
+  peuvent laisser un avis. »
+- Un avis par client et par produit (contrainte `uk_avis_produit_utilisateur`, déjà en place).
+
+### Paramètre
+- `ParametresSite.avisReservesAuxAcheteurs` (colonne `avis_reserves_aux_acheteurs`, **`true` par défaut**,
+  migration V8), modifiable dans l'admin sans redéploiement.
+- S'il passe à `false`, tout client connecté peut publier un avis ; `achat_verifie` est alors calculé (vrai
+  seulement s'il existe une telle commande livrée) et le badge « Achat vérifié » n'apparaît que dans ce cas.
+
+### Tests (phase 8)
+- Paramètre à `true` : client avec commande livrée → avis accepté, `achat_verifie = true` ; commande non
+  livrée ou absente → 403.
+- Paramètre à `false` : avis accepté dans les deux cas, `achat_verifie` exact.

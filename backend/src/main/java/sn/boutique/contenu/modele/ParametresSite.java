@@ -100,6 +100,13 @@ public class ParametresSite {
     @Column(length = 100)
     private String codeVerificationMeta;
 
+    /**
+     * Seuls les clients ayant reçu le produit (commande LIVREE) peuvent publier un avis
+     * (ADR 0004 §5). Désactivable pour ouvrir les avis à tous les clients connectés.
+     */
+    @Column(nullable = false)
+    private boolean avisReservesAuxAcheteurs = true;
+
     @LastModifiedDate
     @Column(nullable = false)
     private Instant dateModification;

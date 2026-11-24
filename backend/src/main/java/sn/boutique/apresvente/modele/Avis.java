@@ -38,12 +38,15 @@ public class Avis extends EntiteAuditee {
     @JoinColumn(name = "produit_id", nullable = false)
     private Produit produit;
 
-    /** Null si le compte a été supprimé : l'avis reste publié, signé « Client vérifié » (ADR 0004 §3). */
+    /** Null si le compte a été supprimé : l'avis reste publié, signé « Client vérifié » ou « Client » (ADR 0004 §3). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "utilisateur_id")
     private Utilisateur utilisateur;
 
-    /** Nom affiché : « Awa D. », puis « Client vérifié » après la suppression du compte. */
+    /**
+     * Nom affiché : « Awa D. ». Après la suppression du compte : « Client vérifié » si
+     * {@code achatVerifie}, « Client » sinon.
+     */
     @Column(nullable = false, length = 80)
     private String nomAuteur;
 
@@ -61,7 +64,10 @@ public class Avis extends EntiteAuditee {
     @Column(nullable = false)
     private List<String> photos = new ArrayList<>();
 
-    /** Le client a acheté et reçu ce produit (commande livrée). */
+    /**
+     * Le client a acheté et reçu ce produit (commande LIVREE). Toujours vrai tant que
+     * {@code ParametresSite.avisReservesAuxAcheteurs} est actif (ADR 0004 §5).
+     */
     @Column(nullable = false)
     private boolean achatVerifie;
 
