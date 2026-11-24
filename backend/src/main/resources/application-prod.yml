@@ -1,0 +1,23 @@
+# Profil de production : aucune valeur par défaut pour les secrets (démarrage impossible s'ils manquent).
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    root: INFO
+    sn.boutique: INFO
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+boutique:
+  url-site: ${URL_SITE}
+  cors-origines: ${CORS_ORIGINES}

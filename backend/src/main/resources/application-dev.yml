@@ -1,0 +1,27 @@
+# Profil de développement local : valeurs par défaut alignées sur infra/docker-compose.yml.
+spring:
+  datasource:
+    url: ${BASE_DONNEES_URL:jdbc:postgresql://localhost:5432/boutique}
+    username: ${BASE_DONNEES_UTILISATEUR:boutique}
+    password: ${BASE_DONNEES_MOT_DE_PASSE:boutique}
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    sn.boutique: DEBUG
+    org.hibernate.SQL: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
