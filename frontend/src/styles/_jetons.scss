@@ -1,0 +1,156 @@
+// =====================================================================
+// Jetons de design — palette « Graphite & Orange signal »
+// SEULE source des couleurs, tailles, espacements, rayons et ombres.
+// Aucun composant n'écrit de valeur en dur : il utilise ces variables.
+// Contrastes WCAG vérifiés (texte ≥ 4,5:1, éléments d'interface ≥ 3:1) :
+// voir la page /guide-style.
+// =====================================================================
+
+:root {
+  // --- Échelle de gris (graphite froid) --------------------------------
+  --gris-0: #ffffff;
+  --gris-50: #f6f7f8;
+  --gris-100: #eef0f2;
+  --gris-200: #e4e7eb;
+  --gris-300: #cdd2d8;
+  --gris-400: #9aa3ae;
+  --gris-500: #6b7480;
+  --gris-600: #5b6573;
+  --gris-700: #3d4550;
+  --gris-800: #2a3038;
+  --gris-900: #1c2128;
+  --gris-950: #0e1116;
+
+  // --- Orange signal ----------------------------------------------------
+  --orange-50: #fff1e8;
+  --orange-100: #ffe0cc;
+  --orange-500: #ea580c; // décoratif uniquement (contraste insuffisant pour du texte)
+  --orange-600: #c2410c;
+  --orange-700: #9a3412;
+
+  // --- Couleurs sémantiques ---------------------------------------------
+  --couleur-fond: var(--gris-50);
+  --couleur-surface: var(--gris-0);
+  --couleur-surface-alt: var(--gris-100);
+  --couleur-bordure: var(--gris-200);
+  --couleur-bordure-forte: var(--gris-300);
+  --couleur-bordure-champ: var(--gris-500); // 4,74:1 sur blanc
+  --couleur-texte: var(--gris-900);
+  --couleur-texte-secondaire: var(--gris-600);
+  --couleur-texte-desactive: var(--gris-400);
+  --couleur-texte-inverse: var(--gris-0);
+  --couleur-sombre: var(--gris-950);
+  --couleur-sombre-texte-secondaire: var(--gris-300);
+
+  --couleur-accent: var(--orange-600); // boutons principaux, liens (5,18:1 avec du blanc)
+  --couleur-accent-survol: var(--orange-700);
+  --couleur-accent-leger: var(--orange-50);
+  --couleur-accent-decor: var(--orange-500);
+
+  --couleur-succes: #15803d; // « En stock »
+  --couleur-succes-fond: #ecf8f0;
+  --couleur-alerte: #b45309; // « Stock faible »
+  --couleur-alerte-fond: #fef6e7;
+  --couleur-promo: #dc2626; // prix barré, badge de réduction
+  --couleur-promo-fonce: #b91c1c;
+  --couleur-promo-fond: #fdeeee;
+  --couleur-danger: var(--couleur-promo);
+  --couleur-danger-survol: var(--couleur-promo-fonce);
+  --couleur-info: #1d4ed8;
+  --couleur-info-fond: #eef3ff;
+
+  --couleur-focus: var(--orange-600);
+  --couleur-voile: rgb(14 17 22 / 0.55); // fond des fenêtres modales
+
+  // Reflet du squelette de chargement
+  --couleur-squelette: var(--gris-200);
+  --couleur-squelette-reflet: var(--gris-100);
+
+  // --- Typographie -------------------------------------------------------
+  --police-titre: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --police-texte: 'Inter', 'Inter Repli', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --police-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --taille-2xs: 0.6875rem; // 11 px — mentions légales, compteurs
+  --taille-xs: 0.75rem; //   12 px
+  --taille-sm: 0.875rem; //  14 px — caractéristiques, méta
+  --taille-base: 1rem; //    16 px
+  --taille-lg: 1.125rem; //  18 px
+  --taille-xl: 1.25rem; //   20 px
+  --taille-2xl: clamp(1.375rem, 1.2rem + 0.75vw, 1.625rem);
+  --taille-3xl: clamp(1.625rem, 1.35rem + 1.2vw, 2.125rem);
+  --taille-4xl: clamp(1.875rem, 1.45rem + 1.9vw, 2.75rem);
+
+  --graisse-normale: 400;
+  --graisse-moyenne: 500;
+  --graisse-semi-gras: 600;
+  --graisse-gras: 700;
+
+  --interligne-serre: 1.15;
+  --interligne-titre: 1.25;
+  --interligne-normal: 1.5;
+  --approche-titre: -0.015em;
+
+  // --- Espacements (base 4 px) ---------------------------------------------
+  --espace-0: 0;
+  --espace-px: 1px;
+  --espace-1: 0.25rem; //  4 px
+  --espace-2: 0.5rem; //   8 px
+  --espace-3: 0.75rem; // 12 px
+  --espace-4: 1rem; //    16 px
+  --espace-5: 1.25rem; // 20 px
+  --espace-6: 1.5rem; //  24 px
+  --espace-8: 2rem; //    32 px
+  --espace-10: 2.5rem; // 40 px
+  --espace-12: 3rem; //   48 px
+  --espace-16: 4rem; //   64 px
+
+  // --- Rayons (petits : pas de cartes « bulles ») ----------------------------
+  --rayon-1: 2px;
+  --rayon-2: 4px;
+  --rayon-3: 6px;
+  --rayon-rond: 999px;
+
+  // --- Ombres (discrètes, deux niveaux seulement) ----------------------------
+  --ombre-1: 0 1px 2px rgb(14 17 22 / 0.06), 0 1px 1px rgb(14 17 22 / 0.04);
+  --ombre-2: 0 6px 16px rgb(14 17 22 / 0.1), 0 2px 4px rgb(14 17 22 / 0.06);
+  --anneau-focus: 0 0 0 2px var(--couleur-surface), 0 0 0 4px var(--couleur-focus);
+
+  // --- Bordures --------------------------------------------------------------
+  --epaisseur-bordure: 1px;
+
+  // --- Contrôles (hauteurs tactiles : 44 px minimum en taille normale) --------
+  --hauteur-controle-sm: 2rem;
+  --hauteur-controle-md: 2.75rem;
+  --hauteur-controle-lg: 3.25rem;
+
+  // --- Mise en page ------------------------------------------------------------
+  --largeur-max: 80rem;
+  --marge-page: var(--espace-4);
+
+  // --- Animations --------------------------------------------------------------
+  --duree-rapide: 120ms;
+  --duree-normale: 200ms;
+  --duree-squelette: 1.4s;
+  --courbe-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  // --- Superpositions ----------------------------------------------------------
+  --z-collant: 100;
+  --z-panneau: 200;
+  --z-modale: 300;
+  --z-notification: 400;
+  --z-superieur: 500;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --marge-page: var(--espace-6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duree-rapide: 0ms;
+    --duree-normale: 0ms;
+  }
+}

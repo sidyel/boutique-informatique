@@ -1,0 +1,83 @@
+// Typographie de base : Inter pour le texte, Space Grotesk pour les titres,
+// JetBrains Mono pour les caractéristiques techniques, références et SKU.
+
+body {
+  font-family: var(--police-texte);
+  font-size: var(--taille-base);
+  line-height: var(--interligne-normal);
+  color: var(--couleur-texte);
+  background: var(--couleur-fond);
+  font-feature-settings: 'cv11', 'ss01'; // chiffres et « a » plus lisibles avec Inter
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--police-titre);
+  font-weight: var(--graisse-gras);
+  line-height: var(--interligne-titre);
+  letter-spacing: var(--approche-titre);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--taille-4xl);
+  line-height: var(--interligne-serre);
+}
+
+h2 {
+  font-size: var(--taille-3xl);
+}
+
+h3 {
+  font-size: var(--taille-2xl);
+}
+
+h4 {
+  font-size: var(--taille-xl);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--couleur-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+
+  &:hover {
+    color: var(--couleur-accent-survol);
+  }
+}
+
+code,
+kbd,
+samp,
+pre,
+.mono {
+  font-family: var(--police-mono);
+  font-size: 0.92em;
+  font-variant-ligatures: none;
+}
+
+// Nombres alignés (prix, quantités, tableaux de caractéristiques)
+.chiffres-tabulaires {
+  font-variant-numeric: tabular-nums;
+}
+
+strong,
+b {
+  font-weight: var(--graisse-semi-gras);
+}
+
+::selection {
+  background: var(--couleur-accent-leger);
+  color: var(--couleur-texte);
+}
+
+:focus-visible {
+  outline: 2px solid var(--couleur-focus);
+  outline-offset: 2px;
+}

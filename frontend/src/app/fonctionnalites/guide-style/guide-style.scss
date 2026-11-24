@@ -1,0 +1,261 @@
+.guide {
+  padding-block: var(--espace-8) var(--espace-16);
+}
+
+.guide__entete {
+  padding-block-end: var(--espace-6);
+  border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}
+
+.guide__surtitre {
+  font-family: var(--police-mono);
+  font-size: var(--taille-xs);
+  color: var(--couleur-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.guide__chapeau {
+  max-width: 65ch;
+  margin-block-start: var(--espace-3);
+  color: var(--couleur-texte-secondaire);
+}
+
+.guide__section {
+  padding-block: var(--espace-10);
+  border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  > h2 {
+    margin-block-end: var(--espace-6);
+  }
+}
+
+.guide__sous-titre {
+  margin-block: var(--espace-6) var(--espace-3);
+  font-size: var(--taille-base);
+}
+
+.guide__ligne + .guide__ligne {
+  margin-block-start: var(--espace-3);
+}
+
+/* --- Exemple ------------------------------------------------------------ */
+.exemples {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 20rem));
+  gap: var(--espace-4);
+}
+
+.carte-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  padding: var(--espace-4);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+}
+
+.carte-demo__visuel {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  font-family: var(--police-mono);
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+  background: var(--couleur-surface-alt);
+  border-radius: var(--rayon-1);
+}
+
+.carte-demo__marque {
+  font-size: var(--taille-xs);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte-secondaire);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.carte-demo__titre {
+  font-size: var(--taille-lg);
+}
+
+.carte-demo__specs {
+  display: grid;
+  gap: var(--espace-1);
+  padding-block: var(--espace-2);
+  border-block: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  div {
+    display: grid;
+    grid-template-columns: 6rem 1fr;
+    gap: var(--espace-2);
+  }
+
+  dt {
+    font-size: var(--taille-xs);
+    color: var(--couleur-texte-secondaire);
+  }
+
+  dd {
+    font-family: var(--police-mono);
+    font-size: var(--taille-xs);
+    margin: 0;
+  }
+}
+
+.carte-demo__dispo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2);
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.carte-demo__sku {
+  font-family: var(--police-mono);
+  font-size: var(--taille-2xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+/* --- Couleurs ------------------------------------------------------------- */
+.nuancier {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr));
+  gap: var(--espace-3);
+  padding: 0;
+}
+
+.nuance {
+  display: grid;
+  gap: var(--espace-1);
+  padding: var(--espace-2);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+}
+
+.nuance__echantillon {
+  height: 3rem;
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-1);
+}
+
+.nuance__jeton,
+.nuance__valeur,
+.nuance__contraste {
+  font-size: var(--taille-xs);
+}
+
+.nuance__valeur,
+.nuance__contraste {
+  font-family: var(--police-mono);
+  color: var(--couleur-texte-secondaire);
+}
+
+/* --- Typographie ------------------------------------------------------------ */
+.familles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: var(--espace-6);
+  margin-block-end: var(--espace-8);
+}
+
+.famille__nom {
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.famille__exemple {
+  font-size: var(--taille-xl);
+}
+
+.famille__exemple--titre {
+  font-family: var(--police-titre);
+  font-weight: var(--graisse-gras);
+  font-size: var(--taille-2xl);
+}
+
+.echelle {
+  width: 100%;
+
+  th,
+  td {
+    padding-block: var(--espace-2);
+    text-align: start;
+    border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  }
+
+  th {
+    width: 40%;
+    font-weight: var(--graisse-normale);
+    font-size: var(--taille-xs);
+  }
+}
+
+/* --- Espacements et formes ------------------------------------------------------ */
+.espaces {
+  display: grid;
+  gap: var(--espace-2);
+  padding: 0;
+  margin-block-end: var(--espace-8);
+
+  li {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    align-items: center;
+    font-size: var(--taille-xs);
+  }
+}
+
+.espaces__barre {
+  height: var(--espace-3);
+  background: var(--couleur-accent-decor);
+}
+
+.forme {
+  display: grid;
+  place-items: center;
+  width: 9rem;
+  height: 5rem;
+  font-size: var(--taille-xs);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-forte);
+}
+
+.forme--ombre {
+  border-color: var(--couleur-bordure);
+}
+
+/* --- Champs, squelettes ----------------------------------------------------------- */
+.champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: var(--espace-6);
+}
+
+.squelettes {
+  max-width: 24rem;
+}
+
+.squelettes__lignes {
+  flex: 1;
+  gap: var(--espace-2);
+}
+
+/* Les noms de jetons sont longs : ils peuvent passer à la ligne sur mobile. */
+code {
+  overflow-wrap: anywhere;
+}
+
+.guide > * {
+  min-width: 0;
+}
+
+.echelle {
+  table-layout: fixed;
+
+  th {
+    width: 40%;
+  }
+}

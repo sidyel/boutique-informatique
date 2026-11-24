@@ -1,1 +1,7 @@
-// Point d'entrée des styles globaux. Le système de design complet est ajouté à l'étape suivante.
+// Point d'entrée des styles globaux (déclaré dans angular.json).
+// L'ordre compte : jetons → polices → réinitialisation → typographie → utilitaires.
+@use 'jetons';
+@use 'polices';
+@use 'reinitialisation';
+@use 'typographie';
+@use 'utilitaires';

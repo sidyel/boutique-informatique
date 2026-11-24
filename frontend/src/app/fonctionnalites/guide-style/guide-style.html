@@ -1,0 +1,194 @@
+<div class="conteneur guide">
+  <header class="guide__entete">
+    <p class="guide__surtitre">Système de design · palette Graphite &amp; Orange signal</p>
+    <h1>Guide de style</h1>
+    <p class="guide__chapeau">
+      Jetons et composants de base de la boutique. Toute valeur visuelle passe par une variable CSS
+      définie dans <code>src/styles/_jetons.scss</code>.
+    </p>
+  </header>
+
+  <!-- Exemple d'assemblage : densité d'information d'un vrai site d'informatique -->
+  <section class="guide__section" aria-labelledby="titre-exemple">
+    <h2 id="titre-exemple">Exemple d'assemblage</h2>
+    <div class="exemples">
+      <article class="carte-demo">
+        <div class="carte-demo__visuel" aria-hidden="true">Photo 4:3</div>
+        <div class="grappe">
+          <bi-badge type="neuf">Neuf</bi-badge>
+          <bi-badge type="promo">Promo</bi-badge>
+        </div>
+        <p class="carte-demo__marque">ASUS</p>
+        <h3 class="carte-demo__titre">TUF Gaming A15 FA507NV</h3>
+        <dl class="carte-demo__specs">
+          @for (ligne of caracteristiques; track ligne[0]) {
+            <div>
+              <dt>{{ ligne[0] }}</dt>
+              <dd>{{ ligne[1] }}</dd>
+            </div>
+          }
+        </dl>
+        <bi-prix [montant]="649000" [montantBarre]="729000" />
+        <p class="carte-demo__dispo">
+          <bi-badge type="stock">En stock</bi-badge>
+          <span>Livraison à Dakar en 24 h</span>
+        </p>
+        <p class="carte-demo__sku">Réf. ASUS-FA507NV-16-512</p>
+        <button biBouton pleineLargeur type="button">Ajouter au panier</button>
+      </article>
+
+      <article class="carte-demo" aria-label="Carte en cours de chargement">
+        <bi-squelette forme="bloc" hauteur="10rem" />
+        <bi-squelette largeur="30%" />
+        <bi-squelette largeur="85%" hauteur="1.5rem" />
+        <bi-squelette largeur="100%" />
+        <bi-squelette largeur="90%" />
+        <bi-squelette largeur="70%" />
+        <bi-squelette largeur="45%" hauteur="1.75rem" />
+        <bi-squelette forme="bloc" hauteur="2.75rem" />
+      </article>
+    </div>
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-couleurs">
+    <h2 id="titre-couleurs">Couleurs</h2>
+    @for (groupe of groupesNuances; track groupe.titre) {
+      <h3 class="guide__sous-titre">{{ groupe.titre }}</h3>
+      <ul class="nuancier" role="list">
+        @for (nuance of groupe.nuances; track nuance.jeton) {
+          <li class="nuance">
+            <span class="nuance__echantillon" [style.background]="'var(' + nuance.jeton + ')'"></span>
+            <code class="nuance__jeton">{{ nuance.jeton }}</code>
+            <span class="nuance__valeur">{{ nuance.valeur }}</span>
+            @if (nuance.contraste) {
+              <span class="nuance__contraste">{{ nuance.contraste }}</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-typo">
+    <h2 id="titre-typo">Typographie</h2>
+    <div class="familles">
+      <div>
+        <p class="famille__nom">Titres — Space Grotesk</p>
+        <p class="famille__exemple famille__exemple--titre">PC portables gaming</p>
+      </div>
+      <div>
+        <p class="famille__nom">Texte — Inter</p>
+        <p class="famille__exemple">Garantie 12 mois, retour sous 7 jours.</p>
+      </div>
+      <div>
+        <p class="famille__nom">Caractéristiques — JetBrains Mono</p>
+        <p class="famille__exemple mono">Ryzen 7 7735HS · 16 Go · 512 Go</p>
+      </div>
+    </div>
+    <table class="echelle">
+      <caption class="visuellement-masque">Échelle des tailles de texte</caption>
+      <tbody>
+        @for (taille of tailles; track taille.jeton) {
+          <tr>
+            <th scope="row"><code>{{ taille.jeton }}</code></th>
+            <td [style.font-size]="'var(' + taille.jeton + ')'">{{ taille.usage }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-espaces">
+    <h2 id="titre-espaces">Espacements, rayons, ombres</h2>
+    <ul class="espaces" role="list">
+      @for (n of espaces; track n) {
+        <li>
+          <code>--espace-{{ n }}</code>
+          <span class="espaces__barre" [style.width]="'var(--espace-' + n + ')'"></span>
+        </li>
+      }
+    </ul>
+    <div class="grappe formes">
+      @for (rayon of rayons; track rayon) {
+        <div class="forme" [style.border-radius]="'var(' + rayon + ')'"><code>{{ rayon }}</code></div>
+      }
+      @for (ombre of ombres; track ombre) {
+        <div class="forme forme--ombre" [style.box-shadow]="'var(' + ombre + ')'"><code>{{ ombre }}</code></div>
+      }
+    </div>
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-boutons">
+    <h2 id="titre-boutons">Boutons</h2>
+    @for (taille of taillesBouton; track taille) {
+      <div class="grappe guide__ligne">
+        @for (variante of variantesBouton; track variante) {
+          <button biBouton type="button" [variante]="variante" [taille]="taille">
+            {{ variante }} · {{ taille }}
+          </button>
+        }
+      </div>
+    }
+    <div class="grappe guide__ligne">
+      <button biBouton type="button" [chargement]="chargement()" (click)="basculerChargement()">
+        Valider la commande
+      </button>
+      <button biBouton type="button" variante="contour" disabled>Indisponible</button>
+      <a biBouton variante="secondaire" href="#titre-boutons">Lien en forme de bouton</a>
+    </div>
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-champs">
+    <h2 id="titre-champs">Champs</h2>
+    <div class="champs">
+      <bi-champ
+        libelle="Téléphone"
+        type="tel"
+        prefixe="+221"
+        autocomplete="tel-national"
+        aide="Le livreur vous appelle avant de passer."
+        requis
+        [formControl]="telephone"
+      />
+      <bi-champ
+        libelle="E-mail"
+        type="email"
+        autocomplete="email"
+        erreur="Adresse e-mail incomplète."
+        [formControl]="email"
+      />
+      <bi-champ libelle="Budget maximum" modeSaisie="numeric" suffixe="FCFA" indication="500 000" />
+      <bi-champ libelle="Numéro de commande" [formControl]="desactive" />
+    </div>
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-badges">
+    <h2 id="titre-badges">Badges</h2>
+    <div class="grappe">
+      @for (badge of badges; track badge.type) {
+        <bi-badge [type]="badge.type">{{ badge.texte }}</bi-badge>
+      }
+    </div>
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-prix">
+    <h2 id="titre-prix">Prix</h2>
+    <div class="pile">
+      <bi-prix [montant]="450000" taille="sm" />
+      <bi-prix [montant]="450000" />
+      <bi-prix [montant]="1299000" [montantBarre]="1450000" />
+      <bi-prix [montant]="649000" [montantBarre]="729000" taille="lg" />
+    </div>
+  </section>
+
+  <section class="guide__section" aria-labelledby="titre-squelettes">
+    <h2 id="titre-squelettes">Squelettes</h2>
+    <div class="grappe squelettes">
+      <bi-squelette forme="cercle" largeur="3rem" />
+      <div class="pile squelettes__lignes">
+        <bi-squelette largeur="60%" />
+        <bi-squelette largeur="90%" />
+      </div>
+    </div>
+  </section>
+</div>
