@@ -144,6 +144,15 @@ public class Produit extends EntiteAuditee {
         return media;
     }
 
+    /**
+     * Ajoute une valeur de caractéristique au produit.
+     * <p>
+     * ATTENTION pour une valeur propre à une variante ({@code valeur.setVariante(…)}) : la variante doit
+     * déjà être en base. Hibernate propage l'enregistrement aux collections dans l'ordre alphabétique
+     * (caracteristiques avant variantes) : une variante nouvelle serait référencée par NULL au moment de
+     * l'INSERT, et deux valeurs de variantes différentes entreraient en collision sur
+     * {@code uk_valeur_caracteristique}. Enregistrer d'abord le produit et ses variantes.
+     */
     public ValeurCaracteristique ajouterCaracteristique(DefinitionCaracteristique definition) {
         ValeurCaracteristique valeur = new ValeurCaracteristique(this, definition);
         caracteristiques.add(valeur);

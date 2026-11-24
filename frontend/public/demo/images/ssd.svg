@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="SSD">
+  <rect width="800" height="600" fill="#EEF0F2"/>
+  <rect x="12" y="12" width="776" height="576" fill="none" stroke="#E4E7EB" stroke-width="2"/>
+  <g transform="translate(0.0 -30.0)" fill="none" stroke="#5B6573" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><style>.a{stroke:#C2410C}</style><rect x="170" y="250" width="460" height="100" rx="8"/><rect x="200" y="275" width="90" height="50" rx="3" class="a"/><rect x="320" y="275" width="70" height="50" rx="3"/><rect x="410" y="275" width="70" height="50" rx="3"/><path d="M600 270 v60"/></g>
+  <text x="400.0" y="522" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="30" font-weight="600" fill="#1C2128">SSD</text>
+  <text x="400.0" y="558" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="18" fill="#5B6573">Image de démonstration</text>
+</svg>

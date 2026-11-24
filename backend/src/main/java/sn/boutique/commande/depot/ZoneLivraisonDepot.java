@@ -8,4 +8,6 @@ import sn.boutique.commande.modele.ZoneLivraison;
 public interface ZoneLivraisonDepot extends JpaRepository<ZoneLivraison, Long> {
 
     List<ZoneLivraison> findByActifTrueOrderByTarifAsc();
+
+    boolean existsByNom(String nom);
 }

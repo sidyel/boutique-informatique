@@ -65,3 +65,21 @@ Toutes les erreurs suivent la RFC 9457 (`application/problem+json`) :
   "erreurs": [{ "champ": "email", "message": "L'e-mail n'est pas valide" }]
 }
 ```
+
+## Données de démonstration (profil `demo`)
+
+```bash
+# Dans .env : DEMO_ADMIN_MOT_DE_PASSE=<12 caractères minimum> (sinon pas de compte admin)
+SPRING_PROFILES_ACTIVE=dev,demo ./mvnw spring-boot:run
+```
+
+Au démarrage, `ChargeurDonneesDemo` charge `src/main/resources/demo/catalogue.json` et `site.json` :
+16 catégories avec leurs caractéristiques, 19 marques, 36 produits (44 variantes, prix indicatifs en FCFA),
+zones de livraison du Sénégal, pages légales à compléter, bannières, codes promo `BIENVENUE10` et
+`LIVRAISONOFFERTE`, un guide d'achat, une collection « Petits prix » et un compte SUPER_ADMIN.
+
+- **Idempotent** : chaque objet est retrouvé par sa clé naturelle (slug, SKU, code…) et créé seulement s'il
+  manque ; ce qui a été modifié dans l'admin n'est pas écrasé.
+- **Images** : SVG neutres servis par le frontend (`frontend/public/demo/images/`), aucune photo de
+  fabricant (droits d'auteur). Les noms de modèles sont réels, les prix et stocks sont indicatifs.
+- Jamais en production.

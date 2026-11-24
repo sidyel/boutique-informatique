@@ -10,6 +10,8 @@ public interface CategorieDepot extends JpaRepository<Categorie, Long> {
 
     Optional<Categorie> findBySlugAndActifTrue(String slug);
 
+    Optional<Categorie> findBySlug(String slug);
+
     boolean existsBySlug(String slug);
 
     /** Racines de l'arbre des catégories, dans l'ordre d'affichage. */

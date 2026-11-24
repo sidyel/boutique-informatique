@@ -1,0 +1,222 @@
+{
+  "parametres": {
+    "telephone": "33 800 00 00",
+    "whatsapp": "77 000 00 00",
+    "email": "contact@exemple.sn",
+    "adresse": "Dakar, Sénégal (adresse de démonstration)",
+    "horaires": "Lun.–sam. 9 h–19 h",
+    "liensReseauxSociaux": {
+      "facebook": "https://www.facebook.com/",
+      "instagram": "https://www.instagram.com/",
+      "tiktok": "https://www.tiktok.com/"
+    }
+  },
+  "zones": [
+    {
+      "nom": "Dakar Plateau et centre",
+      "tarif": 2000,
+      "delaiJours": 1,
+      "villesQuartiers": [
+        "Plateau",
+        "Médina",
+        "Fann",
+        "Point E",
+        "Gueule Tapée",
+        "Colobane",
+        "Fass"
+      ]
+    },
+    {
+      "nom": "Dakar résidentiel",
+      "tarif": 2500,
+      "delaiJours": 1,
+      "villesQuartiers": [
+        "Mermoz",
+        "Sacré-Cœur",
+        "Ouakam",
+        "Ngor",
+        "Yoff",
+        "Almadies",
+        "Liberté",
+        "Grand Yoff",
+        "Parcelles Assainies",
+        "HLM",
+        "Grand Dakar"
+      ]
+    },
+    {
+      "nom": "Banlieue",
+      "tarif": 3500,
+      "delaiJours": 1,
+      "villesQuartiers": [
+        "Pikine",
+        "Guédiawaye",
+        "Thiaroye",
+        "Keur Massar",
+        "Malika",
+        "Mbao",
+        "Rufisque"
+      ]
+    },
+    {
+      "nom": "Diamniadio et Lac Rose",
+      "tarif": 4500,
+      "delaiJours": 2,
+      "villesQuartiers": [
+        "Diamniadio",
+        "Sébikotane",
+        "Bargny",
+        "Sangalkam",
+        "Lac Rose"
+      ]
+    },
+    {
+      "nom": "Thiès et Petite-Côte",
+      "tarif": 5000,
+      "delaiJours": 2,
+      "villesQuartiers": [
+        "Thiès",
+        "Mbour",
+        "Saly",
+        "Somone",
+        "Popenguine"
+      ]
+    },
+    {
+      "nom": "Nord et Centre",
+      "tarif": 7000,
+      "delaiJours": 3,
+      "villesQuartiers": [
+        "Saint-Louis",
+        "Louga",
+        "Touba",
+        "Diourbel",
+        "Kaolack",
+        "Fatick"
+      ]
+    },
+    {
+      "nom": "Sud et Est",
+      "tarif": 10000,
+      "delaiJours": 4,
+      "villesQuartiers": [
+        "Ziguinchor",
+        "Kolda",
+        "Sédhiou",
+        "Tambacounda",
+        "Kédougou"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "slug": "cgv",
+      "titre": "Conditions générales de vente"
+    },
+    {
+      "slug": "mentions-legales",
+      "titre": "Mentions légales"
+    },
+    {
+      "slug": "confidentialite",
+      "titre": "Politique de confidentialité"
+    },
+    {
+      "slug": "livraison",
+      "titre": "Livraison",
+      "contenu": "<p>Livraison à Dakar en 24 h, en banlieue sous 24 à 48 h et dans les régions sous 2 à 4 jours. Tarifs selon la zone, affichés avant la validation de la commande.</p><p><em>Contenu de démonstration : à remplacer par le texte validé par la boutique.</em></p>"
+    },
+    {
+      "slug": "retours-garantie",
+      "titre": "Retours et garantie",
+      "contenu": "<p>Garantie de 6 à 60 mois selon le produit (indiquée sur chaque fiche). Signalez une panne depuis votre compte, rubrique « Mes demandes SAV ».</p><p><em>Contenu de démonstration : à remplacer par le texte validé par la boutique.</em></p>"
+    },
+    {
+      "slug": "a-propos",
+      "titre": "À propos"
+    },
+    {
+      "slug": "contact",
+      "titre": "Contact"
+    }
+  ],
+  "bannieres": [
+    {
+      "emplacement": "ACCUEIL_CARROUSEL",
+      "image": "banniere-livraison",
+      "texteAlternatif": "Livraison à Dakar en 24 h",
+      "titre": "Livraison à Dakar en 24 h",
+      "sousTitre": "Paiement Wave, Orange Money ou à la livraison",
+      "texteBouton": "Voir les PC portables",
+      "lien": "/categorie/pc-portables",
+      "position": 0
+    },
+    {
+      "emplacement": "ACCUEIL_CARROUSEL",
+      "image": "banniere-gaming",
+      "texteAlternatif": "PC portables gaming",
+      "titre": "PC portables gaming",
+      "sousTitre": "RTX 4050 à 4060, garantie 12 mois",
+      "texteBouton": "Découvrir",
+      "lien": "/categorie/pc-portables-gaming",
+      "position": 1
+    },
+    {
+      "emplacement": "ACCUEIL_PROMO",
+      "image": "banniere-onduleurs",
+      "texteAlternatif": "Onduleurs APC",
+      "titre": "Protégez votre matériel",
+      "sousTitre": "Onduleurs APC contre les coupures",
+      "texteBouton": "Voir les onduleurs",
+      "lien": "/categorie/onduleurs",
+      "position": 0
+    }
+  ],
+  "codesPromo": [
+    {
+      "code": "BIENVENUE10",
+      "type": "POURCENTAGE",
+      "valeur": 10,
+      "montantMinimum": 100000,
+      "utilisationsParClient": 1
+    },
+    {
+      "code": "LIVRAISONOFFERTE",
+      "type": "LIVRAISON_OFFERTE",
+      "valeur": 0,
+      "montantMinimum": 300000
+    }
+  ],
+  "articles": [
+    {
+      "slug": "quel-pc-portable-pour-la-fac",
+      "titre": "Quel PC portable choisir pour la fac ?",
+      "extrait": "Budget, autonomie, poids : nos conseils pour choisir un portable qui tiendra toute la licence.",
+      "image": "guide-pc-etudiant",
+      "categorie": "pc-portables",
+      "contenu": "<h2>Le processeur</h2><p>Un Core i3 récent ou un Core i5 suffit pour la bureautique et les cours en ligne.</p><h2>La mémoire</h2><p>Visez 8 Go au minimum, 16 Go si vous gardez beaucoup d'onglets ouverts.</p><h2>Le stockage</h2><p>Un SSD est indispensable : le PC démarre en quelques secondes.</p><h2>Pensez à l'onduleur</h2><p>Un onduleur protège votre travail lors des coupures de courant.</p><p><em>Contenu de démonstration : à remplacer par le texte validé par la boutique.</em></p>",
+      "produitsLies": [
+        "lenovo-ideapad-slim-3-15ian8",
+        "asus-vivobook-15-x1504va",
+        "dell-latitude-5420-reconditionne",
+        "apc-back-ups-700va-bx700ui"
+      ]
+    }
+  ],
+  "collections": [
+    {
+      "slug": "petits-prix",
+      "titre": "Petits prix",
+      "indexable": true,
+      "description": "Accessoires et composants à moins de 50 000 FCFA.",
+      "produits": [
+        "logitech-mk270-sans-fil",
+        "crucial-ddr4-3200-so-dimm",
+        "kingston-nv3-nvme",
+        "crucial-bx500-sata-480-go",
+        "ugreen-hub-usb-c-7-en-1",
+        "hp-sacoche-prelude-15-6-pouces"
+      ]
+    }
+  ]
+}

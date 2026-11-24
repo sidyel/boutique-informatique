@@ -10,4 +10,6 @@ public interface BanniereDepot extends JpaRepository<Banniere, Long> {
 
     /** Candidates d'un emplacement ; la période (dateDebut, dateFin) est filtrée par le service. */
     List<Banniere> findByEmplacementAndActifTrueOrderByPositionAsc(EmplacementBanniere emplacement);
+
+    boolean existsByImageOrdinateurUrl(String imageOrdinateurUrl);
 }

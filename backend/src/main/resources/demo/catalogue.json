@@ -1,0 +1,2105 @@
+{
+  "marques": [
+    {
+      "slug": "asus",
+      "nom": "Asus"
+    },
+    {
+      "slug": "lenovo",
+      "nom": "Lenovo"
+    },
+    {
+      "slug": "hp",
+      "nom": "HP"
+    },
+    {
+      "slug": "dell",
+      "nom": "Dell"
+    },
+    {
+      "slug": "acer",
+      "nom": "Acer"
+    },
+    {
+      "slug": "apple",
+      "nom": "Apple"
+    },
+    {
+      "slug": "msi",
+      "nom": "MSI"
+    },
+    {
+      "slug": "amd",
+      "nom": "AMD"
+    },
+    {
+      "slug": "intel",
+      "nom": "Intel"
+    },
+    {
+      "slug": "gigabyte",
+      "nom": "Gigabyte"
+    },
+    {
+      "slug": "kingston",
+      "nom": "Kingston"
+    },
+    {
+      "slug": "crucial",
+      "nom": "Crucial"
+    },
+    {
+      "slug": "samsung",
+      "nom": "Samsung"
+    },
+    {
+      "slug": "lg",
+      "nom": "LG"
+    },
+    {
+      "slug": "logitech",
+      "nom": "Logitech"
+    },
+    {
+      "slug": "hyperx",
+      "nom": "HyperX"
+    },
+    {
+      "slug": "tp-link",
+      "nom": "TP-Link"
+    },
+    {
+      "slug": "apc",
+      "nom": "APC"
+    },
+    {
+      "slug": "ugreen",
+      "nom": "Ugreen"
+    }
+  ],
+  "categories": [
+    {
+      "slug": "ordinateurs",
+      "nom": "Ordinateurs",
+      "parent": null,
+      "position": 0,
+      "image": "portable",
+      "categorieGoogle": "Électronique > Ordinateurs",
+      "description": "PC portables, PC gaming et PC de bureau, neufs et reconditionnés, garantis.",
+      "caracteristiques": []
+    },
+    {
+      "slug": "pc-portables",
+      "nom": "PC portables",
+      "parent": "ordinateurs",
+      "position": 1,
+      "image": "portable",
+      "categorieGoogle": "Électronique > Ordinateurs > Ordinateurs portables",
+      "description": "PC portables pour les études, le bureau et la création, de 13 à 16 pouces.",
+      "caracteristiques": [
+        {
+          "cle": "processeur_modele",
+          "libelle": "Processeur",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Processeur",
+          "filtrable": false,
+          "cleRecherche": true
+        },
+        {
+          "cle": "ram_go",
+          "libelle": "Mémoire vive",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Mémoire",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "stockage_go",
+          "libelle": "Stockage",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Stockage",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "type_stockage",
+          "libelle": "Type de stockage",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Stockage",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "carte_graphique",
+          "libelle": "Carte graphique",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Graphisme",
+          "filtrable": false,
+          "cleRecherche": true
+        },
+        {
+          "cle": "systeme",
+          "libelle": "Système d'exploitation",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Logiciel",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "ecran_pouces",
+          "libelle": "Taille d'écran",
+          "type": "NOMBRE",
+          "unite": "pouces",
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "frequence_ecran_hz",
+          "libelle": "Fréquence d'écran",
+          "type": "NOMBRE",
+          "unite": "Hz",
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "poids_kg",
+          "libelle": "Poids",
+          "type": "NOMBRE",
+          "unite": "kg",
+          "groupe": "Dimensions",
+          "filtrable": false,
+          "cleRecherche": false
+        },
+        {
+          "cle": "clavier_azerty",
+          "libelle": "Clavier AZERTY",
+          "type": "BOOLEEN",
+          "unite": null,
+          "groupe": "Clavier",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "pc-portables-gaming",
+      "nom": "PC portables gaming",
+      "parent": "ordinateurs",
+      "position": 2,
+      "image": "portable-gaming",
+      "categorieGoogle": "Électronique > Ordinateurs > Ordinateurs portables",
+      "description": "PC portables équipés de cartes graphiques RTX, écrans 144 Hz et plus.",
+      "caracteristiques": [
+        {
+          "cle": "processeur_modele",
+          "libelle": "Processeur",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Processeur",
+          "filtrable": false,
+          "cleRecherche": true
+        },
+        {
+          "cle": "ram_go",
+          "libelle": "Mémoire vive",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Mémoire",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "stockage_go",
+          "libelle": "Stockage",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Stockage",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "type_stockage",
+          "libelle": "Type de stockage",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Stockage",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "carte_graphique",
+          "libelle": "Carte graphique",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Graphisme",
+          "filtrable": false,
+          "cleRecherche": true
+        },
+        {
+          "cle": "systeme",
+          "libelle": "Système d'exploitation",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Logiciel",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "ecran_pouces",
+          "libelle": "Taille d'écran",
+          "type": "NOMBRE",
+          "unite": "pouces",
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "frequence_ecran_hz",
+          "libelle": "Fréquence d'écran",
+          "type": "NOMBRE",
+          "unite": "Hz",
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "poids_kg",
+          "libelle": "Poids",
+          "type": "NOMBRE",
+          "unite": "kg",
+          "groupe": "Dimensions",
+          "filtrable": false,
+          "cleRecherche": false
+        },
+        {
+          "cle": "clavier_azerty",
+          "libelle": "Clavier AZERTY",
+          "type": "BOOLEEN",
+          "unite": null,
+          "groupe": "Clavier",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "pc-de-bureau",
+      "nom": "PC de bureau",
+      "parent": "ordinateurs",
+      "position": 3,
+      "image": "pc-bureau",
+      "categorieGoogle": "Électronique > Ordinateurs > Ordinateurs de bureau",
+      "description": "Tours et mini-PC pour le bureau, la caisse et la maison.",
+      "caracteristiques": [
+        {
+          "cle": "processeur_modele",
+          "libelle": "Processeur",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Processeur",
+          "filtrable": false,
+          "cleRecherche": true
+        },
+        {
+          "cle": "ram_go",
+          "libelle": "Mémoire vive",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Mémoire",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "stockage_go",
+          "libelle": "Stockage",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Stockage",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "type_stockage",
+          "libelle": "Type de stockage",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Stockage",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "carte_graphique",
+          "libelle": "Carte graphique",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Graphisme",
+          "filtrable": false,
+          "cleRecherche": true
+        },
+        {
+          "cle": "systeme",
+          "libelle": "Système d'exploitation",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Logiciel",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "composants",
+      "nom": "Composants",
+      "parent": null,
+      "position": 4,
+      "image": "processeur",
+      "categorieGoogle": "Électronique > Composants électroniques",
+      "description": "Processeurs, cartes graphiques, mémoire et stockage pour monter ou améliorer un PC.",
+      "caracteristiques": []
+    },
+    {
+      "slug": "processeurs",
+      "nom": "Processeurs",
+      "parent": "composants",
+      "position": 5,
+      "image": "processeur",
+      "categorieGoogle": "Électronique > Composants électroniques",
+      "description": "Processeurs AMD Ryzen et Intel Core, en boîte.",
+      "caracteristiques": [
+        {
+          "cle": "socket",
+          "libelle": "Socket",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Compatibilité",
+          "filtrable": true,
+          "cleRecherche": true
+        },
+        {
+          "cle": "coeurs",
+          "libelle": "Cœurs",
+          "type": "NOMBRE",
+          "unite": null,
+          "groupe": "Performances",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "frequence_boost_ghz",
+          "libelle": "Fréquence boost",
+          "type": "NOMBRE",
+          "unite": "GHz",
+          "groupe": "Performances",
+          "filtrable": false,
+          "cleRecherche": false
+        },
+        {
+          "cle": "tdp_w",
+          "libelle": "TDP",
+          "type": "NOMBRE",
+          "unite": "W",
+          "groupe": "Consommation",
+          "filtrable": false,
+          "cleRecherche": false
+        },
+        {
+          "cle": "graphique_integre",
+          "libelle": "Graphique intégré",
+          "type": "BOOLEEN",
+          "unite": null,
+          "groupe": "Performances",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "cartes-graphiques",
+      "nom": "Cartes graphiques",
+      "parent": "composants",
+      "position": 6,
+      "image": "carte-graphique",
+      "categorieGoogle": "Électronique > Composants électroniques",
+      "description": "Cartes graphiques NVIDIA GeForce et AMD Radeon pour le jeu et la création.",
+      "caracteristiques": [
+        {
+          "cle": "puce_graphique",
+          "libelle": "Puce graphique",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Performances",
+          "filtrable": true,
+          "cleRecherche": true
+        },
+        {
+          "cle": "memoire_video_go",
+          "libelle": "Mémoire vidéo",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Performances",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "alimentation_recommandee_w",
+          "libelle": "Alimentation recommandée",
+          "type": "NOMBRE",
+          "unite": "W",
+          "groupe": "Consommation",
+          "filtrable": false,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "memoire-ram",
+      "nom": "Mémoire RAM",
+      "parent": "composants",
+      "position": 7,
+      "image": "memoire",
+      "categorieGoogle": "Électronique > Composants électroniques",
+      "description": "Barrettes DDR4 et DDR5 pour PC de bureau et portables.",
+      "caracteristiques": [
+        {
+          "cle": "type_memoire",
+          "libelle": "Type",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Compatibilité",
+          "filtrable": true,
+          "cleRecherche": true
+        },
+        {
+          "cle": "format_memoire",
+          "libelle": "Format",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Compatibilité",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "capacite_go",
+          "libelle": "Capacité",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Capacité",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "frequence_mhz",
+          "libelle": "Fréquence",
+          "type": "NOMBRE",
+          "unite": "MHz",
+          "groupe": "Performances",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "stockage-ssd",
+      "nom": "Stockage SSD",
+      "parent": "composants",
+      "position": 8,
+      "image": "ssd",
+      "categorieGoogle": "Électronique > Composants électroniques",
+      "description": "SSD NVMe et SATA pour accélérer un PC ou augmenter sa capacité.",
+      "caracteristiques": [
+        {
+          "cle": "interface",
+          "libelle": "Interface",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Compatibilité",
+          "filtrable": true,
+          "cleRecherche": true
+        },
+        {
+          "cle": "capacite_go",
+          "libelle": "Capacité",
+          "type": "NOMBRE",
+          "unite": "Go",
+          "groupe": "Capacité",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "lecture_mo_s",
+          "libelle": "Lecture séquentielle",
+          "type": "NOMBRE",
+          "unite": "Mo/s",
+          "groupe": "Performances",
+          "filtrable": false,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "ecrans",
+      "nom": "Écrans",
+      "parent": null,
+      "position": 9,
+      "image": "ecran",
+      "categorieGoogle": "Électronique > Vidéo > Moniteurs d'ordinateur",
+      "description": "Écrans bureautiques et gaming, de 24 à 27 pouces.",
+      "caracteristiques": [
+        {
+          "cle": "taille_pouces",
+          "libelle": "Taille",
+          "type": "NOMBRE",
+          "unite": "pouces",
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "resolution",
+          "libelle": "Résolution",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": true
+        },
+        {
+          "cle": "dalle",
+          "libelle": "Dalle",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "frequence_hz",
+          "libelle": "Fréquence",
+          "type": "NOMBRE",
+          "unite": "Hz",
+          "groupe": "Écran",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "peripheriques",
+      "nom": "Périphériques",
+      "parent": null,
+      "position": 10,
+      "image": "clavier-souris",
+      "categorieGoogle": "Électronique > Accessoires d'ordinateurs",
+      "description": "Claviers, souris et casques.",
+      "caracteristiques": []
+    },
+    {
+      "slug": "claviers-souris",
+      "nom": "Claviers et souris",
+      "parent": "peripheriques",
+      "position": 11,
+      "image": "clavier-souris",
+      "categorieGoogle": "Électronique > Accessoires d'ordinateurs",
+      "description": "Claviers AZERTY, souris bureautiques et gaming, ensembles sans fil.",
+      "caracteristiques": [
+        {
+          "cle": "connexion",
+          "libelle": "Connexion",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Connectivité",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "disposition",
+          "libelle": "Disposition",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Clavier",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "casques-audio",
+      "nom": "Casques et audio",
+      "parent": "peripheriques",
+      "position": 12,
+      "image": "casque",
+      "categorieGoogle": "Électronique > Audio",
+      "description": "Casques gaming et micro-casques pour les visioconférences.",
+      "caracteristiques": [
+        {
+          "cle": "connexion",
+          "libelle": "Connexion",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Connectivité",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "micro",
+          "libelle": "Microphone",
+          "type": "BOOLEEN",
+          "unite": null,
+          "groupe": "Audio",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "reseau",
+      "nom": "Réseau",
+      "parent": null,
+      "position": 13,
+      "image": "routeur",
+      "categorieGoogle": "Électronique > Réseau",
+      "description": "Routeurs Wi-Fi et systèmes maillés pour la maison et le bureau.",
+      "caracteristiques": [
+        {
+          "cle": "norme_wifi",
+          "libelle": "Norme Wi-Fi",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Sans fil",
+          "filtrable": true,
+          "cleRecherche": true
+        },
+        {
+          "cle": "debit_max_mbps",
+          "libelle": "Débit maximal",
+          "type": "NOMBRE",
+          "unite": "Mbit/s",
+          "groupe": "Sans fil",
+          "filtrable": false,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "onduleurs",
+      "nom": "Onduleurs",
+      "parent": null,
+      "position": 14,
+      "image": "onduleur",
+      "categorieGoogle": "Électronique > Alimentation",
+      "description": "Onduleurs pour protéger PC, box et caisses enregistreuses des coupures et des surtensions.",
+      "caracteristiques": [
+        {
+          "cle": "puissance_va",
+          "libelle": "Puissance",
+          "type": "NOMBRE",
+          "unite": "VA",
+          "groupe": "Alimentation",
+          "filtrable": true,
+          "cleRecherche": false
+        },
+        {
+          "cle": "puissance_w",
+          "libelle": "Puissance active",
+          "type": "NOMBRE",
+          "unite": "W",
+          "groupe": "Alimentation",
+          "filtrable": false,
+          "cleRecherche": false
+        },
+        {
+          "cle": "prises",
+          "libelle": "Prises protégées",
+          "type": "NOMBRE",
+          "unite": null,
+          "groupe": "Connectique",
+          "filtrable": false,
+          "cleRecherche": false
+        },
+        {
+          "cle": "technologie",
+          "libelle": "Technologie",
+          "type": "LISTE",
+          "unite": null,
+          "groupe": "Alimentation",
+          "filtrable": true,
+          "cleRecherche": false
+        }
+      ]
+    },
+    {
+      "slug": "accessoires",
+      "nom": "Accessoires",
+      "parent": null,
+      "position": 15,
+      "image": "accessoire",
+      "categorieGoogle": "Électronique > Accessoires d'ordinateurs",
+      "description": "Sacoches, hubs USB-C et petits accessoires.",
+      "caracteristiques": [
+        {
+          "cle": "compatibilite",
+          "libelle": "Compatibilité",
+          "type": "TEXTE",
+          "unite": null,
+          "groupe": "Compatibilité",
+          "filtrable": false,
+          "cleRecherche": false
+        }
+      ]
+    }
+  ],
+  "produits": [
+    {
+      "slug": "asus-vivobook-15-x1504va",
+      "nom": "Vivobook 15 X1504VA",
+      "marque": "asus",
+      "categorie": "pc-portables",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": "X1504VA",
+      "misEnAvant": true,
+      "descriptionCourte": "15,6 pouces Full HD, Intel Core i5 de 13e génération, SSD NVMe. Un portable polyvalent pour les études et le bureau.",
+      "descriptionLongue": "<p>15,6 pouces Full HD, Intel Core i5 de 13e génération, SSD NVMe. Un portable polyvalent pour les études et le bureau.</p>",
+      "image": "portable",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-1335U",
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel Iris Xe",
+        "systeme": "Windows 11 Famille",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 60,
+        "poids_kg": 1.7,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "ASUS-X1504VA-8-512",
+          "libelle": "8 Go / 512 Go",
+          "attributs": {
+            "ram": "8 Go",
+            "stockage": "512 Go"
+          },
+          "prix": 389000,
+          "prixBarre": null,
+          "stock": 7,
+          "poidsGrammes": 1700,
+          "caracteristiques": {
+            "ram_go": 8
+          }
+        },
+        {
+          "sku": "ASUS-X1504VA-16-512",
+          "libelle": "16 Go / 512 Go",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "512 Go"
+          },
+          "prix": 429000,
+          "prixBarre": null,
+          "stock": 4,
+          "poidsGrammes": 1700,
+          "caracteristiques": {
+            "ram_go": 16
+          }
+        }
+      ]
+    },
+    {
+      "slug": "lenovo-ideapad-slim-3-15ian8",
+      "nom": "IdeaPad Slim 3 15IAN8",
+      "marque": "lenovo",
+      "categorie": "pc-portables",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Portable léger et économique, Intel Core i3-N305 8 cœurs, idéal pour la bureautique et les cours en ligne.",
+      "descriptionLongue": "<p>Portable léger et économique, Intel Core i3-N305 8 cœurs, idéal pour la bureautique et les cours en ligne.</p>",
+      "image": "portable",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i3-N305",
+        "ram_go": 8,
+        "stockage_go": 256,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel UHD",
+        "systeme": "Windows 11 Famille",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 60,
+        "poids_kg": 1.62,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "LEN-IPS3-15IAN8-8-256",
+          "libelle": "8 Go / 256 Go",
+          "attributs": {
+            "ram": "8 Go",
+            "stockage": "256 Go"
+          },
+          "prix": 299000,
+          "prixBarre": null,
+          "stock": 12,
+          "poidsGrammes": 1620,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "hp-250-g10",
+      "nom": "250 G10",
+      "marque": "hp",
+      "categorie": "pc-portables",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Le portable professionnel le plus vendu de HP : Core i5, 8 Go, SSD 512 Go, robuste et facile à réparer.",
+      "descriptionLongue": "<p>Le portable professionnel le plus vendu de HP : Core i5, 8 Go, SSD 512 Go, robuste et facile à réparer.</p>",
+      "image": "portable",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-1335U",
+        "ram_go": 8,
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel Iris Xe",
+        "systeme": "Windows 11 Professionnel",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 60,
+        "poids_kg": 1.74,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "HP-250G10-I5-8-512",
+          "libelle": "Core i5 / 8 Go / 512 Go",
+          "attributs": {
+            "processeur": "Core i5",
+            "ram": "8 Go"
+          },
+          "prix": 365000,
+          "prixBarre": 395000,
+          "stock": 9,
+          "poidsGrammes": 1740,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "dell-latitude-5420-reconditionne",
+      "nom": "Latitude 5420 reconditionné",
+      "marque": "dell",
+      "categorie": "pc-portables",
+      "etat": "RECONDITIONNE",
+      "garantieMois": 6,
+      "mpn": null,
+      "misEnAvant": true,
+      "descriptionCourte": "Reconditionné grade A, testé et nettoyé : Core i5 11e génération, 16 Go, SSD 256 Go, batterie contrôlée.",
+      "descriptionLongue": "<p>Reconditionné grade A, testé et nettoyé : Core i5 11e génération, 16 Go, SSD 256 Go, batterie contrôlée.</p>",
+      "image": "portable",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-1145G7",
+        "ram_go": 16,
+        "stockage_go": 256,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel Iris Xe",
+        "systeme": "Windows 11 Professionnel",
+        "ecran_pouces": 14,
+        "frequence_ecran_hz": 60,
+        "poids_kg": 1.45,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "DELL-LAT5420-R-16-256",
+          "libelle": "16 Go / 256 Go",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "256 Go"
+          },
+          "prix": 245000,
+          "prixBarre": null,
+          "stock": 6,
+          "poidsGrammes": 1450,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "asus-zenbook-14-oled-ux3405ma",
+      "nom": "Zenbook 14 OLED UX3405MA",
+      "marque": "asus",
+      "categorie": "pc-portables",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": "UX3405MA",
+      "misEnAvant": false,
+      "descriptionCourte": "14 pouces OLED 3K, Intel Core Ultra 7, 16 Go, SSD 1 To, 1,2 kg : pour les déplacements et la création.",
+      "descriptionLongue": "<p>14 pouces OLED 3K, Intel Core Ultra 7, 16 Go, SSD 1 To, 1,2 kg : pour les déplacements et la création.</p>",
+      "image": "portable",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core Ultra 7 155H",
+        "ram_go": 16,
+        "stockage_go": 1000,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel Arc",
+        "systeme": "Windows 11 Famille",
+        "ecran_pouces": 14,
+        "frequence_ecran_hz": 120,
+        "poids_kg": 1.2,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "ASUS-UX3405MA-16-1T",
+          "libelle": "16 Go / 1 To",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "1 To"
+          },
+          "prix": 749000,
+          "prixBarre": null,
+          "stock": 3,
+          "poidsGrammes": 1200,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "apple-macbook-air-13-m2",
+      "nom": "MacBook Air 13 M2",
+      "marque": "apple",
+      "categorie": "pc-portables",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Puce Apple M2, écran Liquid Retina 13,6 pouces, jusqu'à 18 h d'autonomie, sans ventilateur.",
+      "descriptionLongue": "<p>Puce Apple M2, écran Liquid Retina 13,6 pouces, jusqu'à 18 h d'autonomie, sans ventilateur.</p>",
+      "image": "portable",
+      "caracteristiques": {
+        "processeur_modele": "Apple M2",
+        "ram_go": 8,
+        "stockage_go": 256,
+        "type_stockage": "SSD",
+        "carte_graphique": "GPU Apple M2 8 cœurs",
+        "systeme": "macOS",
+        "ecran_pouces": 13.6,
+        "frequence_ecran_hz": 60,
+        "poids_kg": 1.24,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "APPLE-MBA13-M2-8-256-MINUIT",
+          "libelle": "8 Go / 256 Go / Minuit",
+          "attributs": {
+            "ram": "8 Go",
+            "stockage": "256 Go",
+            "couleur": "Minuit"
+          },
+          "prix": 689000,
+          "prixBarre": null,
+          "stock": 2,
+          "poidsGrammes": 1240,
+          "caracteristiques": {}
+        },
+        {
+          "sku": "APPLE-MBA13-M2-8-256-STELLAIRE",
+          "libelle": "8 Go / 256 Go / Lumière stellaire",
+          "attributs": {
+            "ram": "8 Go",
+            "stockage": "256 Go",
+            "couleur": "Lumière stellaire"
+          },
+          "prix": 689000,
+          "prixBarre": null,
+          "stock": 1,
+          "poidsGrammes": 1240,
+          "caracteristiques": {}
+        },
+        {
+          "sku": "APPLE-MBA13-M2-16-512-MINUIT",
+          "libelle": "16 Go / 512 Go / Minuit",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "512 Go",
+            "couleur": "Minuit"
+          },
+          "prix": 889000,
+          "prixBarre": null,
+          "stock": 1,
+          "poidsGrammes": 1240,
+          "caracteristiques": {
+            "ram_go": 16,
+            "stockage_go": 512
+          }
+        }
+      ]
+    },
+    {
+      "slug": "hp-probook-450-g10",
+      "nom": "ProBook 450 G10",
+      "marque": "hp",
+      "categorie": "pc-portables",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Core i7, 16 Go, SSD 512 Go, lecteur d'empreintes : un portable d'entreprise sécurisé et durable.",
+      "descriptionLongue": "<p>Core i7, 16 Go, SSD 512 Go, lecteur d'empreintes : un portable d'entreprise sécurisé et durable.</p>",
+      "image": "portable",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i7-1355U",
+        "ram_go": 16,
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel Iris Xe",
+        "systeme": "Windows 11 Professionnel",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 60,
+        "poids_kg": 1.79,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "HP-PB450G10-I7-16-512",
+          "libelle": "Core i7 / 16 Go / 512 Go",
+          "attributs": {
+            "processeur": "Core i7",
+            "ram": "16 Go"
+          },
+          "prix": 589000,
+          "prixBarre": null,
+          "stock": 5,
+          "poidsGrammes": 1790,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "asus-tuf-gaming-a15-fa507nv",
+      "nom": "TUF Gaming A15 FA507NV",
+      "marque": "asus",
+      "categorie": "pc-portables-gaming",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": "FA507NV",
+      "misEnAvant": true,
+      "descriptionCourte": "Ryzen 7 7735HS et RTX 4060, écran 144 Hz, châssis renforcé : le gaming solide à prix maîtrisé.",
+      "descriptionLongue": "<p>Ryzen 7 7735HS et RTX 4060, écran 144 Hz, châssis renforcé : le gaming solide à prix maîtrisé.</p>",
+      "image": "portable-gaming",
+      "caracteristiques": {
+        "processeur_modele": "AMD Ryzen 7 7735HS",
+        "ram_go": 16,
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "NVIDIA GeForce RTX 4060 8 Go",
+        "systeme": "Windows 11 Famille",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 144,
+        "poids_kg": 2.2,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "ASUS-FA507NV-16-512",
+          "libelle": "16 Go / 512 Go",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "512 Go"
+          },
+          "prix": 749000,
+          "prixBarre": 799000,
+          "stock": 4,
+          "poidsGrammes": 2200,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "acer-nitro-v-15-anv15-51",
+      "nom": "Nitro V 15 ANV15-51",
+      "marque": "acer",
+      "categorie": "pc-portables-gaming",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Core i5 13e génération et RTX 4050 : l'entrée de gamme gaming pour jouer en 1080p.",
+      "descriptionLongue": "<p>Core i5 13e génération et RTX 4050 : l'entrée de gamme gaming pour jouer en 1080p.</p>",
+      "image": "portable-gaming",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-13420H",
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "NVIDIA GeForce RTX 4050 6 Go",
+        "systeme": "Windows 11 Famille",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 144,
+        "poids_kg": 2.11,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "ACER-ANV15-51-8-512",
+          "libelle": "8 Go / 512 Go",
+          "attributs": {
+            "ram": "8 Go",
+            "stockage": "512 Go"
+          },
+          "prix": 589000,
+          "prixBarre": null,
+          "stock": 6,
+          "poidsGrammes": 2110,
+          "caracteristiques": {
+            "ram_go": 8
+          }
+        },
+        {
+          "sku": "ACER-ANV15-51-16-512",
+          "libelle": "16 Go / 512 Go",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "512 Go"
+          },
+          "prix": 639000,
+          "prixBarre": null,
+          "stock": 3,
+          "poidsGrammes": 2110,
+          "caracteristiques": {
+            "ram_go": 16
+          }
+        }
+      ]
+    },
+    {
+      "slug": "msi-katana-15-b13vfk",
+      "nom": "Katana 15 B13VFK",
+      "marque": "msi",
+      "categorie": "pc-portables-gaming",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Core i7-13620H, RTX 4060, SSD 1 To, clavier rétroéclairé rouge.",
+      "descriptionLongue": "<p>Core i7-13620H, RTX 4060, SSD 1 To, clavier rétroéclairé rouge.</p>",
+      "image": "portable-gaming",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i7-13620H",
+        "ram_go": 16,
+        "stockage_go": 1000,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "NVIDIA GeForce RTX 4060 8 Go",
+        "systeme": "Windows 11 Famille",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 144,
+        "poids_kg": 2.25,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "MSI-KATANA15-B13VFK-16-1T",
+          "libelle": "16 Go / 1 To",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "1 To"
+          },
+          "prix": 849000,
+          "prixBarre": null,
+          "stock": 2,
+          "poidsGrammes": 2250,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "lenovo-loq-15irx9",
+      "nom": "LOQ 15IRX9",
+      "marque": "lenovo",
+      "categorie": "pc-portables-gaming",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Core i5-13450HX et RTX 3050, refroidissement Legion : un premier PC gaming fiable.",
+      "descriptionLongue": "<p>Core i5-13450HX et RTX 3050, refroidissement Legion : un premier PC gaming fiable.</p>",
+      "image": "portable-gaming",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-13450HX",
+        "ram_go": 16,
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "NVIDIA GeForce RTX 3050 6 Go",
+        "systeme": "Windows 11 Famille",
+        "ecran_pouces": 15.6,
+        "frequence_ecran_hz": 144,
+        "poids_kg": 2.38,
+        "clavier_azerty": true
+      },
+      "variantes": [
+        {
+          "sku": "LEN-LOQ15IRX9-16-512",
+          "libelle": "16 Go / 512 Go",
+          "attributs": {
+            "ram": "16 Go",
+            "stockage": "512 Go"
+          },
+          "prix": 619000,
+          "prixBarre": null,
+          "stock": 0,
+          "poidsGrammes": 2380,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "hp-pro-tower-290-g9",
+      "nom": "Pro Tower 290 G9",
+      "marque": "hp",
+      "categorie": "pc-de-bureau",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Tour bureautique Core i5 12e génération, 8 Go, SSD 512 Go, évolutive (emplacements RAM et disque libres).",
+      "descriptionLongue": "<p>Tour bureautique Core i5 12e génération, 8 Go, SSD 512 Go, évolutive (emplacements RAM et disque libres).</p>",
+      "image": "pc-bureau",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-12400",
+        "ram_go": 8,
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel UHD 730",
+        "systeme": "Windows 11 Professionnel"
+      },
+      "variantes": [
+        {
+          "sku": "HP-PT290G9-I5-8-512",
+          "libelle": "Core i5 / 8 Go / 512 Go",
+          "attributs": {
+            "ram": "8 Go"
+          },
+          "prix": 349000,
+          "prixBarre": null,
+          "stock": 8,
+          "poidsGrammes": 4500,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "dell-optiplex-7010-tower",
+      "nom": "OptiPlex 7010 Tower",
+      "marque": "dell",
+      "categorie": "pc-de-bureau",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Core i5 13e génération, 16 Go, SSD 512 Go : la tour d'entreprise Dell, silencieuse et fiable.",
+      "descriptionLongue": "<p>Core i5 13e génération, 16 Go, SSD 512 Go : la tour d'entreprise Dell, silencieuse et fiable.</p>",
+      "image": "pc-bureau",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-13500",
+        "ram_go": 16,
+        "stockage_go": 512,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel UHD 770",
+        "systeme": "Windows 11 Professionnel"
+      },
+      "variantes": [
+        {
+          "sku": "DELL-OPTI7010T-I5-16-512",
+          "libelle": "Core i5 / 16 Go / 512 Go",
+          "attributs": {
+            "ram": "16 Go"
+          },
+          "prix": 489000,
+          "prixBarre": null,
+          "stock": 5,
+          "poidsGrammes": 5200,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "lenovo-thinkcentre-m70q-gen-4",
+      "nom": "ThinkCentre M70q Gen 4",
+      "marque": "lenovo",
+      "categorie": "pc-de-bureau",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Mini-PC de 1 litre à fixer derrière l'écran : Core i5, 8 Go, SSD 256 Go, parfait pour les caisses et l'accueil.",
+      "descriptionLongue": "<p>Mini-PC de 1 litre à fixer derrière l'écran : Core i5, 8 Go, SSD 256 Go, parfait pour les caisses et l'accueil.</p>",
+      "image": "pc-bureau",
+      "caracteristiques": {
+        "processeur_modele": "Intel Core i5-13400T",
+        "ram_go": 8,
+        "stockage_go": 256,
+        "type_stockage": "SSD NVMe",
+        "carte_graphique": "Intel UHD 730",
+        "systeme": "Windows 11 Professionnel"
+      },
+      "variantes": [
+        {
+          "sku": "LEN-M70Q-G4-I5-8-256",
+          "libelle": "Core i5 / 8 Go / 256 Go",
+          "attributs": {
+            "ram": "8 Go"
+          },
+          "prix": 399000,
+          "prixBarre": null,
+          "stock": 4,
+          "poidsGrammes": 1300,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "amd-ryzen-5-7600",
+      "nom": "Ryzen 5 7600",
+      "marque": "amd",
+      "categorie": "processeurs",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "6 cœurs, 12 threads, jusqu'à 5,1 GHz, socket AM5, ventirad fourni.",
+      "descriptionLongue": "<p>6 cœurs, 12 threads, jusqu'à 5,1 GHz, socket AM5, ventirad fourni.</p>",
+      "image": "processeur",
+      "caracteristiques": {
+        "socket": "AM5",
+        "coeurs": 6,
+        "frequence_boost_ghz": 5.1,
+        "tdp_w": 65,
+        "graphique_integre": true
+      },
+      "variantes": [
+        {
+          "sku": "AMD-R5-7600-BOX",
+          "libelle": "En boîte",
+          "attributs": {},
+          "prix": 139000,
+          "prixBarre": null,
+          "stock": 10,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "amd-ryzen-7-7800x3d",
+      "nom": "Ryzen 7 7800X3D",
+      "marque": "amd",
+      "categorie": "processeurs",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": true,
+      "descriptionCourte": "Le processeur gaming de référence : 8 cœurs, cache 3D V-Cache 96 Mo, socket AM5.",
+      "descriptionLongue": "<p>Le processeur gaming de référence : 8 cœurs, cache 3D V-Cache 96 Mo, socket AM5.</p>",
+      "image": "processeur",
+      "caracteristiques": {
+        "socket": "AM5",
+        "coeurs": 8,
+        "frequence_boost_ghz": 5.0,
+        "tdp_w": 120,
+        "graphique_integre": true
+      },
+      "variantes": [
+        {
+          "sku": "AMD-R7-7800X3D-BOX",
+          "libelle": "En boîte",
+          "attributs": {},
+          "prix": 289000,
+          "prixBarre": null,
+          "stock": 3,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "intel-core-i5-14400f",
+      "nom": "Core i5-14400F",
+      "marque": "intel",
+      "categorie": "processeurs",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "10 cœurs (6 P + 4 E), jusqu'à 4,7 GHz, socket LGA1700. Sans graphique intégré : carte graphique nécessaire.",
+      "descriptionLongue": "<p>10 cœurs (6 P + 4 E), jusqu'à 4,7 GHz, socket LGA1700. Sans graphique intégré : carte graphique nécessaire.</p>",
+      "image": "processeur",
+      "caracteristiques": {
+        "socket": "LGA1700",
+        "coeurs": 10,
+        "frequence_boost_ghz": 4.7,
+        "tdp_w": 65,
+        "graphique_integre": false
+      },
+      "variantes": [
+        {
+          "sku": "INTEL-I5-14400F-BOX",
+          "libelle": "En boîte",
+          "attributs": {},
+          "prix": 129000,
+          "prixBarre": null,
+          "stock": 7,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "msi-geforce-rtx-4060-ventus-2x-8g",
+      "nom": "GeForce RTX 4060 Ventus 2X 8G",
+      "marque": "msi",
+      "categorie": "cartes-graphiques",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "RTX 4060 8 Go GDDR6, double ventilateur, DLSS 3 : le jeu en 1080p au maximum des réglages.",
+      "descriptionLongue": "<p>RTX 4060 8 Go GDDR6, double ventilateur, DLSS 3 : le jeu en 1080p au maximum des réglages.</p>",
+      "image": "carte-graphique",
+      "caracteristiques": {
+        "puce_graphique": "NVIDIA GeForce RTX 4060",
+        "memoire_video_go": 8,
+        "alimentation_recommandee_w": 550
+      },
+      "variantes": [
+        {
+          "sku": "MSI-RTX4060-VENTUS2X-8G",
+          "libelle": "8 Go",
+          "attributs": {},
+          "prix": 199000,
+          "prixBarre": null,
+          "stock": 5,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "gigabyte-radeon-rx-7600-gaming-oc-8g",
+      "nom": "Radeon RX 7600 Gaming OC 8G",
+      "marque": "gigabyte",
+      "categorie": "cartes-graphiques",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "RX 7600 8 Go, triple ventilateur WINDFORCE, excellent rapport prix/performances en 1080p.",
+      "descriptionLongue": "<p>RX 7600 8 Go, triple ventilateur WINDFORCE, excellent rapport prix/performances en 1080p.</p>",
+      "image": "carte-graphique",
+      "caracteristiques": {
+        "puce_graphique": "AMD Radeon RX 7600",
+        "memoire_video_go": 8,
+        "alimentation_recommandee_w": 550
+      },
+      "variantes": [
+        {
+          "sku": "GIGA-RX7600-GAMINGOC-8G",
+          "libelle": "8 Go",
+          "attributs": {},
+          "prix": 179000,
+          "prixBarre": null,
+          "stock": 4,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "kingston-fury-beast-ddr5-5600",
+      "nom": "Fury Beast DDR5 5600",
+      "marque": "kingston",
+      "categorie": "memoire-ram",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Kit DDR5 5600 MT/s pour PC de bureau, profils Intel XMP et AMD EXPO.",
+      "descriptionLongue": "<p>Kit DDR5 5600 MT/s pour PC de bureau, profils Intel XMP et AMD EXPO.</p>",
+      "image": "memoire",
+      "caracteristiques": {
+        "type_memoire": "DDR5",
+        "format_memoire": "DIMM (PC de bureau)",
+        "frequence_mhz": 5600
+      },
+      "variantes": [
+        {
+          "sku": "KING-FB-DDR5-5600-16",
+          "libelle": "16 Go (2 × 8 Go)",
+          "attributs": {
+            "capacite": "16 Go"
+          },
+          "prix": 49000,
+          "prixBarre": null,
+          "stock": 15,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 16
+          }
+        },
+        {
+          "sku": "KING-FB-DDR5-5600-32",
+          "libelle": "32 Go (2 × 16 Go)",
+          "attributs": {
+            "capacite": "32 Go"
+          },
+          "prix": 89000,
+          "prixBarre": null,
+          "stock": 8,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 32
+          }
+        }
+      ]
+    },
+    {
+      "slug": "crucial-ddr4-3200-so-dimm",
+      "nom": "DDR4 3200 SO-DIMM",
+      "marque": "crucial",
+      "categorie": "memoire-ram",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Barrette pour PC portable : ajoutez de la mémoire en quelques minutes pour gagner en fluidité.",
+      "descriptionLongue": "<p>Barrette pour PC portable : ajoutez de la mémoire en quelques minutes pour gagner en fluidité.</p>",
+      "image": "memoire",
+      "caracteristiques": {
+        "type_memoire": "DDR4",
+        "format_memoire": "SO-DIMM (portable)",
+        "frequence_mhz": 3200
+      },
+      "variantes": [
+        {
+          "sku": "CRU-DDR4-3200-SO-8",
+          "libelle": "8 Go",
+          "attributs": {
+            "capacite": "8 Go"
+          },
+          "prix": 19000,
+          "prixBarre": null,
+          "stock": 20,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 8
+          }
+        },
+        {
+          "sku": "CRU-DDR4-3200-SO-16",
+          "libelle": "16 Go",
+          "attributs": {
+            "capacite": "16 Go"
+          },
+          "prix": 32000,
+          "prixBarre": null,
+          "stock": 14,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 16
+          }
+        }
+      ]
+    },
+    {
+      "slug": "samsung-990-pro-nvme",
+      "nom": "990 Pro NVMe",
+      "marque": "samsung",
+      "categorie": "stockage-ssd",
+      "etat": "NEUF",
+      "garantieMois": 60,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "SSD NVMe PCIe 4.0 haut de gamme, jusqu'à 7 450 Mo/s en lecture, garantie 5 ans.",
+      "descriptionLongue": "<p>SSD NVMe PCIe 4.0 haut de gamme, jusqu'à 7 450 Mo/s en lecture, garantie 5 ans.</p>",
+      "image": "ssd",
+      "caracteristiques": {
+        "interface": "NVMe PCIe 4.0",
+        "lecture_mo_s": 7450
+      },
+      "variantes": [
+        {
+          "sku": "SAM-990PRO-1T",
+          "libelle": "1 To",
+          "attributs": {
+            "capacite": "1 To"
+          },
+          "prix": 79000,
+          "prixBarre": null,
+          "stock": 9,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 1000
+          }
+        },
+        {
+          "sku": "SAM-990PRO-2T",
+          "libelle": "2 To",
+          "attributs": {
+            "capacite": "2 To"
+          },
+          "prix": 139000,
+          "prixBarre": null,
+          "stock": 4,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 2000
+          }
+        }
+      ]
+    },
+    {
+      "slug": "kingston-nv3-nvme",
+      "nom": "NV3 NVMe",
+      "marque": "kingston",
+      "categorie": "stockage-ssd",
+      "etat": "NEUF",
+      "garantieMois": 36,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "SSD NVMe PCIe 4.0 économique, jusqu'à 6 000 Mo/s : la mise à niveau la plus rentable.",
+      "descriptionLongue": "<p>SSD NVMe PCIe 4.0 économique, jusqu'à 6 000 Mo/s : la mise à niveau la plus rentable.</p>",
+      "image": "ssd",
+      "caracteristiques": {
+        "interface": "NVMe PCIe 4.0"
+      },
+      "variantes": [
+        {
+          "sku": "KING-NV3-500",
+          "libelle": "500 Go",
+          "attributs": {
+            "capacite": "500 Go"
+          },
+          "prix": 29000,
+          "prixBarre": null,
+          "stock": 18,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 500,
+            "lecture_mo_s": 5000
+          }
+        },
+        {
+          "sku": "KING-NV3-1T",
+          "libelle": "1 To",
+          "attributs": {
+            "capacite": "1 To"
+          },
+          "prix": 45000,
+          "prixBarre": null,
+          "stock": 12,
+          "poidsGrammes": null,
+          "caracteristiques": {
+            "capacite_go": 1000,
+            "lecture_mo_s": 6000
+          }
+        }
+      ]
+    },
+    {
+      "slug": "crucial-bx500-sata-480-go",
+      "nom": "BX500 SATA 480 Go",
+      "marque": "crucial",
+      "categorie": "stockage-ssd",
+      "etat": "NEUF",
+      "garantieMois": 36,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "SSD 2,5 pouces SATA pour redonner vie à un ancien PC portable ou de bureau.",
+      "descriptionLongue": "<p>SSD 2,5 pouces SATA pour redonner vie à un ancien PC portable ou de bureau.</p>",
+      "image": "ssd",
+      "caracteristiques": {
+        "interface": "SATA",
+        "capacite_go": 480,
+        "lecture_mo_s": 540
+      },
+      "variantes": [
+        {
+          "sku": "CRU-BX500-480",
+          "libelle": "480 Go",
+          "attributs": {},
+          "prix": 22000,
+          "prixBarre": null,
+          "stock": 16,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "samsung-essential-s3-24-pouces-s24c310",
+      "nom": "Essential S3 24 pouces S24C310",
+      "marque": "samsung",
+      "categorie": "ecrans",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": "LS24C310EAUXEN",
+      "misEnAvant": false,
+      "descriptionCourte": "24 pouces IPS Full HD 75 Hz, bords fins, HDMI et VGA : l'écran de bureau simple et fiable.",
+      "descriptionLongue": "<p>24 pouces IPS Full HD 75 Hz, bords fins, HDMI et VGA : l'écran de bureau simple et fiable.</p>",
+      "image": "ecran",
+      "caracteristiques": {
+        "taille_pouces": 24,
+        "resolution": "Full HD 1920 × 1080",
+        "dalle": "IPS",
+        "frequence_hz": 75
+      },
+      "variantes": [
+        {
+          "sku": "SAM-S24C310",
+          "libelle": "24 pouces",
+          "attributs": {},
+          "prix": 69000,
+          "prixBarre": null,
+          "stock": 11,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "lg-ultragear-27gs60f",
+      "nom": "UltraGear 27GS60F",
+      "marque": "lg",
+      "categorie": "ecrans",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "27 pouces IPS 180 Hz, 1 ms, compatible G-SYNC : fluide pour le jeu compétitif.",
+      "descriptionLongue": "<p>27 pouces IPS 180 Hz, 1 ms, compatible G-SYNC : fluide pour le jeu compétitif.</p>",
+      "image": "ecran",
+      "caracteristiques": {
+        "taille_pouces": 27,
+        "resolution": "Full HD 1920 × 1080",
+        "dalle": "IPS",
+        "frequence_hz": 180
+      },
+      "variantes": [
+        {
+          "sku": "LG-27GS60F",
+          "libelle": "27 pouces",
+          "attributs": {},
+          "prix": 149000,
+          "prixBarre": 165000,
+          "stock": 5,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "dell-p2425h",
+      "nom": "P2425H",
+      "marque": "dell",
+      "categorie": "ecrans",
+      "etat": "NEUF",
+      "garantieMois": 36,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "24 pouces IPS 100 Hz, pied réglable en hauteur et pivotant, USB-C : l'écran de bureau ergonomique.",
+      "descriptionLongue": "<p>24 pouces IPS 100 Hz, pied réglable en hauteur et pivotant, USB-C : l'écran de bureau ergonomique.</p>",
+      "image": "ecran",
+      "caracteristiques": {
+        "taille_pouces": 24,
+        "resolution": "Full HD 1920 × 1080",
+        "dalle": "IPS",
+        "frequence_hz": 100
+      },
+      "variantes": [
+        {
+          "sku": "DELL-P2425H",
+          "libelle": "24 pouces",
+          "attributs": {},
+          "prix": 119000,
+          "prixBarre": null,
+          "stock": 6,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "logitech-mk270-sans-fil",
+      "nom": "MK270 sans fil",
+      "marque": "logitech",
+      "categorie": "claviers-souris",
+      "etat": "NEUF",
+      "garantieMois": 24,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Clavier AZERTY et souris sans fil avec un seul récepteur USB, piles longue durée.",
+      "descriptionLongue": "<p>Clavier AZERTY et souris sans fil avec un seul récepteur USB, piles longue durée.</p>",
+      "image": "clavier-souris",
+      "caracteristiques": {
+        "connexion": "Sans fil 2,4 GHz",
+        "disposition": "AZERTY"
+      },
+      "variantes": [
+        {
+          "sku": "LOGI-MK270-FR",
+          "libelle": "AZERTY",
+          "attributs": {},
+          "prix": 19500,
+          "prixBarre": null,
+          "stock": 25,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "logitech-g502-hero",
+      "nom": "G502 HERO",
+      "marque": "logitech",
+      "categorie": "claviers-souris",
+      "etat": "NEUF",
+      "garantieMois": 24,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Souris gaming filaire, capteur HERO 25 600 ppp, 11 boutons programmables, poids réglables.",
+      "descriptionLongue": "<p>Souris gaming filaire, capteur HERO 25 600 ppp, 11 boutons programmables, poids réglables.</p>",
+      "image": "clavier-souris",
+      "caracteristiques": {
+        "connexion": "Filaire USB",
+        "disposition": "Sans objet"
+      },
+      "variantes": [
+        {
+          "sku": "LOGI-G502-HERO",
+          "libelle": "Filaire",
+          "attributs": {},
+          "prix": 35000,
+          "prixBarre": null,
+          "stock": 10,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "hyperx-cloud-ii",
+      "nom": "Cloud II",
+      "marque": "hyperx",
+      "categorie": "casques-audio",
+      "etat": "NEUF",
+      "garantieMois": 24,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Casque gaming confortable, son surround 7.1 virtuel, micro détachable, USB et jack 3,5 mm.",
+      "descriptionLongue": "<p>Casque gaming confortable, son surround 7.1 virtuel, micro détachable, USB et jack 3,5 mm.</p>",
+      "image": "casque",
+      "caracteristiques": {
+        "connexion": "USB et jack 3,5 mm",
+        "micro": true
+      },
+      "variantes": [
+        {
+          "sku": "HYPERX-CLOUD2-ROUGE",
+          "libelle": "Rouge",
+          "attributs": {
+            "couleur": "Rouge"
+          },
+          "prix": 59000,
+          "prixBarre": null,
+          "stock": 7,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "tp-link-archer-ax55",
+      "nom": "Archer AX55",
+      "marque": "tp-link",
+      "categorie": "reseau",
+      "etat": "NEUF",
+      "garantieMois": 36,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Routeur Wi-Fi 6 double bande AX3000, 4 antennes : couvre un appartement et supporte de nombreux appareils.",
+      "descriptionLongue": "<p>Routeur Wi-Fi 6 double bande AX3000, 4 antennes : couvre un appartement et supporte de nombreux appareils.</p>",
+      "image": "routeur",
+      "caracteristiques": {
+        "norme_wifi": "Wi-Fi 6",
+        "debit_max_mbps": 3000
+      },
+      "variantes": [
+        {
+          "sku": "TPL-ARCHER-AX55",
+          "libelle": "AX3000",
+          "attributs": {},
+          "prix": 49000,
+          "prixBarre": null,
+          "stock": 9,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "tp-link-deco-x20-pack-de-2",
+      "nom": "Deco X20 (pack de 2)",
+      "marque": "tp-link",
+      "categorie": "reseau",
+      "etat": "NEUF",
+      "garantieMois": 36,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Système Wi-Fi 6 maillé : deux bornes pour couvrir une villa sur plusieurs niveaux sans zone blanche.",
+      "descriptionLongue": "<p>Système Wi-Fi 6 maillé : deux bornes pour couvrir une villa sur plusieurs niveaux sans zone blanche.</p>",
+      "image": "routeur",
+      "caracteristiques": {
+        "norme_wifi": "Wi-Fi 6",
+        "debit_max_mbps": 1800
+      },
+      "variantes": [
+        {
+          "sku": "TPL-DECO-X20-2P",
+          "libelle": "Pack de 2",
+          "attributs": {},
+          "prix": 89000,
+          "prixBarre": null,
+          "stock": 5,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "apc-back-ups-700va-bx700ui",
+      "nom": "Back-UPS 700VA BX700UI",
+      "marque": "apc",
+      "categorie": "onduleurs",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": "BX700UI",
+      "misEnAvant": true,
+      "descriptionCourte": "Onduleur line-interactive 700 VA : quelques minutes d'autonomie pour enregistrer et éteindre proprement lors d'une coupure.",
+      "descriptionLongue": "<p>Onduleur line-interactive 700 VA : quelques minutes d'autonomie pour enregistrer et éteindre proprement lors d'une coupure.</p>",
+      "image": "onduleur",
+      "caracteristiques": {
+        "puissance_va": 700,
+        "puissance_w": 390,
+        "prises": 4,
+        "technologie": "Line-interactive"
+      },
+      "variantes": [
+        {
+          "sku": "APC-BX700UI",
+          "libelle": "700 VA",
+          "attributs": {},
+          "prix": 59000,
+          "prixBarre": null,
+          "stock": 12,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "apc-back-ups-1200va-bx1200mi",
+      "nom": "Back-UPS 1200VA BX1200MI",
+      "marque": "apc",
+      "categorie": "onduleurs",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": "BX1200MI",
+      "misEnAvant": false,
+      "descriptionCourte": "1200 VA pour un PC de bureau, un écran et la box internet, avec régulation de tension (AVR).",
+      "descriptionLongue": "<p>1200 VA pour un PC de bureau, un écran et la box internet, avec régulation de tension (AVR).</p>",
+      "image": "onduleur",
+      "caracteristiques": {
+        "puissance_va": 1200,
+        "puissance_w": 650,
+        "prises": 6,
+        "technologie": "Line-interactive"
+      },
+      "variantes": [
+        {
+          "sku": "APC-BX1200MI",
+          "libelle": "1200 VA",
+          "attributs": {},
+          "prix": 99000,
+          "prixBarre": null,
+          "stock": 6,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "hp-sacoche-prelude-15-6-pouces",
+      "nom": "Sacoche Prelude 15,6 pouces",
+      "marque": "hp",
+      "categorie": "accessoires",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "Sacoche déperlante avec compartiment rembourré pour portable jusqu'à 15,6 pouces et poche pour chargeur.",
+      "descriptionLongue": "<p>Sacoche déperlante avec compartiment rembourré pour portable jusqu'à 15,6 pouces et poche pour chargeur.</p>",
+      "image": "accessoire",
+      "caracteristiques": {
+        "compatibilite": "PC portables jusqu'à 15,6 pouces"
+      },
+      "variantes": [
+        {
+          "sku": "HP-PRELUDE-156",
+          "libelle": "15,6 pouces",
+          "attributs": {},
+          "prix": 15000,
+          "prixBarre": null,
+          "stock": 20,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    },
+    {
+      "slug": "ugreen-hub-usb-c-7-en-1",
+      "nom": "Hub USB-C 7 en 1",
+      "marque": "ugreen",
+      "categorie": "accessoires",
+      "etat": "NEUF",
+      "garantieMois": 12,
+      "mpn": null,
+      "misEnAvant": false,
+      "descriptionCourte": "HDMI 4K, 3 ports USB-A, lecteur SD et microSD, recharge USB-C 100 W : un seul câble pour tout brancher.",
+      "descriptionLongue": "<p>HDMI 4K, 3 ports USB-A, lecteur SD et microSD, recharge USB-C 100 W : un seul câble pour tout brancher.</p>",
+      "image": "accessoire",
+      "caracteristiques": {
+        "compatibilite": "PC portables et MacBook avec USB-C"
+      },
+      "variantes": [
+        {
+          "sku": "UGREEN-HUB-USBC-7EN1",
+          "libelle": "7 ports",
+          "attributs": {},
+          "prix": 25000,
+          "prixBarre": null,
+          "stock": 15,
+          "poidsGrammes": null,
+          "caracteristiques": {}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Processeur">
+  <rect width="800" height="600" fill="#EEF0F2"/>
+  <rect x="12" y="12" width="776" height="576" fill="none" stroke="#E4E7EB" stroke-width="2"/>
+  <g transform="translate(0.0 -30.0)" fill="none" stroke="#5B6573" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><style>.a{stroke:#C2410C}</style><rect x="300" y="200" width="200" height="200" rx="10"/><rect x="345" y="245" width="110" height="110" rx="4" class="a"/><path d="M330 180 v20 M330 400 v20 M280 300 h20 M500 300 h20"/><path d="M360 180 v20 M360 400 v20 M280 330 h20 M500 330 h20"/><path d="M390 180 v20 M390 400 v20 M280 360 h20 M500 360 h20"/><path d="M420 180 v20 M420 400 v20 M280 390 h20 M500 390 h20"/><path d="M450 180 v20 M450 400 v20 M280 420 h20 M500 420 h20"/></g>
+  <text x="400.0" y="522" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="30" font-weight="600" fill="#1C2128">Processeur</text>
+  <text x="400.0" y="558" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="18" fill="#5B6573">Image de démonstration</text>
+</svg>

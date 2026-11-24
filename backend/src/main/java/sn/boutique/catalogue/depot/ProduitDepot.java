@@ -11,6 +11,8 @@ public interface ProduitDepot extends JpaRepository<Produit, Long> {
 
     Optional<Produit> findBySlugAndActifTrue(String slug);
 
+    Optional<Produit> findBySlug(String slug);
+
     boolean existsBySlug(String slug);
 
     /**

@@ -11,5 +11,7 @@ public interface ArticleDepot extends JpaRepository<Article, Long> {
 
     Optional<Article> findBySlugAndPublieTrue(String slug);
 
+    boolean existsBySlug(String slug);
+
     Page<Article> findByPublieTrueOrderByDatePublicationDesc(Pageable pageable);
 }

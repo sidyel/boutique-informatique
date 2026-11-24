@@ -8,4 +8,6 @@ import sn.boutique.marketing.modele.Collection;
 public interface CollectionDepot extends JpaRepository<Collection, Long> {
 
     Optional<Collection> findBySlugAndActifTrue(String slug);
+
+    boolean existsBySlug(String slug);
 }

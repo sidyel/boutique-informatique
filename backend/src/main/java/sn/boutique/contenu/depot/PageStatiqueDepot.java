@@ -8,4 +8,6 @@ import sn.boutique.contenu.modele.PageStatique;
 public interface PageStatiqueDepot extends JpaRepository<PageStatique, Long> {
 
     Optional<PageStatique> findBySlug(String slug);
+
+    boolean existsBySlug(String slug);
 }

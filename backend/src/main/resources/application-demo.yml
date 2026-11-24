@@ -1,0 +1,8 @@
+# Profil « demo » : charge un catalogue de démonstration au démarrage (idempotent).
+# À combiner avec dev : SPRING_PROFILES_ACTIVE=dev,demo
+# Jamais en production : les données sont fictives (prix indicatifs, images neutres).
+boutique:
+  demo:
+    admin-email: ${DEMO_ADMIN_EMAIL:admin@exemple.sn}
+    # Aucun mot de passe par défaut : sans DEMO_ADMIN_MOT_DE_PASSE, le compte admin n'est pas créé.
+    admin-mot-de-passe: ${DEMO_ADMIN_MOT_DE_PASSE:}

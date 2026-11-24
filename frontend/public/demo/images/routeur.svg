@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Routeur Wi-Fi">
+  <rect width="800" height="600" fill="#EEF0F2"/>
+  <rect x="12" y="12" width="776" height="576" fill="none" stroke="#E4E7EB" stroke-width="2"/>
+  <g transform="translate(0.0 -30.0)" fill="none" stroke="#5B6573" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><style>.a{stroke:#C2410C}</style><rect x="200" y="320" width="400" height="90" rx="12"/><path d="M260 320 l-30 -130 M540 320 l30 -130 M400 320 v-140"/><circle cx="270" cy="365" r="8" class="a"/><circle cx="300" cy="365" r="8"/><circle cx="330" cy="365" r="8"/><path d="M350 150 a70 70 0 0 1 100 0 M370 170 a40 40 0 0 1 60 0" class="a"/></g>
+  <text x="400.0" y="522" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="30" font-weight="600" fill="#1C2128">Routeur Wi-Fi</text>
+  <text x="400.0" y="558" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="18" fill="#5B6573">Image de démonstration</text>
+</svg>

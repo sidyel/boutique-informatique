@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500" viewBox="0 0 1600 500" role="img" aria-label="Protégez votre matériel">
+  <rect width="1600" height="500" fill="#EEF0F2"/>
+  <rect y="492" width="1600" height="8" fill="#C2410C"/>
+  <g transform="translate(840 -30.0) scale(0.9)" fill="none" stroke="#5B6573" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><style>.a{stroke:#C2410C}</style><rect x="300" y="170" width="200" height="270" rx="10"/><circle cx="400" cy="240" r="30"/><path d="M400 215 v20" class="a"/><path d="M330 320 h140 M330 350 h140 M330 380 h140"/><path d="M420 290 l-25 45 h25 l-20 40" class="a"/></g>
+  <text x="90" y="240.0" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="52" font-weight="700" fill="#1C2128">Protégez votre matériel</text>
+  <text x="90" y="294.0" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="26" fill="#5B6573">Onduleurs APC contre les coupures</text>
+  <text x="1576" y="472" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" fill="#5B6573">Image de démonstration</text>
+</svg>
