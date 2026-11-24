@@ -24,8 +24,8 @@ Les postes de développement utilisent **Node 20.19**, qu'on ne souhaite pas cha
 ## Conséquences
 
 - Aucune fonctionnalité exclusive à Angular 22 n'est utilisée.
-- Fin du support LTS d'Angular 21 : environ **mai 2027** (18 mois après sa sortie de novembre 2025).
-  La migration doit être faite avant cette date.
+- Fin du support LTS d'Angular 21 : **juin 2027**
+  (source : https://angular.dev/reference/releases). La migration doit être faite avant cette date.
 - Deux versions de Node coexistent (20 en local, 24 en CI et en production) : la CI détecte
   tout écart de comportement.
 
