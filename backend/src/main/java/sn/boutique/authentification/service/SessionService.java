@@ -3,6 +3,7 @@ package sn.boutique.authentification.service;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class SessionService {
     /** Ouvre une session (nouvelle famille de jetons) après une connexion réussie. */
     @Transactional
     public Session ouvrir(Utilisateur utilisateur, Contexte contexte) {
-        Instant maintenant = horloge.instant();
+        Instant maintenant = maintenant();
         Instant expiration = maintenant.plus(proprietes.dureeSession(utilisateur.getRole()));
         return emettre(utilisateur, UUID.randomUUID(), expiration, contexte, maintenant);
     }
@@ -55,7 +56,7 @@ public class SessionService {
         // Verrou de ligne : deux rafraîchissements simultanés du même jeton sont traités l'un après l'autre
         JetonRafraichissement actuel = jetonDepot.trouverPourRotation(GenerateurJetons.empreinte(jeton))
                 .orElseThrow(() -> new SessionInvalideException("jeton inconnu"));
-        Instant maintenant = horloge.instant();
+        Instant maintenant = maintenant();
         Utilisateur utilisateur = actuel.getUtilisateur();
 
         if (actuel.getDateUtilisation() != null && !actuel.isRevoque()) {
@@ -97,6 +98,15 @@ public class SessionService {
                 famille, contexte.adresseIp(), contexte.userAgent()));
         JetonAcces acces = jetonAccesService.emettre(utilisateur);
         return new Session(utilisateur, acces, jeton, Duration.between(maintenant, expiration));
+    }
+
+    /**
+     * Instant courant tronqué à la seconde : PostgreSQL stocke les dates à la microseconde et Max-Age
+     * s'exprime en secondes. Sans troncature, une fin de session relue en base (rôles internes) serait
+     * plus courte de quelques nanosecondes et le Max-Age perdrait une seconde.
+     */
+    private Instant maintenant() {
+        return horloge.instant().truncatedTo(ChronoUnit.SECONDS);
     }
 
     private static Instant min(Instant a, Instant b) {
