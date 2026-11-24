@@ -1,0 +1,138 @@
+package sn.boutique.catalogue.modele;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import sn.boutique.noyau.audit.EntiteAuditee;
+
+/**
+ * Produit du catalogue. Le prix et le stock sont portés par ses variantes.
+ * <p>
+ * {@code prixMinimum} et {@code stockTotal} sont des agrégats des variantes actives,
+ * recalculés par un trigger PostgreSQL à chaque modification de variante (voir V2) :
+ * ils servent aux tris et filtres sans jointure, et JPA ne les écrit jamais.
+ */
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Produit extends EntiteAuditee {
+
+    @Column(nullable = false, length = 200)
+    private String nom;
+
+    @Column(nullable = false, unique = true, length = 220)
+    private String slug;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "marque_id", nullable = false)
+    private Marque marque;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "categorie_id", nullable = false)
+    private Categorie categorie;
+
+    @Column(length = 500)
+    private String descriptionCourte;
+
+    /** HTML nettoyé (OWASP Java HTML Sanitizer, phase 2). */
+    @Column(columnDefinition = "text")
+    private String descriptionLongue;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EtatProduit etat = EtatProduit.NEUF;
+
+    @Column(nullable = false)
+    private int garantieMois;
+
+    /** Code EAN/UPC. */
+    @Column(length = 14)
+    private String gtin;
+
+    /** Référence fabricant. */
+    @Column(length = 70)
+    private String mpn;
+
+    @Column(nullable = false)
+    private boolean actif = true;
+
+    @Column(nullable = false)
+    private boolean misEnAvant;
+
+    @Column(length = 70)
+    private String metaTitre;
+
+    @Column(length = 170)
+    private String metaDescription;
+
+    @Column(nullable = false, precision = 3, scale = 2)
+    private BigDecimal noteMoyenne = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private int nombreAvis;
+
+    /** Prix de la variante active la moins chère (null si aucune). Maintenu par trigger. */
+    @Setter(AccessLevel.NONE)
+    @Column(insertable = false, updatable = false)
+    private Long prixMinimum;
+
+    /** Somme des stocks des variantes actives. Maintenu par trigger. */
+    @Setter(AccessLevel.NONE)
+    @Column(insertable = false, updatable = false)
+    private Integer stockTotal;
+
+    @OneToMany(mappedBy = "produit", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("prix ASC")
+    private List<VarianteProduit> variantes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "produit", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC")
+    private List<MediaProduit> medias = new ArrayList<>();
+
+    @OneToMany(mappedBy = "produit", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ValeurCaracteristique> caracteristiques = new ArrayList<>();
+
+    public Produit(String nom, String slug, Marque marque, Categorie categorie) {
+        this.nom = nom;
+        this.slug = slug;
+        this.marque = marque;
+        this.categorie = categorie;
+    }
+
+    public VarianteProduit ajouterVariante(String sku, String libelle, long prix, int stock) {
+        VarianteProduit variante = new VarianteProduit(this, sku, libelle, prix, stock);
+        variantes.add(variante);
+        return variante;
+    }
+
+    public MediaProduit ajouterMedia(TypeMedia type, String url, String texteAlternatif) {
+        MediaProduit media = new MediaProduit(this, type, url, texteAlternatif, medias.size());
+        if (medias.isEmpty() && type == TypeMedia.IMAGE) {
+            media.setPrincipal(true);
+        }
+        medias.add(media);
+        return media;
+    }
+
+    public ValeurCaracteristique ajouterCaracteristique(DefinitionCaracteristique definition) {
+        ValeurCaracteristique valeur = new ValeurCaracteristique(this, definition);
+        caracteristiques.add(valeur);
+        return valeur;
+    }
+}
