@@ -52,9 +52,9 @@ class DemarrageApplicationTest {
     }
 
     @Test
-    void lAdministrationEstFermeeTantQueLAuthentificationNExistePas() throws Exception {
+    void lAdministrationExigeUneAuthentification() throws Exception {
         mockMvc.perform(get("/api/admin/produits"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

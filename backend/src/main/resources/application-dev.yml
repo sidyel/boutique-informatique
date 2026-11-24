@@ -22,6 +22,13 @@ springdoc:
   swagger-ui:
     enabled: true
 
+boutique:
+  authentification:
+    secret-ephemere-autorise: true
+    # HTTP en local (test depuis un téléphone du réseau local, curl) : cookie sans l'attribut Secure
+    cookie:
+      secure: false
+
 management:
   endpoint:
     health:

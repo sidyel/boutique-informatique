@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import sn.boutique.authentification.modele.JetonRafraichissement;
@@ -12,6 +14,14 @@ import sn.boutique.authentification.modele.JetonRafraichissement;
 public interface JetonRafraichissementDepot extends JpaRepository<JetonRafraichissement, Long> {
 
     Optional<JetonRafraichissement> findByEmpreinte(String empreinte);
+
+    /**
+     * Lecture avec verrou de ligne (SELECT … FOR UPDATE) : deux rafraîchissements simultanés du même jeton
+     * sont sérialisés, le second voit le jeton déjà utilisé.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select j from JetonRafraichissement j join fetch j.utilisateur where j.empreinte = :empreinte")
+    Optional<JetonRafraichissement> trouverPourRotation(String empreinte);
 
     /** Réutilisation détectée ou déconnexion : toute la famille devient inutilisable. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)

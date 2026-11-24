@@ -62,3 +62,11 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 | Backend en dev | `PORT_BACKEND` (`.env`) | 8080 |
 | Frontend en dev | `npm start -- --port 4300` | 4200 |
 | nginx (docker-compose) | `NGINX_PORT_HOTE` (shell) | 80 |
+
+## À traiter avant la mise en production (phase 9)
+
+- **Images de démonstration** : `frontend/public/demo/images/` (SVG du profil `demo`) ne doit pas se
+  retrouver dans l'image Docker de production. Angular copie tout `public/` dans `dist/` : exclure le
+  dossier à la compilation de production (par exemple `rm -rf dist/frontend/browser/demo` dans le
+  Dockerfile, ou une configuration `assets` dédiée) et vérifier qu'aucune donnée en base ne pointe
+  vers `/demo/images/`.

@@ -1,7 +1,5 @@
 package sn.boutique.noyau.erreur;
 
-import java.net.URI;
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -32,21 +30,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 @RestControllerAdvice
 public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
-
-    private static final Map<Integer, String> TITRES = Map.ofEntries(
-            Map.entry(400, "Requête invalide"),
-            Map.entry(401, "Authentification requise"),
-            Map.entry(403, "Accès refusé"),
-            Map.entry(404, "Ressource introuvable"),
-            Map.entry(405, "Méthode non autorisée"),
-            Map.entry(406, "Format de réponse non disponible"),
-            Map.entry(409, "Conflit"),
-            Map.entry(413, "Contenu trop volumineux"),
-            Map.entry(415, "Type de contenu non pris en charge"),
-            Map.entry(422, "Règle métier non respectée"),
-            Map.entry(429, "Trop de requêtes"),
-            Map.entry(500, "Erreur interne"),
-            Map.entry(503, "Service indisponible"));
 
     private static final Map<Integer, String> DETAILS_PAR_DEFAUT = Map.ofEntries(
             Map.entry(400, "La requête est mal formée."),
@@ -138,7 +121,7 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
         if (reponse != null && reponse.getBody() instanceof ProblemDetail probleme) {
             boolean dejaTraduit = probleme.getProperties() != null && probleme.getProperties().containsKey("code");
             if (!dejaTraduit) {
-                probleme.setTitle(TITRES.getOrDefault(statut.value(), probleme.getTitle()));
+                probleme.setTitle(ProblemesHttp.titre(statut));
                 probleme.setDetail(DETAILS_PAR_DEFAUT.getOrDefault(statut.value(), probleme.getDetail()));
                 probleme.setProperty("code", codeParDefaut(statut));
             }
@@ -153,18 +136,11 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
 
     private static ProblemDetail construire(
             HttpStatus statut, String code, String detail, HttpServletRequest requete) {
-        ProblemDetail probleme = ProblemDetail.forStatusAndDetail(statut, detail);
-        probleme.setTitle(TITRES.getOrDefault(statut.value(), statut.getReasonPhrase()));
-        probleme.setProperty("code", code);
-        completer(probleme, requete.getRequestURI());
-        return probleme;
+        return ProblemesHttp.creer(statut, code, detail, requete.getRequestURI());
     }
 
     private static void completer(ProblemDetail probleme, @Nullable String chemin) {
-        if (probleme.getInstance() == null && chemin != null) {
-            probleme.setInstance(URI.create(chemin));
-        }
-        probleme.setProperty("horodatage", Instant.now());
+        ProblemesHttp.completer(probleme, chemin);
     }
 
     private static String codeParDefaut(HttpStatusCode statut) {

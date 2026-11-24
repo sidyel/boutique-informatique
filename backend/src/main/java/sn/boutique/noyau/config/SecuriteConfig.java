@@ -1,5 +1,6 @@
 package sn.boutique.noyau.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
@@ -9,41 +10,84 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import sn.boutique.authentification.securite.ReponsesSecurite;
+import sn.boutique.authentification.securite.VerificationOrigineFiltre;
+import sn.boutique.authentification.service.JetonAccesService;
+import sn.boutique.compte.modele.Role;
 
 /**
- * Configuration de sécurité provisoire (phase 0).
- * <p>
- * L'API est sans état. L'authentification par JWT (jeton d'accès + jeton de rafraîchissement)
- * sera branchée en phase 1 ; en attendant, toute l'administration est refusée.
+ * Sécurité de l'API (ADR 0003) : sans état, authentification par jeton d'accès JWT
+ * ({@code Authorization: Bearer}). Seules {@code /api/auth/rafraichir} et {@code /api/auth/deconnexion}
+ * reposent sur un cookie, protégées contre le CSRF par SameSite=Strict et la vérification de l'Origin.
+ * Le CSRF de Spring est donc désactivé : aucune autre route n'utilise de cookie.
  */
 @Configuration
 @EnableWebSecurity
 public class SecuriteConfig {
 
+    public static final List<String> ROUTES_AVEC_COOKIE = List.of("/api/auth/rafraichir", "/api/auth/deconnexion");
+
     private static final String[] ROUTES_DOCUMENTATION = {
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
     };
 
+    private static final String[] ROLES_INTERNES = {
+            Role.SERVICE_CLIENT.name(), Role.GESTIONNAIRE_STOCK.name(), Role.ADMIN.name(), Role.SUPER_ADMIN.name()
+    };
+
     @Bean
-    SecurityFilterChain chaineFiltresSecurite(HttpSecurity http) throws Exception {
+    SecurityFilterChain chaineFiltresSecurite(HttpSecurity http, ReponsesSecurite reponses,
+                                              ProprietesBoutique proprietes) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(basic -> basic.disable())
                 .formLogin(formulaire -> formulaire.disable())
+                .logout(deconnexion -> deconnexion.disable())
+                .requestCache(cache -> cache.disable())
+                .oauth2ResourceServer(serveur -> serveur
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(convertisseurJwt()))
+                        .authenticationEntryPoint(reponses)
+                        .accessDeniedHandler(reponses))
+                .exceptionHandling(erreurs -> erreurs
+                        .authenticationEntryPoint(reponses)
+                        .accessDeniedHandler(reponses))
+                .addFilterBefore(new VerificationOrigineFiltre(originesDuSite(proprietes), ROUTES_AVEC_COOKIE, reponses),
+                        BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(autorisations -> autorisations
-                        .requestMatchers("/api/admin/**").denyAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole(ROLES_INTERNES)
+                        .requestMatchers("/api/compte/**").authenticated()
                         .requestMatchers("/api/**", "/error").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers(ROUTES_DOCUMENTATION).permitAll()
                         .anyRequest().denyAll())
                 .build();
+    }
+
+    /** Revendication « roles » du JWT → autorités ROLE_CLIENT, ROLE_ADMIN… ; principal = sub (identifiant). */
+    static JwtAuthenticationConverter convertisseurJwt() {
+        JwtGrantedAuthoritiesConverter roles = new JwtGrantedAuthoritiesConverter();
+        roles.setAuthoritiesClaimName(JetonAccesService.REVENDICATION_ROLES);
+        roles.setAuthorityPrefix("ROLE_");
+        JwtAuthenticationConverter convertisseur = new JwtAuthenticationConverter();
+        convertisseur.setJwtGrantedAuthoritiesConverter(roles);
+        return convertisseur;
+    }
+
+    /** Origines acceptées par la vérification CSRF : l'URL du site et les origines CORS. */
+    static List<String> originesDuSite(ProprietesBoutique proprietes) {
+        List<String> origines = new ArrayList<>(proprietes.corsOrigines());
+        origines.add(proprietes.urlSite());
+        return origines;
     }
 
     @Bean

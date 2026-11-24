@@ -83,3 +83,22 @@ zones de livraison du Sénégal, pages légales à compléter, bannières, codes
 - **Images** : SVG neutres servis par le frontend (`frontend/public/demo/images/`), aucune photo de
   fabricant (droits d'auteur). Les noms de modèles sont réels, les prix et stocks sont indicatifs.
 - Jamais en production.
+
+## Authentification (ADR 0003)
+
+Jeton d'accès JWT (15 min, en-tête `Authorization: Bearer`) et jeton de rafraîchissement dans un cookie
+HttpOnly `SameSite=Strict` limité à `/api/auth` (30 jours pour un client, 12 h pour un rôle interne).
+`/api/auth/rafraichir` et `/api/auth/deconnexion` exigent l'en-tête `Origin` du site : avec curl,
+l'ajouter explicitement.
+
+```bash
+API=http://localhost:8080; ORIGINE=http://localhost:4200
+curl -i -X POST $API/api/auth/inscription -H 'Content-Type: application/json'   -d '{"email":"awa.diop@exemple.sn","motDePasse":"Thieboudienne-2026","prenom":"Awa","nom":"Diop"}'
+curl -i -c cookies.txt -X POST $API/api/auth/connexion -H 'Content-Type: application/json'   -d '{"email":"awa.diop@exemple.sn","motDePasse":"Thieboudienne-2026"}'
+curl -i $API/api/compte/profil -H "Authorization: Bearer <jetonAcces>"
+curl -i -b cookies.txt -c cookies.txt -X POST $API/api/auth/rafraichir -H "Origin: $ORIGINE"
+curl -i -b cookies.txt -c cookies.txt -X POST $API/api/auth/deconnexion -H "Origin: $ORIGINE"
+```
+
+`JWT_SECRET` (`openssl rand -base64 48`) est obligatoire en production ; en dev, une clé jetable est
+générée s'il est absent ou invalide (les sessions sont alors perdues au redémarrage).

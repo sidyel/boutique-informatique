@@ -94,3 +94,20 @@ springdoc:
 boutique:
   url-site: ${URL_SITE:http://localhost:4200}
   cors-origines: ${CORS_ORIGINES:http://localhost:4200}
+  # Authentification (ADR 0003)
+  authentification:
+    # Clé HMAC en Base64, 32 octets minimum : openssl rand -base64 48
+    jwt-secret: ${JWT_SECRET:}
+    # true uniquement en dev : sans JWT_SECRET valide, une clé jetable est générée au démarrage
+    secret-ephemere-autorise: false
+    emetteur: boutique-informatique
+    duree-jeton-acces: 15m
+    # Jeton de rafraîchissement : glissant pour les clients, absolu pour les rôles internes
+    duree-session-client: 30d
+    duree-session-interne: 12h
+    echecs-avant-verrouillage: 5
+    duree-verrouillage: 15m
+    cookie:
+      nom: jeton_rafraichissement
+      chemin: /api/auth
+      secure: true

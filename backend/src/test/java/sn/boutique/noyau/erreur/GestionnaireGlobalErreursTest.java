@@ -23,11 +23,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import sn.boutique.authentification.securite.ReponsesSecurite;
 import sn.boutique.noyau.config.ProprietesBoutique;
 import sn.boutique.noyau.config.SecuriteConfig;
 
 @WebMvcTest(controllers = GestionnaireGlobalErreursTest.ControleurEssai.class)
-@Import({SecuriteConfig.class, GestionnaireGlobalErreursTest.ControleurEssai.class})
+@Import({SecuriteConfig.class, ReponsesSecurite.class, GestionnaireGlobalErreursTest.ControleurEssai.class})
 @EnableConfigurationProperties(ProprietesBoutique.class)
 @TestPropertySource(properties = {
         "boutique.url-site=http://localhost:4200",
@@ -37,6 +40,10 @@ class GestionnaireGlobalErreursTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    /** Exigé par la configuration de sécurité (jetons d'accès) ; inutilisé par ces routes publiques. */
+    @MockitoBean
+    private JwtDecoder decodeurJwt;
 
     @Test
     void ressourceIntrouvableRenvoie404() throws Exception {

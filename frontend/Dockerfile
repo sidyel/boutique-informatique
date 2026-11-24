@@ -10,6 +10,7 @@ RUN npm ci --no-audit --no-fund
 
 COPY . .
 RUN npm run build
+# PHASE 9 : retirer les images de démonstration (public/demo) de l'image de production, voir README.
 
 # --- Étape 2 : exécution ----------------------------------------------------
 # Le serveur SSR est entièrement empaqueté par Angular (express inclus) :
