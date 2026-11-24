@@ -63,3 +63,55 @@ Le commentaire sur les champs de `Produit` le rappelle.
 - Dans chacun de ces services, un **test de service** : modifier le prix ou le stock d'une variante via le
   service, puis vérifier que la réponse contient le nouveau `prixMinimum` / `stockTotal`. Le test de dépôt
   `CatalogueDepotTest.prixMinimumEtStockTotalSuiventLesVariantesActives` couvre déjà le trigger lui-même.
+
+## 3. Suppression d'un compte : anonymisation partielle des commandes (phase 5)
+
+### Contexte
+`commande.utilisateur_id` est en `ON DELETE SET NULL` : supprimer un compte (droit à l'effacement) ne supprime
+pas ses commandes. Mais les factures doivent être conservées : **en principe 10 ans en zone OHADA**
+(Acte uniforme relatif au droit comptable), **durée à confirmer avec le comptable**.
+
+### Règle (à implémenter en phase 5, service de suppression de compte)
+Dans la même transaction que la suppression du compte, pour chaque commande du client :
+
+| On garde (nécessaire à la facture) | On efface (mis à `NULL`) |
+|---|---|
+| numéro, dates, statut, historique des statuts | `adresse_ip`, `user_agent` |
+| `livraison_nom_complet`, ville, quartier, adresse, point de repère | `fbp`, `fbc`, `gclid`, `fbclid` |
+| lignes (copies figées), sous-total, frais, remise, total, code promo | `utm_*`, `page_arrivee`, `referent` |
+| mode de paiement, paiements (montant, référence prestataire) | `paiement.donnees_brutes` (corps des webhooks) |
+| e-mail et téléphone client **si** une facture a été émise | point de repère conservé seulement s'il figure sur la facture |
+
+- Commande **sans facture** (jamais payée, annulée) : rien n'oblige à la conserver nominative ; on anonymise
+  aussi nom, e-mail, téléphone et adresse (`livraison_nom_complet = 'Client supprimé'`, e-mail technique
+  `supprime-{id}@invalide.local`, téléphone à `NULL` — la contrainte `NOT NULL` de `telephone_client` sera
+  assouplie par migration en phase 5 pour ce cas).
+- Les avis, questions et messages SAV du client sont anonymisés (« Client supprimé ») et non supprimés.
+- Purge des commandes au-delà de la durée légale : tâche planifiée, une fois la durée confirmée.
+- Tests : compte supprimé → données marketing effacées, données de facture intactes.
+
+## 4. Numérotation : commandes avec trous, factures sans trou (phase 4)
+
+### Décision
+- **Numéro de commande** (`CMD-2026-000123`) : séquence PostgreSQL. Des trous sont possibles (transaction annulée)
+  et **acceptés** : ce n'est pas une pièce comptable.
+- **Facture** (entité `Facture`, phase 4) : numérotation **chronologique, continue et sans trou** par année
+  (`FAC-2026-000001`), exigence comptable. Attribuée **uniquement quand le paiement est confirmé** (webhook vérifié
+  ou encaissement à la livraison), jamais à la création de la commande.
+- Mécanisme : **table compteur** verrouillée dans la transaction du paiement, **pas une séquence** (une séquence
+  n'est pas annulée avec la transaction, d'où des trous) :
+
+  ```sql
+  CREATE TABLE compteur_facture (annee integer PRIMARY KEY, dernier_numero bigint NOT NULL DEFAULT 0);
+  -- dans la transaction qui confirme le paiement :
+  INSERT INTO compteur_facture (annee) VALUES (:annee) ON CONFLICT DO NOTHING;
+  UPDATE compteur_facture SET dernier_numero = dernier_numero + 1
+   WHERE annee = :annee RETURNING dernier_numero;   -- verrou de ligne jusqu'au commit
+  ```
+
+  Si la transaction échoue, l'incrément est annulé avec elle : pas de trou. Le verrou sérialise l'émission
+  des factures, ce qui est négligeable au volume attendu.
+- `Facture` : numéro unique, commande (unique : une facture par commande), date d'émission, copie des montants,
+  PDF généré ; jamais modifiée ni supprimée (un remboursement donnera un **avoir**, numérotation séparée sur le
+  même principe).
+- Tests : factures concurrentes (plusieurs threads) → numéros consécutifs sans doublon ; transaction annulée → pas de trou.
