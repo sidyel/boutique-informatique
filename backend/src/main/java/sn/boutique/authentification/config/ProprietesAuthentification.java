@@ -24,6 +24,7 @@ import sn.boutique.compte.modele.Role;
  * @param dureeVerrouillage       durée du verrouillage
  * @param dureeJetonVerificationEmail  validité du lien de vérification de l'e-mail
  * @param dureeJetonReinitialisation   validité du lien de réinitialisation du mot de passe
+ * @param conservationJetonsExpires    délai après expiration avant la purge d'un jeton (enquête en cas d'incident)
  * @param cookie                  cookie du jeton de rafraîchissement
  */
 @Validated
@@ -39,6 +40,7 @@ public record ProprietesAuthentification(
         @NotNull Duration dureeVerrouillage,
         @NotNull Duration dureeJetonVerificationEmail,
         @NotNull Duration dureeJetonReinitialisation,
+        @NotNull Duration conservationJetonsExpires,
         @Valid @NotNull Cookie cookie) {
 
     /**

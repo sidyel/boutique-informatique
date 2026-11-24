@@ -184,7 +184,7 @@ E.164 (`+221771234567`), validé par `@TelephoneSenegalais` et par une contraint
   est créé dans une courte transaction validée avant l'échange SMTP ; 3 tentatives, puis abandon
   journalisé sans le contenu de l'e-mail.
 - **Modèles** : Thymeleaf (`templates/emails/`), en français, styles en ligne et mise en page par tableaux.
-- **Mailpit** : en dev (`docker compose --profile dev up -d mailpit`, http://localhost:8025) et dans les
+- **Mailpit** : en dev (service de `infra/docker-compose.dev.yml`, http://localhost:8025) et dans les
   tests d'intégration, qui lisent les vrais e-mails reçus pour en extraire les jetons.
 - **Limitation du débit** : voir §9 (par IP et par e-mail).
 

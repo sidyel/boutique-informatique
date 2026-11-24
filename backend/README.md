@@ -103,7 +103,7 @@ curl -i -b cookies.txt -c cookies.txt -X POST $API/api/auth/deconnexion -H "Orig
 ### E-mails en développement (Mailpit)
 
 ```bash
-docker compose -f ../infra/docker-compose.yml --profile dev up -d mailpit   # interface : http://localhost:8025
+docker compose -f ../infra/docker-compose.yml -f ../infra/docker-compose.dev.yml up -d mailpit   # interface : http://localhost:8025
 ```
 
 Vérification de l'adresse : ouvrir l'e-mail dans Mailpit, copier le jeton du lien (`…?jeton=XXXX`), puis :

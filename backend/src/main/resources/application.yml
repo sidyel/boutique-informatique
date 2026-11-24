@@ -125,6 +125,9 @@ boutique:
     # Liens envoyés par e-mail (usage unique)
     duree-jeton-verification-email: 24h
     duree-jeton-reinitialisation: 1h
+    # Purge quotidienne des jetons expirés depuis plus de 7 jours (3 h 30, heure de Dakar)
+    conservation-jetons-expires: 7d
+    purge-cron: "0 30 3 * * *"
     cookie:
       nom: jeton_rafraichissement
       chemin: /api/auth

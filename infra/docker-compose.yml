@@ -1,8 +1,10 @@
 # Environnement complet : PostgreSQL, Redis, backend, frontend SSR et nginx.
 #
-#   docker compose -f infra/docker-compose.yml up -d --build      # tout
-#   docker compose -f infra/docker-compose.yml up -d postgres redis   # dev local
-#   docker compose -f infra/docker-compose.yml --profile dev up -d mailpit   # e-mails en dev : http://localhost:8025
+# Base commune (production). En développement, toujours y ajouter infra/docker-compose.dev.yml :
+#
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d --build   # tout dans Docker
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d postgres redis mailpit
+#                                                                    # services seuls, backend et frontend lancés à la main
 #
 # Ports exposés sur la machine : POSTGRES_PORT_HOTE (5432) et REDIS_PORT_HOTE (6379),
 # à définir dans le shell si ces ports sont déjà pris (et reporter dans BASE_DONNEES_PORT / REDIS_PORT).
@@ -39,16 +41,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  # Développement uniquement (profil compose « dev ») : capture tous les e-mails envoyés par le backend
-  # (SMTP sur 1025, interface web sur http://localhost:8025). Jamais démarré en production.
-  mailpit:
-    image: axllent/mailpit:v1.34
-    profiles: ["dev"]
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:${MAILPIT_PORT_WEB_HOTE:-8025}:8025"
-      - "127.0.0.1:${MAILPIT_PORT_SMTP_HOTE:-1025}:1025"
 
   # Aucun « ports: » : le backend n'est joignable que depuis le réseau Docker (nginx, frontend SSR).
   # L'exposer publiquement permettrait de contourner nginx et de falsifier X-Forwarded-For (ADR 0003 §13).

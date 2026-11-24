@@ -1,0 +1,32 @@
+# Surcharge de développement, à ajouter APRÈS infra/docker-compose.yml :
+#
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d --build
+#
+# Le fichier .env de la racine est écrit pour le développement local (backend lancé avec ./mvnw,
+# frontend avec npm start). Ici, on ne surcharge que ce qui change quand tout tourne dans Docker :
+# le site est servi par nginx sur http://localhost, et le SMTP est le conteneur Mailpit.
+# Un seul .env sert donc aux deux modes de lancement (voir README).
+
+services:
+  # Capture tous les e-mails envoyés : interface sur http://localhost:8025, SMTP sur 1025.
+  # Jamais présent en production (il n'est déclaré que dans ce fichier).
+  mailpit:
+    image: axllent/mailpit:v1.34
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT_WEB_HOTE:-8025}:8025"
+      - "127.0.0.1:${MAILPIT_PORT_SMTP_HOTE:-1025}:1025"
+
+  backend:
+    environment:
+      # Adresse du site vue par le navigateur : nginx (liens des e-mails, contrôle de l'en-tête Origin).
+      # Si nginx n'est pas publié sur le port 80 (NGINX_PORT_HOTE), définir URL_SITE_DOCKER dans le shell,
+      # par exemple http://localhost:8088.
+      URL_SITE: ${URL_SITE_DOCKER:-http://localhost}
+      CORS_ORIGINES: ${URL_SITE_DOCKER:-http://localhost}
+      # Dans un conteneur, « localhost » désigne le conteneur lui-même : le SMTP est le service mailpit
+      SMTP_HOTE: mailpit
+      SMTP_PORT: "1025"
+    depends_on:
+      mailpit:
+        condition: service_started
