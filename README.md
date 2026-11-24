@@ -18,7 +18,7 @@ Site e-commerce de matériel informatique pour le Sénégal (prix en FCFA).
 ## Prérequis
 
 - Java 21
-- Node.js 24 LTS (Angular 22 exige Node ≥ 22.22 ou ≥ 24.15)
+- Node.js 20.19 ou plus (Angular 21 LTS, voir `docs/decisions/0002-angular-21-node-20.md`) ; Node 24 en CI et dans Docker
 - Docker et Docker Compose
 
 ## Démarrage rapide (développement)
