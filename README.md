@@ -61,3 +61,4 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 | Redis exposé par docker-compose | `REDIS_PORT_HOTE` (shell) + `REDIS_PORT` (`.env`) | 6379 |
 | Backend en dev | `PORT_BACKEND` (`.env`) | 8080 |
 | Frontend en dev | `npm start -- --port 4300` | 4200 |
+| nginx (docker-compose) | `NGINX_PORT_HOTE` (shell) | 80 |
