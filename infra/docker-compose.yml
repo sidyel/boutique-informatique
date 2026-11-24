@@ -50,6 +50,8 @@ services:
       - "127.0.0.1:${MAILPIT_PORT_WEB_HOTE:-8025}:8025"
       - "127.0.0.1:${MAILPIT_PORT_SMTP_HOTE:-1025}:1025"
 
+  # Aucun « ports: » : le backend n'est joignable que depuis le réseau Docker (nginx, frontend SSR).
+  # L'exposer publiquement permettrait de contourner nginx et de falsifier X-Forwarded-For (ADR 0003 §13).
   backend:
     build: ../backend
     restart: unless-stopped

@@ -25,6 +25,7 @@ import sn.boutique.authentification.dto.InscriptionRequete;
 import sn.boutique.authentification.dto.JetonRequete;
 import sn.boutique.authentification.dto.MessageReponse;
 import sn.boutique.authentification.dto.ReinitialisationRequete;
+import sn.boutique.authentification.securite.LimitesAuthentification;
 import sn.boutique.authentification.service.AuthService;
 import sn.boutique.authentification.service.IdentifiantsInvalidesException;
 import sn.boutique.authentification.service.JetonInvalideException;
@@ -60,11 +61,14 @@ public class AuthControleur {
     private final SecuriteCompteService securiteCompte;
     private final CookieRafraichissement cookie;
     private final ProblemesHttp problemes;
+    private final LimitesAuthentification limites;
 
     @Operation(summary = "Créer un compte client",
             description = "Réponse identique si l'e-mail a déjà un compte (son titulaire est prévenu par e-mail).")
     @PostMapping("/inscription")
-    public ResponseEntity<MessageReponse> inscrire(@Valid @RequestBody InscriptionRequete requete) {
+    public ResponseEntity<MessageReponse> inscrire(@Valid @RequestBody InscriptionRequete requete,
+                                                   HttpServletRequest http) {
+        limites.inscription(http.getRemoteAddr());
         try {
             authService.inscrire(requete);
         } catch (DataIntegrityViolationException e) {
@@ -78,6 +82,7 @@ public class AuthControleur {
     @PostMapping("/connexion")
     public ResponseEntity<ConnexionReponse> connecter(@Valid @RequestBody ConnexionRequete requete,
                                                       HttpServletRequest http) {
+        limites.connexion(http.getRemoteAddr(), requete.email());
         return reponseSession(authService.connecter(requete, contexte(http)));
     }
 
@@ -86,6 +91,7 @@ public class AuthControleur {
     public ResponseEntity<ConnexionReponse> rafraichir(
             @CookieValue(name = "${boutique.authentification.cookie.nom}", required = false) String jeton,
             HttpServletRequest http) {
+        limites.rafraichir(http.getRemoteAddr());
         return reponseSession(sessionService.rafraichir(jeton, contexte(http)));
     }
 
@@ -108,14 +114,18 @@ public class AuthControleur {
 
     @Operation(summary = "Renvoyer l'e-mail de vérification", description = "Réponse 202 identique dans tous les cas.")
     @PostMapping("/renvoyer-verification")
-    public ResponseEntity<MessageReponse> renvoyerVerification(@Valid @RequestBody EmailRequete requete) {
+    public ResponseEntity<MessageReponse> renvoyerVerification(@Valid @RequestBody EmailRequete requete,
+                                                               HttpServletRequest http) {
+        limites.renvoiVerification(http.getRemoteAddr(), requete.email());
         securiteCompte.demanderRenvoiVerification(requete.email());
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageReponse(MESSAGE_RENVOI));
     }
 
     @Operation(summary = "Mot de passe oublié", description = "Réponse 202 identique, que l'e-mail ait un compte ou non.")
     @PostMapping("/mot-de-passe-oublie")
-    public ResponseEntity<MessageReponse> motDePasseOublie(@Valid @RequestBody EmailRequete requete) {
+    public ResponseEntity<MessageReponse> motDePasseOublie(@Valid @RequestBody EmailRequete requete,
+                                                           HttpServletRequest http) {
+        limites.motDePasseOublie(http.getRemoteAddr(), requete.email());
         securiteCompte.demanderReinitialisation(requete.email());
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageReponse(MESSAGE_MOT_DE_PASSE_OUBLIE));
     }
@@ -167,7 +177,7 @@ public class AuthControleur {
                 .body(corps);
     }
 
-    /** L'IP réelle est fournie par nginx (X-Forwarded-For, server.forward-headers-strategy=framework). */
+    /** IP réelle : X-Forwarded-For n'est lu que s'il vient de nginx (valve RemoteIp, ADR 0003 §13). */
     private static Contexte contexte(HttpServletRequest http) {
         return new Contexte(http.getRemoteAddr(), http.getHeader(HttpHeaders.USER_AGENT));
     }

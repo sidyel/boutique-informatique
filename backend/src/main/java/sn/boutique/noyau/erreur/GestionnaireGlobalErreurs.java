@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -20,6 +21,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import sn.boutique.noyau.limitation.TropDeRequetesException;
 
 /**
  * Traduit toutes les erreurs de l'API au format ProblemDetail (RFC 9457), avec des messages en français.
@@ -67,6 +69,19 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RegleMetierException.class)
     ProblemDetail gererRegleMetier(RegleMetierException ex, HttpServletRequest requete) {
         return construire(HttpStatus.UNPROCESSABLE_CONTENT, ex.getCode(), ex.getMessage(), requete);
+    }
+
+    @ExceptionHandler(TropDeRequetesException.class)
+    ResponseEntity<ProblemDetail> gererTropDeRequetes(TropDeRequetesException ex, HttpServletRequest requete) {
+        long minutes = (ex.getReessayerDans() + 59) / 60;
+        String delai = minutes <= 1 ? "une minute" : minutes + " minutes";
+        ProblemDetail probleme = construire(HttpStatus.TOO_MANY_REQUESTS, "TROP_DE_REQUETES",
+                "Trop de tentatives. Réessayez dans " + delai + ".", requete);
+        probleme.setProperty("reessayerDans", ex.getReessayerDans());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getReessayerDans()))
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(probleme);
     }
 
     /** Filet de sécurité : jamais de pile d'appels ni de message technique renvoyé au client. */

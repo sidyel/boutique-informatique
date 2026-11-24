@@ -63,7 +63,17 @@ spring:
 
 server:
   port: ${PORT_BACKEND:8080}
-  forward-headers-strategy: framework
+  # IP du client derrière nginx (ADR 0003 §13) : la valve RemoteIp de Tomcat ne lit X-Forwarded-For et
+  # X-Forwarded-Proto QUE si la connexion vient d'un proxy interne (réseaux privés de Docker).
+  # Une requête qui arrive d'ailleurs garde son adresse réelle, quel que soit l'en-tête envoyé.
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      remote-ip-header: x-forwarded-for
+      protocol-header: x-forwarded-proto
+      # 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 (réseaux Docker). 127.0.0.1 n'en fait pas partie.
+      # Surchargeable par la variable SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES.
+      internal-proxies: '10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}'
   shutdown: graceful
   error:
     include-stacktrace: never
@@ -119,3 +129,15 @@ boutique:
       nom: jeton_rafraichissement
       chemin: /api/auth
       secure: true
+  # Limitation du débit (Redis, fenêtre fixe), ADR 0003 §9. Valeurs larges par IP (CGNAT des opérateurs
+  # mobiles : beaucoup d'abonnés derrière une même IP), plus strictes par e-mail.
+  limitation:
+    actif: true
+    connexion-ip: { limite: 30, fenetre: 1m }
+    connexion-email: { limite: 10, fenetre: 1h }
+    inscription-ip: { limite: 30, fenetre: 1h }
+    mot-de-passe-oublie-ip: { limite: 10, fenetre: 1h }
+    mot-de-passe-oublie-email: { limite: 3, fenetre: 1h }
+    renvoi-verification-ip: { limite: 10, fenetre: 1h }
+    renvoi-verification-email: { limite: 3, fenetre: 1h }
+    rafraichir-ip: { limite: 30, fenetre: 1m }

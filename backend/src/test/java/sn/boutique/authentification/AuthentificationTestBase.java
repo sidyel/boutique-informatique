@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import sn.boutique.TestcontainersConfiguration;
 import sn.boutique.compte.depot.UtilisateurDepot;
 import sn.boutique.compte.modele.Role;
@@ -37,6 +38,7 @@ abstract class AuthentificationTestBase {
     static final String ORIGINE_SITE = "http://localhost:4200";
     static final String MOT_DE_PASSE = "Thieboudienne-2026";
     static final String NOM_COOKIE = "jeton_rafraichissement";
+    private static final java.util.Random ALEATOIRE = new java.util.Random();
 
     @Autowired
     MockMvc mockMvc;
@@ -51,9 +53,21 @@ abstract class AuthentificationTestBase {
     @Autowired
     JdbcTemplate jdbc;
 
+    /** IP différente pour chaque test : les compteurs de limitation du débit (Redis) ne se mélangent pas. */
+    String ipClient;
+
     @BeforeEach
     void remettreLHorlogeALHeure() {
         horloge.reinitialiser();
+        ipClient = "10.%d.%d.%d".formatted(ALEATOIRE.nextInt(256), ALEATOIRE.nextInt(256), 1 + ALEATOIRE.nextInt(254));
+    }
+
+    /** À ajouter aux requêtes construites à la main : {@code mockMvc.perform(post(...).with(depuisIpClient()))}. */
+    RequestPostProcessor depuisIpClient() {
+        return requete -> {
+            requete.setRemoteAddr(ipClient);
+            return requete;
+        };
     }
 
     static String emailUnique() {
@@ -61,20 +75,20 @@ abstract class AuthentificationTestBase {
     }
 
     ResultActions inscrire(String email, String motDePasse) throws Exception {
-        return mockMvc.perform(post("/api/auth/inscription")
+        return mockMvc.perform(post("/api/auth/inscription").with(depuisIpClient())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("email", email, "motDePasse", motDePasse, "prenom", "Awa", "nom", "Diop",
                         "telephone", "77 123 45 67", "consentementMarketing", true))));
     }
 
     ResultActions connecter(String email, String motDePasse) throws Exception {
-        return mockMvc.perform(post("/api/auth/connexion")
+        return mockMvc.perform(post("/api/auth/connexion").with(depuisIpClient())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("email", email, "motDePasse", motDePasse))));
     }
 
     ResultActions rafraichir(String jeton) throws Exception {
-        return mockMvc.perform(post("/api/auth/rafraichir")
+        return mockMvc.perform(post("/api/auth/rafraichir").with(depuisIpClient())
                 .header(HttpHeaders.ORIGIN, ORIGINE_SITE)
                 .cookie(new Cookie(NOM_COOKIE, jeton)));
     }

@@ -116,9 +116,28 @@ de débit par IP et par e-mail (commit 8, Redis) le complète.
 
 Au Sénégal, les opérateurs mobiles placent de nombreux abonnés derrière une même adresse IP publique
 (CGNAT). Une limite par IP trop basse bloquerait des clients légitimes au même moment : les limites par
-IP sont donc larges (connexion 30/min, inscription 30/h, mot de passe oublié 10/h, rafraîchissement
-30/min) et complétées par des limites **par e-mail** plus strictes (connexion 10/h, mot de passe oublié
-3/h). Toutes les valeurs sont configurables.
+IP sont donc larges et complétées par des limites **par e-mail** plus strictes.
+
+| Route | Par IP | Par e-mail |
+|---|---|---|
+| connexion | 30 / minute | 10 / heure |
+| inscription | 30 / heure | — |
+| mot de passe oublié | 10 / heure | 3 / heure |
+| renvoi de la vérification | 10 / heure | 3 / heure |
+| rafraîchissement | 30 / minute | — |
+
+- Toutes les valeurs sont dans `application.yml` (`boutique.limitation.*`), avec un interrupteur `actif`.
+- **Mise en œuvre** : fenêtre fixe dans Redis (script Lua atomique : `INCR`, expiration à la première
+  requête, temps restant), partagée par toutes les instances du backend. Aucune dépendance ajoutée.
+- **Dépassement** : `429 TROP_DE_REQUETES` au format ProblemDetail, en-tête `Retry-After` (secondes)
+  et propriété `reessayerDans`.
+- La limite par IP est vérifiée en premier : une requête bloquée par IP ne consomme pas le quota de l'e-mail.
+- **Clés Redis** : `limite:<règle>:<ip>` ou `limite:<règle>:<SHA-256 de l'e-mail normalisé>` : aucune
+  adresse e-mail en clair dans Redis.
+- **Mot de passe oublié et renvoi** : la limite par e-mail s'applique que le compte existe ou non ;
+  la réponse 429 ne révèle donc pas quelles adresses ont un compte.
+- **Redis indisponible** : la requête passe (erreur journalisée). Une panne de Redis ne doit pas empêcher
+  de se connecter ; le verrouillage par compte, en base, protège toujours contre la force brute.
 
 ### 10. Mots de passe
 
@@ -167,7 +186,34 @@ E.164 (`+221771234567`), validé par `@TelephoneSenegalais` et par une contraint
 - **Modèles** : Thymeleaf (`templates/emails/`), en français, styles en ligne et mise en page par tableaux.
 - **Mailpit** : en dev (`docker compose --profile dev up -d mailpit`, http://localhost:8025) et dans les
   tests d'intégration, qui lisent les vrais e-mails reçus pour en extraire les jetons.
-- **Limite** : pas encore de limitation de débit sur ces routes : elle arrive au commit 8.
+- **Limitation du débit** : voir §9 (par IP et par e-mail).
+
+### 13. Adresse IP du client : impossible à falsifier
+
+La limitation par IP n'a de sens que si l'IP ne peut pas être choisie par le client. Règles :
+
+1. **nginx écrase les en-têtes au lieu de les allonger** :
+   `proxy_set_header X-Forwarded-For $remote_addr;` et `proxy_set_header X-Real-IP $remote_addr;`.
+   Avec `$proxy_add_x_forwarded_for`, la valeur envoyée par le client serait conservée et pourrait
+   être prise pour son IP. Si un CDN est ajouté un jour devant nginx, utiliser le module `real_ip` avec
+   la liste des adresses du CDN, jamais une confiance aveugle.
+2. **Spring ne fait confiance aux en-têtes de proxy que s'ils viennent du réseau Docker interne** :
+   `server.forward-headers-strategy: native` (valve RemoteIp de Tomcat) avec
+   `server.tomcat.remoteip.internal-proxies` limité à 10.0.0.0/8, 172.16.0.0/12 et 192.168.0.0/16.
+   Une requête venant d'une autre adresse (y compris 127.0.0.1) garde son adresse réelle, quel que soit
+   le `X-Forwarded-For` envoyé. L'ancienne stratégie `framework` acceptait l'en-tête de n'importe qui.
+   Surchargeable par `SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES` si le réseau Docker change.
+3. **En production, le port du backend n'est jamais exposé** (aucun `ports:` dans docker-compose) :
+   seuls nginx et le frontend SSR y accèdent, par le réseau Docker. Exposé, il permettrait de contourner
+   nginx depuis une adresse du réseau interne et donc de choisir son `X-Forwarded-For`.
+4. **Test** : `LimitationDebitTest` envoie, sur un vrai serveur Tomcat, 31 tentatives de connexion avec un
+   `X-Forwarded-For` (et un `X-Real-IP`) différent à chaque fois : la 31ᵉ est bloquée (429). Un autre test
+   vérifie que l'expression des proxies internes accepte les réseaux Docker et refuse 127.0.0.1 et les IP
+   publiques.
+
+Le frontend SSR appelle l'API depuis le réseau Docker : il est donc un proxy de confiance. Il ne doit
+jamais transmettre à l'API un `X-Forwarded-For` construit à partir de la requête du navigateur (il
+n'appelle d'ailleurs pas les routes d'authentification, que le navigateur appelle directement via nginx).
 
 ## Conséquences
 

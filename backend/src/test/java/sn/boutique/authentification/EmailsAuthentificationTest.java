@@ -202,16 +202,16 @@ class EmailsAuthentificationTest extends AuthentificationTestBase {
     }
 
     private ResultActions verifier(String jeton) throws Exception {
-        return mockMvc.perform(post("/api/auth/verification-email")
+        return mockMvc.perform(post("/api/auth/verification-email").with(depuisIpClient())
                 .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("jeton", jeton))));
     }
 
     private ResultActions demander(String route, String email) throws Exception {
-        return mockMvc.perform(post(route).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("email", email))));
+        return mockMvc.perform(post(route).with(depuisIpClient()).contentType(MediaType.APPLICATION_JSON).content(json(Map.of("email", email))));
     }
 
     private ResultActions reinitialiser(String jeton, String motDePasse) throws Exception {
-        return mockMvc.perform(post("/api/auth/reinitialiser").contentType(MediaType.APPLICATION_JSON)
+        return mockMvc.perform(post("/api/auth/reinitialiser").with(depuisIpClient()).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("jeton", jeton, "motDePasse", motDePasse))));
     }
 }

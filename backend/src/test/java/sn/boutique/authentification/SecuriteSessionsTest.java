@@ -53,7 +53,7 @@ class SecuriteSessionsTest extends AuthentificationTestBase {
         rafraichir("jeton-invente-de-toutes-pieces")
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("SESSION_INVALIDE"));
-        mockMvc.perform(post("/api/auth/rafraichir").header(HttpHeaders.ORIGIN, ORIGINE_SITE))
+        mockMvc.perform(post("/api/auth/rafraichir").with(depuisIpClient()).header(HttpHeaders.ORIGIN, ORIGINE_SITE))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -61,21 +61,21 @@ class SecuriteSessionsTest extends AuthentificationTestBase {
     void rafraichirSansOriginOuDepuisUneAutreOrigineEstRefuseSansConsommerLeJeton() throws Exception {
         String jeton = jetonRafraichissement(creerEtConnecter(Role.CLIENT));
 
-        mockMvc.perform(post("/api/auth/rafraichir").cookie(new Cookie(NOM_COOKIE, jeton)))
+        mockMvc.perform(post("/api/auth/rafraichir").with(depuisIpClient()).cookie(new Cookie(NOM_COOKIE, jeton)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ORIGINE_REFUSEE"));
         // Même hôte que l'API mais pas l'URL du site : refusé par la vérification d'origine
-        mockMvc.perform(post("/api/auth/rafraichir").header(HttpHeaders.ORIGIN, "http://localhost")
+        mockMvc.perform(post("/api/auth/rafraichir").with(depuisIpClient()).header(HttpHeaders.ORIGIN, "http://localhost")
                         .cookie(new Cookie(NOM_COOKIE, jeton)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ORIGINE_REFUSEE"));
         // Site tiers et sous-domaine : refusés (dès le contrôle CORS)
         for (String origine : new String[] {"https://site-pirate.com", "http://blog.localhost:4200"}) {
-            mockMvc.perform(post("/api/auth/rafraichir").header(HttpHeaders.ORIGIN, origine)
+            mockMvc.perform(post("/api/auth/rafraichir").with(depuisIpClient()).header(HttpHeaders.ORIGIN, origine)
                             .cookie(new Cookie(NOM_COOKIE, jeton)))
                     .andExpect(status().isForbidden());
         }
-        mockMvc.perform(post("/api/auth/deconnexion").cookie(new Cookie(NOM_COOKIE, jeton)))
+        mockMvc.perform(post("/api/auth/deconnexion").with(depuisIpClient()).cookie(new Cookie(NOM_COOKIE, jeton)))
                 .andExpect(status().isForbidden());
 
         // Aucune de ces requêtes n'a consommé ni révoqué le jeton
