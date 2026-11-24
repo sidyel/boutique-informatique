@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>Merci pour votre inscription. Confirmez votre adresse e-mail pour recevoir le suivi de vos commandes
+       et pouvoir publier des avis.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lien}, 'Confirmer mon adresse')}"></th:block>
+    <p style="font-size:13px;color:#5B6573;">Ce lien est valable <span th:text="${validite}">24 heures</span> et ne fonctionne qu'une fois.
+       Si vous n'êtes pas à l'origine de cette inscription, ignorez cet e-mail.</p>
+</div>
+</body>
+</html>

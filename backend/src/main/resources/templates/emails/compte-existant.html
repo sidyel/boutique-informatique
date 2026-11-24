@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>Quelqu'un vient de demander la création d'un compte avec votre adresse e-mail. Or vous avez déjà
+       un compte chez nous : aucun nouveau compte n'a été créé et votre compte actuel n'a pas été modifié.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lienConnexion}, 'Me connecter')}"></th:block>
+    <p>Mot de passe oublié ? <a th:href="${lienMotDePasseOublie}" style="color:#C2410C;">Choisissez-en un nouveau</a>.</p>
+    <p style="font-size:13px;color:#5B6573;">Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail.</p>
+</div>
+</body>
+</html>

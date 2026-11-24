@@ -142,8 +142,32 @@ E.164 (`+221771234567`), validé par `@TelephoneSenegalais` et par une contraint
 | `POST /api/auth/deconnexion` | cookie + `Origin` | 204 + cookie effacé (même si le jeton est inconnu) |
 | `GET /api/compte/**` | jeton d'accès | 401 `NON_AUTHENTIFIE` sans jeton valide |
 | `/api/admin/**` | jeton d'accès d'un rôle interne | 401 sans jeton, 403 `ACCES_REFUSE` pour un CLIENT |
+| `POST /api/auth/verification-email` | aucune (jeton reçu par e-mail) | 200 ; 400 `JETON_INVALIDE` |
+| `POST /api/auth/renvoyer-verification` | aucune | 202, message identique dans tous les cas |
+| `POST /api/auth/mot-de-passe-oublie` | aucune | 202, message identique dans tous les cas |
+| `POST /api/auth/reinitialiser` | aucune (jeton reçu par e-mail) | 200 ; 400 `JETON_INVALIDE` ou `VALIDATION` |
 
-Commit 7 : vérification de l'e-mail, mot de passe oublié et envoi réel des e-mails (Mailpit en dev).
+### 12. E-mails de vérification et de réinitialisation (commit 7)
+
+- **Jetons** : 256 bits aléatoires, empreinte SHA-256 en base, **usage unique** ; vérification valable
+  24 h, réinitialisation 1 h (configurables). Un nouvel envoi invalide les liens précédents. Lien inconnu,
+  expiré ou déjà utilisé : même réponse `400 JETON_INVALIDE`.
+- **Liens** : `URL_SITE/compte/verifier-email?jeton=…` et `URL_SITE/compte/nouveau-mot-de-passe?jeton=…`.
+  Les pages du frontend (phase 5) renvoient le jeton en POST et doivent servir
+  `Referrer-Policy: no-referrer`, pour que le jeton ne fuie pas vers un site tiers.
+- **Réinitialisation** : nouveau mot de passe, verrouillage levé, adresse considérée comme vérifiée
+  (le lien prouve l'accès à la boîte mail), **toutes les sessions révoquées**, et e-mail d'alerte
+  « votre mot de passe a été modifié ».
+- **Vérification** : le JWT en cours garde `emailVerifie=false` jusqu'au rafraîchissement suivant ;
+  le frontend rafraîchit après la vérification.
+- **Envoi** : après validation de la transaction (un rollback n'envoie rien) et en arrière-plan
+  (`@Async`) : la réponse part tout de suite, avec la même durée que le compte existe ou non. Le jeton
+  est créé dans une courte transaction validée avant l'échange SMTP ; 3 tentatives, puis abandon
+  journalisé sans le contenu de l'e-mail.
+- **Modèles** : Thymeleaf (`templates/emails/`), en français, styles en ligne et mise en page par tableaux.
+- **Mailpit** : en dev (`docker compose --profile dev up -d mailpit`, http://localhost:8025) et dans les
+  tests d'intégration, qui lisent les vrais e-mails reçus pour en extraire les jetons.
+- **Limite** : pas encore de limitation de débit sur ces routes : elle arrive au commit 8.
 
 ## Conséquences
 

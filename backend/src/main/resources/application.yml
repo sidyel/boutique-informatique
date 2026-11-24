@@ -94,6 +94,11 @@ springdoc:
 boutique:
   url-site: ${URL_SITE:http://localhost:4200}
   cors-origines: ${CORS_ORIGINES:http://localhost:4200}
+  # E-mails transactionnels
+  email:
+    expediteur: ${EMAIL_EXPEDITEUR:Boutique <no-reply@exemple.sn>}
+    nom-site: ${NOM_SITE:Boutique informatique}
+    tentatives: 3
   # Authentification (ADR 0003)
   authentification:
     # Clé HMAC en Base64, 32 octets minimum : openssl rand -base64 48
@@ -107,6 +112,9 @@ boutique:
     duree-session-interne: 12h
     echecs-avant-verrouillage: 5
     duree-verrouillage: 15m
+    # Liens envoyés par e-mail (usage unique)
+    duree-jeton-verification-email: 24h
+    duree-jeton-reinitialisation: 1h
     cookie:
       nom: jeton_rafraichissement
       chemin: /api/auth

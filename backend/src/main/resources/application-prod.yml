@@ -21,3 +21,5 @@ management:
 boutique:
   url-site: ${URL_SITE}
   cors-origines: ${CORS_ORIGINES}
+  email:
+    expediteur: ${EMAIL_EXPEDITEUR}

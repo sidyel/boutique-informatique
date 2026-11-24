@@ -20,10 +20,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sn.boutique.authentification.dto.ConnexionReponse;
 import sn.boutique.authentification.dto.ConnexionRequete;
+import sn.boutique.authentification.dto.EmailRequete;
 import sn.boutique.authentification.dto.InscriptionRequete;
+import sn.boutique.authentification.dto.JetonRequete;
 import sn.boutique.authentification.dto.MessageReponse;
+import sn.boutique.authentification.dto.ReinitialisationRequete;
 import sn.boutique.authentification.service.AuthService;
 import sn.boutique.authentification.service.IdentifiantsInvalidesException;
+import sn.boutique.authentification.service.JetonInvalideException;
+import sn.boutique.authentification.service.SecuriteCompteService;
 import sn.boutique.authentification.service.SessionInvalideException;
 import sn.boutique.authentification.service.SessionService;
 import sn.boutique.authentification.service.SessionService.Contexte;
@@ -45,9 +50,14 @@ public class AuthControleur {
 
     static final String MESSAGE_INSCRIPTION =
             "Inscription enregistrée. Consultez votre boîte mail pour confirmer votre adresse.";
+    static final String MESSAGE_RENVOI =
+            "Si un compte non vérifié correspond à cette adresse, un nouveau lien vient de lui être envoyé.";
+    static final String MESSAGE_MOT_DE_PASSE_OUBLIE =
+            "Si un compte correspond à cette adresse, un lien pour choisir un nouveau mot de passe vient de lui être envoyé.";
 
     private final AuthService authService;
     private final SessionService sessionService;
+    private final SecuriteCompteService securiteCompte;
     private final CookieRafraichissement cookie;
     private final ProblemesHttp problemes;
 
@@ -87,6 +97,44 @@ public class AuthControleur {
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, cookie.effacer().toString())
                 .build();
+    }
+
+    @Operation(summary = "Confirmer l'adresse e-mail (jeton reçu par e-mail, valable 24 h, usage unique)")
+    @PostMapping("/verification-email")
+    public MessageReponse verifierEmail(@Valid @RequestBody JetonRequete requete) {
+        securiteCompte.verifierEmail(requete.jeton());
+        return new MessageReponse("Votre adresse e-mail est confirmée.");
+    }
+
+    @Operation(summary = "Renvoyer l'e-mail de vérification", description = "Réponse 202 identique dans tous les cas.")
+    @PostMapping("/renvoyer-verification")
+    public ResponseEntity<MessageReponse> renvoyerVerification(@Valid @RequestBody EmailRequete requete) {
+        securiteCompte.demanderRenvoiVerification(requete.email());
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageReponse(MESSAGE_RENVOI));
+    }
+
+    @Operation(summary = "Mot de passe oublié", description = "Réponse 202 identique, que l'e-mail ait un compte ou non.")
+    @PostMapping("/mot-de-passe-oublie")
+    public ResponseEntity<MessageReponse> motDePasseOublie(@Valid @RequestBody EmailRequete requete) {
+        securiteCompte.demanderReinitialisation(requete.email());
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageReponse(MESSAGE_MOT_DE_PASSE_OUBLIE));
+    }
+
+    @Operation(summary = "Choisir un nouveau mot de passe (jeton reçu par e-mail, valable 1 h)",
+            description = "Révoque toutes les sessions du compte.")
+    @PostMapping("/reinitialiser")
+    public MessageReponse reinitialiser(@Valid @RequestBody ReinitialisationRequete requete) {
+        securiteCompte.reinitialiserMotDePasse(requete.jeton(), requete.motDePasse());
+        return new MessageReponse("Votre mot de passe a été modifié. Vous pouvez vous connecter.");
+    }
+
+    @ExceptionHandler(JetonInvalideException.class)
+    ResponseEntity<ProblemDetail> jetonInvalide(JetonInvalideException ex, HttpServletRequest http) {
+        log.info("Lien refusé : {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problemes.creer(HttpStatus.BAD_REQUEST, "JETON_INVALIDE",
+                        "Ce lien n'est plus valable. Demandez-en un nouveau.", http.getRequestURI()));
     }
 
     @ExceptionHandler(IdentifiantsInvalidesException.class)

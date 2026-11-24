@@ -100,5 +100,21 @@ curl -i -b cookies.txt -c cookies.txt -X POST $API/api/auth/rafraichir -H "Origi
 curl -i -b cookies.txt -c cookies.txt -X POST $API/api/auth/deconnexion -H "Origin: $ORIGINE"
 ```
 
+### E-mails en développement (Mailpit)
+
+```bash
+docker compose -f ../infra/docker-compose.yml --profile dev up -d mailpit   # interface : http://localhost:8025
+```
+
+Vérification de l'adresse : ouvrir l'e-mail dans Mailpit, copier le jeton du lien (`…?jeton=XXXX`), puis :
+
+```bash
+curl -i -X POST $API/api/auth/verification-email -H 'Content-Type: application/json' -d '{"jeton":"XXXX"}'
+curl -i -X POST $API/api/auth/mot-de-passe-oublie -H 'Content-Type: application/json' -d '{"email":"awa.diop@exemple.sn"}'
+curl -i -X POST $API/api/auth/reinitialiser -H 'Content-Type: application/json'   -d '{"jeton":"YYYY","motDePasse":"Nouveau-mot-de-passe-2026"}'
+```
+
+En dev, la sonde `/actuator/health` passe à DOWN si Mailpit n'est pas lancé.
+
 `JWT_SECRET` (`openssl rand -base64 48`) est obligatoire en production ; en dev, une clé jetable est
 générée s'il est absent ou invalide (les sessions sont alors perdues au redémarrage).

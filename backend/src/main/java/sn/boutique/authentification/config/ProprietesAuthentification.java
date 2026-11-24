@@ -22,6 +22,8 @@ import sn.boutique.compte.modele.Role;
  * @param dureeSessionInterne     session des rôles internes, absolue : le rafraîchissement ne la prolonge pas
  * @param echecsAvantVerrouillage nombre d'échecs de connexion consécutifs avant verrouillage du compte
  * @param dureeVerrouillage       durée du verrouillage
+ * @param dureeJetonVerificationEmail  validité du lien de vérification de l'e-mail
+ * @param dureeJetonReinitialisation   validité du lien de réinitialisation du mot de passe
  * @param cookie                  cookie du jeton de rafraîchissement
  */
 @Validated
@@ -35,6 +37,8 @@ public record ProprietesAuthentification(
         @NotNull Duration dureeSessionInterne,
         @Min(1) int echecsAvantVerrouillage,
         @NotNull Duration dureeVerrouillage,
+        @NotNull Duration dureeJetonVerificationEmail,
+        @NotNull Duration dureeJetonReinitialisation,
         @Valid @NotNull Cookie cookie) {
 
     /**

@@ -30,6 +30,10 @@ boutique:
       secure: false
 
 management:
+  health:
+    # En dev, Mailpit doit tourner : un « DOWN » signale qu'il a été oublié
+    mail:
+      enabled: true
   endpoint:
     health:
       show-details: always

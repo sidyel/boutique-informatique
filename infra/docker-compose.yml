@@ -2,6 +2,7 @@
 #
 #   docker compose -f infra/docker-compose.yml up -d --build      # tout
 #   docker compose -f infra/docker-compose.yml up -d postgres redis   # dev local
+#   docker compose -f infra/docker-compose.yml --profile dev up -d mailpit   # e-mails en dev : http://localhost:8025
 #
 # Ports exposés sur la machine : POSTGRES_PORT_HOTE (5432) et REDIS_PORT_HOTE (6379),
 # à définir dans le shell si ces ports sont déjà pris (et reporter dans BASE_DONNEES_PORT / REDIS_PORT).
@@ -38,6 +39,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # Développement uniquement (profil compose « dev ») : capture tous les e-mails envoyés par le backend
+  # (SMTP sur 1025, interface web sur http://localhost:8025). Jamais démarré en production.
+  mailpit:
+    image: axllent/mailpit:v1.34
+    profiles: ["dev"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT_WEB_HOTE:-8025}:8025"
+      - "127.0.0.1:${MAILPIT_PORT_SMTP_HOTE:-1025}:1025"
 
   backend:
     build: ../backend

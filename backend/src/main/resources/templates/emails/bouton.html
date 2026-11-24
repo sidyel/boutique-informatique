@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Bouton d'action, suivi du lien en clair pour les messageries qui bloquent les boutons. */-->
+<div th:fragment="bouton(lien, libelle)">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+    <tr><td style="background:#C2410C;border-radius:4px;">
+      <a th:href="${lien}" style="display:inline-block;padding:12px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#FFFFFF;text-decoration:none;" th:text="${libelle}">Action</a>
+    </td></tr>
+  </table>
+  <p style="font-size:13px;color:#5B6573;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+    <a th:href="${lien}" th:text="${lien}" style="color:#C2410C;word-break:break-all;">lien</a></p>
+</div>
+</body>
+</html>
