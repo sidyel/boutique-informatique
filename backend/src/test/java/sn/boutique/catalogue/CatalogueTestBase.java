@@ -2,7 +2,10 @@ package sn.boutique.catalogue;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import jakarta.persistence.EntityManager;
@@ -16,8 +19,11 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.support.TransactionTemplate;
 import sn.boutique.TestcontainersConfiguration;
 import sn.boutique.catalogue.modele.Categorie;
+import sn.boutique.catalogue.modele.DefinitionCaracteristique;
 import sn.boutique.catalogue.modele.Marque;
 import sn.boutique.catalogue.modele.Produit;
+import sn.boutique.catalogue.modele.TypeCaracteristique;
+import sn.boutique.catalogue.modele.ValeurCaracteristique;
 import sn.boutique.support.CompteurRequetesSql;
 import sn.boutique.support.HorlogeReglable;
 import tools.jackson.databind.JsonNode;
@@ -87,6 +93,59 @@ abstract class CatalogueTestBase {
             em.persist(produit);
             return produit;
         });
+    }
+
+    /**
+     * Produit actif complété par {@code configuration} (variantes, médias…) avant son enregistrement.
+     * Les valeurs de caractéristiques propres à une variante s'ajoutent ensuite avec {@link #caracteristiques}.
+     */
+    Produit produit(String nom, Marque marque, Categorie categorie, Consumer<Produit> configuration) {
+        Produit cree = enTransaction(em -> {
+            Produit produit = new Produit(nom, unique("produit"), em.getReference(Marque.class, marque.getId()),
+                    em.getReference(Categorie.class, categorie.getId()));
+            configuration.accept(produit);
+            em.persist(produit);
+            return produit;
+        });
+        // Relu après le commit : prixMinimum et stockTotal sont calculés par le trigger (ADR 0004)
+        return enTransaction(em -> em.find(Produit.class, cree.getId()));
+    }
+
+    /** Ajoute des valeurs de caractéristiques à un produit déjà enregistré (avec ses variantes). */
+    void caracteristiques(Produit produit, BiConsumer<EntityManager, Produit> ajout) {
+        enTransaction(em -> {
+            Produit charge = em.find(Produit.class, produit.getId());
+            ajout.accept(em, charge);
+            return null;
+        });
+    }
+
+    DefinitionCaracteristique definition(Categorie categorie, String cle, String libelle, TypeCaracteristique type,
+                                         String groupe, int ordre, String unite, boolean filtrable) {
+        return enTransaction(em -> {
+            DefinitionCaracteristique definition = new DefinitionCaracteristique(
+                    em.getReference(Categorie.class, categorie.getId()), cle, libelle, type, groupe);
+            definition.setOrdre(ordre);
+            definition.setUnite(unite);
+            definition.setFiltrable(filtrable);
+            em.persist(definition);
+            return definition;
+        });
+    }
+
+    /** Valeur d'une caractéristique pour le produit, ou pour une variante si {@code sku} est renseigné. */
+    static void valeur(EntityManager em, Produit produit, DefinitionCaracteristique definition, String sku, Object valeur) {
+        ValeurCaracteristique v = produit.ajouterCaracteristique(em.getReference(DefinitionCaracteristique.class,
+                definition.getId()));
+        if (sku != null) {
+            v.setVariante(produit.getVariantes().stream().filter(var -> var.getSku().equals(sku)).findFirst()
+                    .orElseThrow());
+        }
+        switch (valeur) {
+            case Number nombre -> v.setValeurNombre(new BigDecimal(nombre.toString()));
+            case Boolean booleen -> v.setValeurBooleen(booleen);
+            default -> v.setValeurTexte(valeur.toString());
+        }
     }
 
     ResultActions lire(String url, Object... variables) throws Exception {

@@ -11,6 +11,10 @@ public interface ProduitDepot extends JpaRepository<Produit, Long> {
 
     Optional<Produit> findBySlugAndActifTrue(String slug);
 
+    /** Produit publié, avec sa marque et sa catégorie (fiche produit : une requête). */
+    @Query("select p from Produit p join fetch p.marque join fetch p.categorie where p.slug = :slug and p.actif")
+    Optional<Produit> trouverPublieParSlug(String slug);
+
     Optional<Produit> findBySlug(String slug);
 
     boolean existsBySlug(String slug);
