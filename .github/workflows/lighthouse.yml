@@ -65,7 +65,7 @@ jobs:
           done
           echo "::error::Le catalogue de démonstration n'est pas disponible"; exit 1
 
-      # Pages ajoutées au fil des parties : catégorie (3b), fiche produit (3c)
+      # Pages ajoutées au fil des parties : fiche produit en 3c
       - name: Lighthouse mobile
         env:
           LIGHTHOUSE_CMD: lighthouse
@@ -75,6 +75,7 @@ jobs:
           --passages "${PASSAGES}"
           --sortie rapports-lighthouse
           --page accueil=/
+          --page categorie=/categorie/pc-portables
 
       - name: Rapports Lighthouse
         if: always()
