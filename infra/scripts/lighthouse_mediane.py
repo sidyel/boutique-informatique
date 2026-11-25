@@ -153,6 +153,14 @@ def main() -> int:
 
     tous_echecs = []
     for page in pages:
+        m = page["mediane"]
+        # Annotation lisible sans téléchargement des artefacts (API publique des « check runs »)
+        print(
+            f"::notice title=Lighthouse {page['nom']} (médiane)::performance {m['performance']:.0f}, "
+            f"LCP {m['lcp_ms'] / 1000:.2f} s, CLS {m['cls']:.3f}, TBT {m['tbt_ms']:.0f} ms, "
+            f"poids {m['poids_octets'] / 1000:.0f} Ko ; passages : "
+            + ", ".join(str(r["performance"]) for r in page["passages"])
+        )
         echecs, avertissements = verdicts(page)
         for message in avertissements:
             print(f"::warning title=Lighthouse::{message}")
