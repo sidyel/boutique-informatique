@@ -47,7 +47,7 @@ class JwtConfigTest {
     private static ProprietesAuthentification proprietes(String secret, boolean ephemere) {
         return new ProprietesAuthentification(secret, ephemere, "essai", Duration.ofMinutes(15),
                 Duration.ofDays(30), Duration.ofHours(12), 5, Duration.ofMinutes(15),
-                Duration.ofHours(24), Duration.ofHours(1), Duration.ofDays(7),
+                Duration.ofHours(24), Duration.ofHours(1), Duration.ofHours(1), Duration.ofDays(7),
                 new ProprietesAuthentification.Cookie("jeton_rafraichissement", "/api/auth", true));
     }
 }

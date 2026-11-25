@@ -125,7 +125,7 @@ class SecuriteSessionsTest extends AuthentificationTestBase {
     }
 
     @Test
-    void cinqEchecsVerrouillentLeCompteQuinzeMinutes() throws Exception {
+    void cinqEchecsVerrouillentLeCoupleEmailIpQuinzeMinutes() throws Exception {
         MvcResult connexion = creerEtConnecter(Role.CLIENT);
         String email = corps(connexion).get("utilisateur").get("email").asString();
 
@@ -145,7 +145,6 @@ class SecuriteSessionsTest extends AuthentificationTestBase {
 
         horloge.avancer(Duration.ofMinutes(1).plusSeconds(1));
         connecter(email, MOT_DE_PASSE).andExpect(status().isOk());
-        assertThat(utilisateurDepot.findById(idUtilisateur(connexion)).orElseThrow().getEchecsConnexion()).isZero();
     }
 
     @Test

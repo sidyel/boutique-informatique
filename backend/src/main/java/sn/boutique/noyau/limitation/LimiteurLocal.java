@@ -46,7 +46,15 @@ public class LimiteurLocal {
     }
 
     /** Compte une requête ; lève {@link TropDeRequetesException} au-delà de la limite de la fenêtre en cours. */
-    public synchronized void verifier(String nom, Regle regle, String cle) {
+    public void verifier(String nom, Regle regle, String cle) {
+        Comptage comptage = compter(nom, regle, cle);
+        if (comptage.depasse(regle)) {
+            throw new TropDeRequetesException(nom, comptage.reessayerDans());
+        }
+    }
+
+    /** Compte une requête sans rien lever : nombre de requêtes de la fenêtre en cours, temps restant. */
+    public synchronized Comptage compter(String nom, Regle regle, String cle) {
         Instant maintenant = horloge.instant();
         String identifiant = nom + ":" + cle;
         Compteur compteur = compteurs.get(identifiant);
@@ -55,10 +63,7 @@ public class LimiteurLocal {
             compteurs.put(identifiant, compteur);
         }
         compteur.nombre++;
-        if (compteur.nombre > regle.limite()) {
-            long millis = Duration.between(maintenant, compteur.fin).toMillis();
-            throw new TropDeRequetesException(nom, Math.max(1, (millis + 999) / 1000));
-        }
+        return new Comptage(compteur.nombre, Duration.between(maintenant, compteur.fin).toMillis());
     }
 
     synchronized int taille() {

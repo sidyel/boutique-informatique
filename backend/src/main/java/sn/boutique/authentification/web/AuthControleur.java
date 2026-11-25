@@ -116,8 +116,10 @@ public class AuthControleur {
     @PostMapping("/renvoyer-verification")
     public ResponseEntity<MessageReponse> renvoyerVerification(@Valid @RequestBody EmailRequete requete,
                                                                HttpServletRequest http) {
-        limites.renvoiVerification(http.getRemoteAddr(), requete.email());
-        securiteCompte.demanderRenvoiVerification(requete.email());
+        // Quota de l'e-mail dépassé : même réponse 202, sans envoi (rien n'est révélé, boîte protégée)
+        if (limites.renvoiVerification(http.getRemoteAddr(), requete.email())) {
+            securiteCompte.demanderRenvoiVerification(requete.email());
+        }
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageReponse(MESSAGE_RENVOI));
     }
 
@@ -125,8 +127,10 @@ public class AuthControleur {
     @PostMapping("/mot-de-passe-oublie")
     public ResponseEntity<MessageReponse> motDePasseOublie(@Valid @RequestBody EmailRequete requete,
                                                            HttpServletRequest http) {
-        limites.motDePasseOublie(http.getRemoteAddr(), requete.email());
-        securiteCompte.demanderReinitialisation(requete.email());
+        // Quota de l'e-mail dépassé : même réponse 202, sans envoi (rien n'est révélé, boîte protégée)
+        if (limites.motDePasseOublie(http.getRemoteAddr(), requete.email())) {
+            securiteCompte.demanderReinitialisation(requete.email());
+        }
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageReponse(MESSAGE_MOT_DE_PASSE_OUBLIE));
     }
 
@@ -136,6 +140,14 @@ public class AuthControleur {
     public MessageReponse reinitialiser(@Valid @RequestBody ReinitialisationRequete requete) {
         securiteCompte.reinitialiserMotDePasse(requete.jeton(), requete.motDePasse());
         return new MessageReponse("Votre mot de passe a été modifié. Vous pouvez vous connecter.");
+    }
+
+    @Operation(summary = "Débloquer son compte (lien reçu par e-mail au verrouillage, valable 1 h, usage unique)",
+            description = "Lève les verrouillages de l'adresse depuis toutes les IP.")
+    @PostMapping("/deverrouiller")
+    public MessageReponse deverrouiller(@Valid @RequestBody JetonRequete requete) {
+        securiteCompte.deverrouiller(requete.jeton());
+        return new MessageReponse("Votre compte est débloqué. Vous pouvez vous connecter.");
     }
 
     @ExceptionHandler(JetonInvalideException.class)

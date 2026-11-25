@@ -12,7 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import sn.boutique.authentification.config.ProprietesAuthentification;
+import javax.sql.DataSource;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import sn.boutique.authentification.depot.EchecConnexionDepot;
+import sn.boutique.authentification.depot.JetonDeverrouillageDepot;
 import sn.boutique.authentification.depot.JetonRafraichissementDepot;
+import sn.boutique.authentification.modele.JetonDeverrouillage;
 import sn.boutique.authentification.depot.JetonReinitialisationMotDePasseDepot;
 import sn.boutique.authentification.depot.JetonVerificationEmailDepot;
 import sn.boutique.authentification.modele.JetonRafraichissement;
@@ -43,6 +49,12 @@ class PurgeJetonsExpiresTest {
     @Autowired
     private JetonReinitialisationMotDePasseDepot reinitialisationDepot;
 
+    @Autowired
+    private JetonDeverrouillageDepot deverrouillageDepot;
+    @Autowired
+    private DataSource source;
+
+    private EchecConnexionDepot echecs;
     private PurgeJetonsExpires purge;
     private Utilisateur utilisateur;
     private Instant maintenant;
@@ -51,8 +63,9 @@ class PurgeJetonsExpiresTest {
     void preparer() {
         horloge.reinitialiser();
         maintenant = horloge.instant();
+        echecs = new EchecConnexionDepot(JdbcClient.create(source));
         purge = new PurgeJetonsExpires(rafraichissementDepot, verificationDepot, reinitialisationDepot,
-                proprietes(), horloge);
+                deverrouillageDepot, echecs, proprietes(), horloge);
         utilisateur = FabriqueComptes.utilisateur(em);
     }
 
@@ -75,7 +88,7 @@ class PurgeJetonsExpiresTest {
 
         Bilan bilan = purge.purger();
 
-        assertThat(bilan).isEqualTo(new Bilan(1, 1, 1));
+        assertThat(bilan).isEqualTo(new Bilan(1, 1, 1, 0, 0));
         em.clear();
         assertThat(rafraichissementDepot.findAll()).extracting(JetonRafraichissement::getId)
                 .containsExactlyInAnyOrder(recent.getId(), revoque.getId(), utilise.getId())
@@ -91,8 +104,25 @@ class PurgeJetonsExpiresTest {
         rafraichissement(maintenant.minus(Duration.ofDays(10)));
         em.flush();
 
-        assertThat(purge.purger()).isEqualTo(new Bilan(1, 0, 0));
-        assertThat(purge.purger()).isEqualTo(new Bilan(0, 0, 0));
+        assertThat(purge.purger()).isEqualTo(new Bilan(1, 0, 0, 0, 0));
+        assertThat(purge.purger()).isEqualTo(new Bilan(0, 0, 0, 0, 0));
+    }
+
+    @Test
+    void purgeLesLiensDeDeverrouillageExpiresEtLesCompteursDEchecsInactifs() {
+        deverrouillageDepot.save(new JetonDeverrouillage(utilisateur, empreinte(), maintenant.minus(Duration.ofDays(8))));
+        JetonDeverrouillage valide = deverrouillageDepot.save(
+                new JetonDeverrouillage(utilisateur, empreinte(), maintenant.plus(Duration.ofMinutes(30))));
+        // Compteurs : inactif depuis 8 jours (supprimé), récent (gardé)
+        echecs.enregistrerEchec(empreinte(), "41.82.1.1", maintenant.minus(Duration.ofDays(8)), 5, Duration.ofMinutes(15));
+        String recent = empreinte();
+        echecs.enregistrerEchec(recent, "41.82.1.1", maintenant.minus(Duration.ofDays(1)), 5, Duration.ofMinutes(15));
+        em.flush();
+
+        assertThat(purge.purger()).isEqualTo(new Bilan(0, 0, 0, 1, 1));
+        assertThat(deverrouillageDepot.findAll()).extracting(JetonDeverrouillage::getId).containsExactly(valide.getId());
+        assertThat(echecs.enregistrerEchec(recent, "41.82.1.1", maintenant, 2, Duration.ofMinutes(15)))
+                .as("le compteur récent a été gardé : 2e échec, seuil de 2 atteint").isTrue();
     }
 
     @Test
@@ -124,6 +154,6 @@ class PurgeJetonsExpiresTest {
     private static ProprietesAuthentification proprietes() {
         return new ProprietesAuthentification(null, true, "essai", Duration.ofMinutes(15), Duration.ofDays(30),
                 Duration.ofHours(12), 5, Duration.ofMinutes(15), Duration.ofHours(24), Duration.ofHours(1),
-                CONSERVATION, new ProprietesAuthentification.Cookie("jeton_rafraichissement", "/api/auth", true));
+                Duration.ofHours(1), CONSERVATION, new ProprietesAuthentification.Cookie("jeton_rafraichissement", "/api/auth", true));
     }
 }

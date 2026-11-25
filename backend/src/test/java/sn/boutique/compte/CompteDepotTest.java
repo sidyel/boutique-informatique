@@ -57,7 +57,6 @@ class CompteDepotTest {
         assertThat(utilisateur.getRole()).isEqualTo(Role.CLIENT);
         assertThat(utilisateur.isActif()).isTrue();
         assertThat(utilisateur.isEmailVerifie()).isFalse();
-        assertThat(utilisateur.estVerrouille(Instant.now())).isFalse();
     }
 
     @Test

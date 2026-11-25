@@ -20,10 +20,11 @@ import sn.boutique.compte.modele.Role;
  * @param dureeJetonAcces         durée de vie du jeton d'accès (JWT)
  * @param dureeSessionClient      session d'un CLIENT, glissante (prolongée à chaque rafraîchissement)
  * @param dureeSessionInterne     session des rôles internes, absolue : le rafraîchissement ne la prolonge pas
- * @param echecsAvantVerrouillage nombre d'échecs de connexion consécutifs avant verrouillage du compte
- * @param dureeVerrouillage       durée du verrouillage
+ * @param echecsAvantVerrouillage nombre d'échecs consécutifs avant verrouillage, par couple (e-mail, IP)
+ * @param dureeVerrouillage       durée du verrouillage de ce couple
  * @param dureeJetonVerificationEmail  validité du lien de vérification de l'e-mail
  * @param dureeJetonReinitialisation   validité du lien de réinitialisation du mot de passe
+ * @param dureeJetonDeverrouillage     validité du lien de déverrouillage envoyé au verrouillage du compte
  * @param conservationJetonsExpires    délai après expiration avant la purge d'un jeton (enquête en cas d'incident)
  * @param cookie                  cookie du jeton de rafraîchissement
  */
@@ -40,6 +41,7 @@ public record ProprietesAuthentification(
         @NotNull Duration dureeVerrouillage,
         @NotNull Duration dureeJetonVerificationEmail,
         @NotNull Duration dureeJetonReinitialisation,
+        @NotNull Duration dureeJetonDeverrouillage,
         @NotNull Duration conservationJetonsExpires,
         @Valid @NotNull Cookie cookie) {
 

@@ -78,6 +78,6 @@ class LimiteurDebitTest {
     }
 
     private static ProprietesLimitation proprietes(boolean actif) {
-        return new ProprietesLimitation(actif, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE);
+        return new ProprietesLimitation(actif, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE);
     }
 }

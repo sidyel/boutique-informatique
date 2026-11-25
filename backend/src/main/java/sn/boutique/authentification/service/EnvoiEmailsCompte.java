@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+import sn.boutique.authentification.evenement.CompteVerrouille;
 import sn.boutique.authentification.evenement.InscriptionAvecEmailExistant;
 import sn.boutique.authentification.evenement.InscriptionEffectuee;
 import sn.boutique.authentification.evenement.MotDePasseModifie;
@@ -43,6 +44,13 @@ class EnvoiEmailsCompte {
     @TransactionalEventListener
     void surReinitialisationDemandee(ReinitialisationDemandee evenement) {
         emails.envoyerReinitialisation(evenement.utilisateurId());
+    }
+
+    /** fallbackExecution : publié pendant une connexion échouée, dont la transaction est validée malgré l'erreur. */
+    @Async
+    @TransactionalEventListener(fallbackExecution = true)
+    void surCompteVerrouille(CompteVerrouille evenement) {
+        emails.envoyerDeverrouillage(evenement.utilisateurId());
     }
 
     @Async

@@ -59,13 +59,6 @@ public class Utilisateur extends EntiteAuditee {
     @Setter(AccessLevel.NONE)
     private Instant dateConsentement;
 
-    /** Échecs de connexion consécutifs (remis à zéro après une connexion réussie). */
-    @Column(nullable = false)
-    private int echecsConnexion;
-
-    /** Compte verrouillé jusqu'à cette date après trop d'échecs de connexion. */
-    private Instant verrouilleJusqua;
-
     public Utilisateur(String email, String motDePasseHash, String prenom, String nom) {
         setEmail(email);
         this.motDePasseHash = motDePasseHash;
@@ -90,9 +83,5 @@ public class Utilisateur extends EntiteAuditee {
     public void definirConsentementMarketing(boolean consentement, Instant date) {
         this.consentementMarketing = consentement;
         this.dateConsentement = date;
-    }
-
-    public boolean estVerrouille(Instant maintenant) {
-        return verrouilleJusqua != null && verrouilleJusqua.isAfter(maintenant);
     }
 }

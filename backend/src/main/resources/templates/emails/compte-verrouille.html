@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>Plusieurs mots de passe incorrects ont été saisis pour votre compte. Par sécurité, la connexion est
+       bloquée pendant <span th:text="${dureeVerrouillage}">15 minutes</span> depuis l'appareil ou le réseau concerné.</p>
+    <p>Si c'était vous, cliquez sur le bouton pour débloquer votre compte tout de suite.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lien}, 'Débloquer mon compte')}"></th:block>
+    <p style="font-size:13px;color:#5B6573;">Ce lien est valable <span th:text="${validite}">1 heure</span> et ne fonctionne qu'une fois.</p>
+    <p style="font-size:13px;color:#5B6573;">Si ce n'était pas vous, quelqu'un essaie peut-être de deviner votre mot de passe.
+       Vous pouvez toujours vous connecter depuis votre appareil habituel. Pour plus de sécurité,
+       <a th:href="${lienMotDePasseOublie}" href="#">choisissez un nouveau mot de passe</a>.</p>
+</div>
+</body>
+</html>

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.authentification.config.ProprietesAuthentification;
 import sn.boutique.authentification.depot.JetonRafraichissementDepot;
+import sn.boutique.authentification.depot.EchecConnexionDepot;
+import sn.boutique.authentification.depot.JetonDeverrouillageDepot;
 import sn.boutique.authentification.depot.JetonReinitialisationMotDePasseDepot;
 import sn.boutique.authentification.depot.JetonVerificationEmailDepot;
 
@@ -29,6 +31,8 @@ public class PurgeJetonsExpires {
     private final JetonRafraichissementDepot rafraichissementDepot;
     private final JetonVerificationEmailDepot verificationDepot;
     private final JetonReinitialisationMotDePasseDepot reinitialisationDepot;
+    private final JetonDeverrouillageDepot deverrouillageDepot;
+    private final EchecConnexionDepot echecConnexionDepot;
     private final ProprietesAuthentification proprietes;
     private final Clock horloge;
 
@@ -40,12 +44,17 @@ public class PurgeJetonsExpires {
         Bilan bilan = new Bilan(
                 rafraichissementDepot.supprimerExpiresAvant(limite),
                 verificationDepot.supprimerExpiresAvant(limite),
-                reinitialisationDepot.supprimerExpiresAvant(limite));
-        log.info("Purge des jetons expirés avant {} : {} de rafraîchissement, {} de vérification, {} de réinitialisation",
-                limite, bilan.rafraichissement(), bilan.verification(), bilan.reinitialisation());
+                reinitialisationDepot.supprimerExpiresAvant(limite),
+                deverrouillageDepot.supprimerExpiresAvant(limite),
+                echecConnexionDepot.supprimerInactifsAvant(limite));
+        log.info("Purge avant {} : jetons expirés ({} de rafraîchissement, {} de vérification, {} de réinitialisation, "
+                        + "{} de déverrouillage) et {} compteur(s) d'échecs de connexion inactifs", limite,
+                bilan.rafraichissement(), bilan.verification(), bilan.reinitialisation(), bilan.deverrouillage(),
+                bilan.echecsConnexion());
         return bilan;
     }
 
-    public record Bilan(int rafraichissement, int verification, int reinitialisation) {
+    public record Bilan(int rafraichissement, int verification, int reinitialisation, int deverrouillage,
+                        int echecsConnexion) {
     }
 }

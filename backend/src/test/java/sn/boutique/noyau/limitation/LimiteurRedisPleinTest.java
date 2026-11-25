@@ -150,6 +150,6 @@ class LimiteurRedisPleinTest {
     }
 
     private static ProprietesLimitation proprietes() {
-        return new ProprietesLimitation(true, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE);
+        return new ProprietesLimitation(true, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE, REGLE);
     }
 }

@@ -96,6 +96,10 @@ Les outils sans navigateur (curl, applications) doivent donc envoyer `Origin` ex
 - **Connexion** : même réponse `401 IDENTIFIANTS_INVALIDES` (« E-mail ou mot de passe incorrect. ») pour
   un e-mail inconnu, un mot de passe faux, un compte désactivé ou verrouillé. Un calcul BCrypt factice
   est fait quand l'e-mail est inconnu.
+- **Temps de réponse** (relecture de sécurité, M1) : une connexion échouée exécute **les mêmes requêtes**
+  que le compte existe ou non. Les échecs sont comptés par l'empreinte de l'adresse *saisie* (§8), pas par
+  compte : un e-mail inconnu écrit la même ligne qu'un compte existant. Auparavant, seul un compte existant
+  déclenchait une écriture (quelques millisecondes d'écart mesurables).
 - La raison réelle n'apparaît que dans les journaux, avec l'identifiant du compte et jamais le mot de passe.
 
 ### 7. Connexion avant vérification de l'e-mail
@@ -104,13 +108,32 @@ Autorisée : la commande en invité est de toute façon possible, et bloquer la 
 des clients qui ne trouvent pas l'e-mail. `emailVerifie` figure dans le JWT et dans le profil ;
 la vérification sera exigée pour les actions sensibles (publier un avis, phase 8).
 
-### 8. Verrouillage après échecs
+### 8. Verrouillage après échecs : par couple (e-mail, IP)
 
-5 échecs consécutifs (`echecs-avant-verrouillage`) verrouillent le compte 15 minutes
-(`duree-verrouillage`). Une connexion réussie remet le compteur à zéro. Pendant le verrouillage,
-même le bon mot de passe est refusé, avec la réponse générique.
-Ce verrouillage par compte ne suffit pas contre une attaque sur de nombreux comptes : la limitation
-de débit par IP et par e-mail (commit 8, Redis) le complète.
+**Révisé après la relecture de sécurité (I1).** Le verrouillage par compte permettait à quiconque
+connaissait l'e-mail d'une victime (un administrateur, par exemple) de l'empêcher de se connecter : 5 mots
+de passe faux toutes les 15 minutes, depuis n'importe quelle IP.
+
+- 5 échecs consécutifs (`echecs-avant-verrouillage`) **depuis une même IP** verrouillent le couple
+  (e-mail, IP) pendant 15 minutes (`duree-verrouillage`). Pendant ce temps, depuis cette IP, même le bon
+  mot de passe est refusé, avec la réponse générique. **Depuis une autre IP, le titulaire se connecte
+  normalement.** Une connexion réussie remet à zéro le compteur de son IP.
+- Table `echec_connexion` (migration V12) : empreinte SHA-256 de l'adresse saisie et normalisée, IP, nombre
+  d'échecs, fin du verrouillage. Un seul `INSERT … ON CONFLICT` atomique par échec : des tentatives
+  simultanées sont toutes comptées. Aucune adresse en clair. Les anciennes colonnes `echecs_connexion` et
+  `verrouille_jusqua` de `utilisateur` sont supprimées.
+- **Lien de déverrouillage** : quand un couple d'un compte existant vient d'être verrouillé, le titulaire
+  reçoit l'e-mail « Connexion bloquée sur votre compte » avec un lien **à usage unique, valable 1 h**
+  (`duree-jeton-deverrouillage`, table `jeton_deverrouillage`, empreinte seulement). `POST
+  /api/auth/deverrouiller` lève les verrouillages de cette adresse **depuis toutes les IP**. **Un seul
+  e-mail tant qu'un lien est encore valable** : un attaquant qui verrouille depuis de nombreuses IP ne
+  remplit pas la boîte de la victime. L'e-mail invite aussi à changer de mot de passe si ce n'était pas elle.
+- Choisir un nouveau mot de passe (§12) lève aussi tous les verrouillages et invalide les liens de
+  déverrouillage.
+- Purge quotidienne (`PurgeJetonsExpires`, 3 h 30) : compteurs inactifs depuis 7 jours, liens expirés.
+- Limite assumée : un attaquant derrière le **même CGNAT** que la victime partage son IP publique et peut
+  la gêner ; le lien de déverrouillage règle ce cas.
+- Contre une attaque sur de nombreux comptes, la limitation du débit (§9) complète ce verrouillage.
 
 ### 9. CGNAT et limitation de débit (commit 8)
 
@@ -118,24 +141,39 @@ Au Sénégal, les opérateurs mobiles placent de nombreux abonnés derrière une
 (CGNAT). Une limite par IP trop basse bloquerait des clients légitimes au même moment : les limites par
 IP sont donc larges et complétées par des limites **par e-mail** plus strictes.
 
-| Route | Par IP | Par e-mail |
-|---|---|---|
-| connexion | 30 / minute | 10 / heure |
-| inscription | 30 / heure | — |
-| mot de passe oublié | 10 / heure | 3 / heure |
-| renvoi de la vérification | 10 / heure | 3 / heure |
-| rafraîchissement | 30 / minute | — |
+**Révisé après la relecture de sécurité (I1, M2).** Les quotas qui **bloquent** (429) portent sur l'IP ou
+sur le couple (e-mail, IP) : un attaquant n'épuise que les siens. Le quota par e-mail seul ne bloque
+jamais la victime.
+
+| Route | Par IP (429) | Par (e-mail, IP) (429) | Par e-mail seul (jamais de 429) |
+|---|---|---|---|
+| connexion | 30 / minute | 10 / heure | 100 / heure : **alerte** |
+| inscription | 30 / heure | — | — |
+| mot de passe oublié | 10 / heure | 3 / heure | 10 / heure : **202 sans envoi** |
+| renvoi de la vérification | 10 / heure | 3 / heure | 10 / heure : **202 sans envoi** |
+| rafraîchissement | 30 / minute | — | — |
+
+- **Alerte de connexion ciblée** : au-delà de 100 tentatives par heure sur une même adresse (donc depuis
+  plusieurs IP), journal ERROR avec le marqueur `ALERTE_CONNEXION_CIBLEE` (une fois par fenêtre, empreinte
+  tronquée de l'adresse, jamais l'adresse). La connexion n'est **pas** bloquée : le titulaire doit pouvoir
+  se connecter depuis sa propre IP.
+- **E-mails envoyés** (M2) : au-delà de 10 demandes par heure sur une adresse, la réponse reste `202` avec le
+  même message, mais aucun e-mail ne part (journal WARN). Avant, un 429 par e-mail permettait à un
+  attaquant d'empêcher la victime de demander un lien. Limite qui demeure : en épuisant ce quota depuis
+  plusieurs IP, un attaquant peut retarder d'au plus 1 h la réception d'un lien par la victime ; il ne peut
+  ni lire le lien ni bloquer la connexion.
 
 - Toutes les valeurs sont dans `application.yml` (`boutique.limitation.*`), avec un interrupteur `actif`.
 - **Mise en œuvre** : fenêtre fixe dans Redis (script Lua atomique : `INCR`, expiration à la première
   requête, temps restant), partagée par toutes les instances du backend. Aucune dépendance ajoutée.
 - **Dépassement** : `429 TROP_DE_REQUETES` au format ProblemDetail, en-tête `Retry-After` (secondes)
   et propriété `reessayerDans`.
-- La limite par IP est vérifiée en premier : une requête bloquée par IP ne consomme pas le quota de l'e-mail.
-- **Clés Redis** : `limite:<règle>:<ip>` ou `limite:<règle>:<SHA-256 de l'e-mail normalisé>` : aucune
-  adresse e-mail en clair dans Redis.
-- **Mot de passe oublié et renvoi** : la limite par e-mail s'applique que le compte existe ou non ;
-  la réponse 429 ne révèle donc pas quelles adresses ont un compte.
+- Les règles sont vérifiées de la plus large à la plus fine (IP, puis (e-mail, IP), puis e-mail) : une
+  requête refusée ne consomme pas les quotas suivants.
+- **Clés Redis** : `limite:<règle>:<ip>`, `limite:<règle>:<SHA-256 de l'e-mail normalisé>:<ip>` ou
+  `limite:<règle>:<SHA-256 de l'e-mail normalisé>` : aucune adresse e-mail en clair dans Redis.
+- Toutes les limites s'appliquent que le compte existe ou non : ni le 429 ni l'absence d'envoi ne révèlent
+  quelles adresses ont un compte.
 - **Instance Redis principale** (relecture de sécurité, I2) : `maxmemory 256mb`, `volatile-ttl`. Tous les
   compteurs expirent : pleine, l'instance supprime ceux qui sont les plus proches de leur fin au lieu de
   refuser les écritures. Avec l'ancien réglage (`64mb`, `noeviction`), quelques centaines d'IP envoyant des
@@ -174,6 +212,7 @@ E.164 (`+221771234567`), validé par `@TelephoneSenegalais` et par une contraint
 | `POST /api/auth/renvoyer-verification` | aucune | 202, message identique dans tous les cas |
 | `POST /api/auth/mot-de-passe-oublie` | aucune | 202, message identique dans tous les cas |
 | `POST /api/auth/reinitialiser` | aucune (jeton reçu par e-mail) | 200 ; 400 `JETON_INVALIDE` ou `VALIDATION` |
+| `POST /api/auth/deverrouiller` | aucune (jeton reçu par e-mail au verrouillage) | 200 ; 400 `JETON_INVALIDE` |
 
 ### 12. E-mails de vérification et de réinitialisation (commit 7)
 
@@ -195,7 +234,7 @@ E.164 (`+221771234567`), validé par `@TelephoneSenegalais` et par une contraint
 - **Modèles** : Thymeleaf (`templates/emails/`), en français, styles en ligne et mise en page par tableaux.
 - **Mailpit** : en dev (service de `infra/docker-compose.dev.yml`, http://localhost:8025) et dans les
   tests d'intégration, qui lisent les vrais e-mails reçus pour en extraire les jetons.
-- **Limitation du débit** : voir §9 (par IP et par e-mail).
+- **Limitation du débit** : voir §9 (par IP, par couple (e-mail, IP) et par e-mail). E-mail de déverrouillage : §8.
 
 ### 13. Adresse IP du client : impossible à falsifier
 

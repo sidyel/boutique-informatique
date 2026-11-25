@@ -131,13 +131,15 @@ class EmailsAuthentificationTest extends AuthentificationTestBase {
         MvcResult connexion = creerEtConnecter(Role.CLIENT);
         String email = corps(connexion).get("utilisateur").get("email").asString();
         String ancienneSession = jetonRafraichissement(connexion);
-        // Compte verrouillé par 5 échecs : la réinitialisation le débloque
+        // Connexion verrouillée depuis cette IP par 5 échecs (e-mail « Connexion bloquée ») :
+        // la réinitialisation la débloque
         for (int i = 0; i < 5; i++) {
             connecter(email, "mauvais-mot-de-passe");
         }
+        assertThat(mailpit.dernier(email).sujet()).isEqualTo("Connexion bloquée sur votre compte");
 
         demander("/api/auth/mot-de-passe-oublie", email).andExpect(status().isAccepted());
-        Email recu = mailpit.dernier(email);
+        Email recu = mailpit.attendre(email, 2).getFirst();
         assertThat(recu.sujet()).isEqualTo("Choisissez un nouveau mot de passe");
         assertThat(recu.html()).contains("1 heure", "http://localhost:4200/compte/nouveau-mot-de-passe?jeton=");
 
@@ -154,7 +156,7 @@ class EmailsAuthentificationTest extends AuthentificationTestBase {
 
         // Usage unique, et alerte envoyée au titulaire
         reinitialiser(recu.jeton(), "Encore-un-autre-2026").andExpect(status().isBadRequest());
-        assertThat(mailpit.attendre(email, 2).getFirst().sujet()).isEqualTo("Votre mot de passe a été modifié");
+        assertThat(mailpit.attendre(email, 3).getFirst().sujet()).isEqualTo("Votre mot de passe a été modifié");
     }
 
     @Test

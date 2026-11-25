@@ -9,7 +9,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sn.boutique.authentification.depot.EchecConnexionDepot;
+import sn.boutique.authentification.depot.JetonDeverrouillageDepot;
 import sn.boutique.authentification.depot.JetonRafraichissementDepot;
+import sn.boutique.authentification.modele.JetonDeverrouillage;
 import sn.boutique.authentification.depot.JetonReinitialisationMotDePasseDepot;
 import sn.boutique.authentification.depot.JetonVerificationEmailDepot;
 import sn.boutique.authentification.evenement.MotDePasseModifie;
@@ -36,6 +39,8 @@ public class SecuriteCompteService {
     private final JetonVerificationEmailDepot verificationDepot;
     private final JetonReinitialisationMotDePasseDepot reinitialisationDepot;
     private final JetonRafraichissementDepot rafraichissementDepot;
+    private final JetonDeverrouillageDepot deverrouillageDepot;
+    private final EchecConnexionDepot echecs;
     private final PasswordEncoder encodeur;
     private final ApplicationEventPublisher evenements;
     private final Clock horloge;
@@ -69,6 +74,25 @@ public class SecuriteCompteService {
     }
 
     /**
+     * Lien reçu par e-mail au verrouillage du compte : lève les verrouillages de cette adresse depuis
+     * <strong>toutes</strong> les IP (le titulaire prouve l'accès à sa boîte mail). Usage unique, 1 h.
+     */
+    @Transactional
+    public void deverrouiller(String jeton) {
+        JetonDeverrouillage trouve = deverrouillageDepot.findByEmpreinte(GenerateurJetons.empreinte(jeton))
+                .orElseThrow(() -> new JetonInvalideException("jeton de déverrouillage inconnu"));
+        Instant maintenant = horloge.instant();
+        Utilisateur utilisateur = trouve.getUtilisateur();
+        if (!trouve.estUtilisable(maintenant) || !utilisateur.isActif()) {
+            throw new JetonInvalideException("jeton de déverrouillage expiré, utilisé ou compte désactivé");
+        }
+        trouve.marquerUtilise(maintenant);
+        int leves = echecs.effacerTout(GenerateurJetons.empreinte(utilisateur.getEmail()));
+        log.info("Compte {} déverrouillé par le lien reçu par e-mail : {} verrouillage(s) levé(s)",
+                utilisateur.getId(), leves);
+    }
+
+    /**
      * Nouveau mot de passe choisi depuis le lien reçu par e-mail. Effets : verrouillage levé, adresse
      * considérée comme vérifiée (le lien prouve l'accès à la boîte mail), autres liens invalidés,
      * <strong>toutes les sessions révoquées</strong>, e-mail d'alerte envoyé au titulaire.
@@ -84,9 +108,10 @@ public class SecuriteCompteService {
         }
         trouve.marquerUtilise(maintenant);
         utilisateur.setMotDePasseHash(encodeur.encode(nouveauMotDePasse));
-        utilisateur.setEchecsConnexion(0);
-        utilisateur.setVerrouilleJusqua(null);
         utilisateur.setEmailVerifie(true);
+        // Après les modifications de l'entité : les mises à jour de masse vident le contexte de persistance
+        echecs.effacerTout(GenerateurJetons.empreinte(utilisateur.getEmail()));
+        deverrouillageDepot.invaliderPourUtilisateur(utilisateur.getId(), maintenant);
         reinitialisationDepot.invaliderPourUtilisateur(utilisateur.getId(), maintenant);
         int sessions = rafraichissementDepot.revoquerTousPourUtilisateur(utilisateur.getId());
         log.info("Mot de passe du compte {} réinitialisé : {} session(s) révoquée(s)", utilisateur.getId(), sessions);

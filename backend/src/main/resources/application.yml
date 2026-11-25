@@ -135,6 +135,7 @@ boutique:
     # Liens envoyés par e-mail (usage unique)
     duree-jeton-verification-email: 24h
     duree-jeton-reinitialisation: 1h
+    duree-jeton-deverrouillage: 1h
     # Purge quotidienne des jetons expirés depuis plus de 7 jours (3 h 30, heure de Dakar)
     conservation-jetons-expires: 7d
     purge-cron: "0 30 3 * * *"
@@ -188,14 +189,18 @@ boutique:
       mot-de-passe: ${REDIS_CACHE_MOT_DE_PASSE:${REDIS_MOT_DE_PASSE:}}
       delai: 500ms
   # Limitation du débit (Redis, fenêtre fixe), ADR 0003 §9. Valeurs larges par IP (CGNAT des opérateurs
-  # mobiles : beaucoup d'abonnés derrière une même IP), plus strictes par e-mail.
+  # mobiles : beaucoup d'abonnés derrière une même IP), strictes par couple (e-mail, IP). Le quota par
+  # e-mail seul ne bloque jamais la connexion : alerte au-delà, ou e-mail non envoyé (réponse inchangée).
   limitation:
     actif: true
     connexion-ip: { limite: 30, fenetre: 1m }
-    connexion-email: { limite: 10, fenetre: 1h }
+    connexion-email-ip: { limite: 10, fenetre: 1h }
+    connexion-email-alarme: { limite: 100, fenetre: 1h }
     inscription-ip: { limite: 30, fenetre: 1h }
     mot-de-passe-oublie-ip: { limite: 10, fenetre: 1h }
-    mot-de-passe-oublie-email: { limite: 3, fenetre: 1h }
+    mot-de-passe-oublie-email-ip: { limite: 3, fenetre: 1h }
+    mot-de-passe-oublie-email: { limite: 10, fenetre: 1h }
     renvoi-verification-ip: { limite: 10, fenetre: 1h }
-    renvoi-verification-email: { limite: 3, fenetre: 1h }
+    renvoi-verification-email-ip: { limite: 3, fenetre: 1h }
+    renvoi-verification-email: { limite: 10, fenetre: 1h }
     rafraichir-ip: { limite: 30, fenetre: 1m }

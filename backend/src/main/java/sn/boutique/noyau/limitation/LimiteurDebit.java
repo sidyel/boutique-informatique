@@ -76,8 +76,22 @@ public class LimiteurDebit {
      * @param cle IP ou empreinte de l'e-mail : jamais une donnée personnelle en clair
      */
     public void verifier(String nom, Regle regle, String cle) {
+        Comptage comptage = compter(nom, regle, cle);
+        if (comptage.depasse(regle)) {
+            long secondes = comptage.reessayerDans();
+            log.warn("Limite de débit « {} » atteinte ({} requêtes, limite {}), réessai dans {} s",
+                    nom, comptage.nombre(), regle.limite(), secondes);
+            throw new TropDeRequetesException(nom, secondes);
+        }
+    }
+
+    /**
+     * Compte une requête <strong>sans rien bloquer</strong> : à l'appelant de décider (alerte, envoi d'e-mail
+     * omis…). Limitation désactivée : comptage nul.
+     */
+    public Comptage compter(String nom, Regle regle, String cle) {
         if (!proprietes.actif()) {
-            return;
+            return new Comptage(0, 0);
         }
         List<?> resultat;
         try {
@@ -85,17 +99,9 @@ public class LimiteurDebit {
                     String.valueOf(regle.fenetre().toMillis()));
         } catch (DataAccessException e) {
             signalerPanne(e);
-            secours.verifier(nom, regle, cle);
-            return;
+            return secours.compter(nom, regle, cle);
         }
-        long nombre = ((Number) resultat.get(0)).longValue();
-        long millisRestantes = ((Number) resultat.get(1)).longValue();
-        if (nombre > regle.limite()) {
-            long secondes = Math.max(1, (millisRestantes + 999) / 1000);
-            log.warn("Limite de débit « {} » atteinte ({} requêtes, limite {}), réessai dans {} s",
-                    nom, nombre, regle.limite(), secondes);
-            throw new TropDeRequetesException(nom, secondes);
-        }
+        return new Comptage(((Number) resultat.get(0)).longValue(), ((Number) resultat.get(1)).longValue());
     }
 
     private void signalerPanne(DataAccessException e) {
