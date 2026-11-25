@@ -92,6 +92,7 @@ jobs:
           --sortie rapports-lighthouse
           --page accueil=/
           --page categorie=/categorie/pc-portables
+          --page fiche=/produit/apple-macbook-air-13-m2
 
       - name: Rapports Lighthouse
         if: always()
