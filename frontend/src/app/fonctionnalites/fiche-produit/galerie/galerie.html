@@ -1,0 +1,134 @@
+<div class="galerie" [class.galerie--seule]="nombre() < 2">
+  <div class="galerie__scene">
+    <ul
+      class="piste"
+      #piste
+      role="list"
+      aria-label="Photos et vidéos du produit"
+      (scroll)="suivreDefilement(piste)"
+    >
+      @for (media of medias(); track media.id; let i = $index) {
+        <li class="diapo" [attr.aria-label]="(i + 1) + ' sur ' + nombre()">
+          @switch (media.type) {
+            @case ('IMAGE') {
+              <button
+                type="button"
+                class="diapo__cadre diapo__cadre--image"
+                [class.diapo__cadre--loupe]="loupe()?.index === i"
+                [style.--origine-x.%]="loupe()?.index === i ? loupe()!.x : 50"
+                [style.--origine-y.%]="loupe()?.index === i ? loupe()!.y : 50"
+                [style.--zoom]="zoom"
+                (pointermove)="survoler($event, i)"
+                (pointerleave)="quitterSurvol()"
+                (click)="ouvrirPleinEcran(i)"
+                [attr.aria-label]="'Agrandir : ' + alt(media, i)"
+              >
+                <img
+                  [ngSrc]="media.url"
+                  fill
+                  sizes="(min-width: 64rem) 34rem, 100vw"
+                  [priority]="i === 0"
+                  [alt]="alt(media, i)"
+                />
+              </button>
+            }
+            @case ('VIDEO_YOUTUBE') {
+              <div class="diapo__cadre">
+                @if (lecteurs().has(media.id)) {
+                  <iframe
+                    class="diapo__video"
+                    [src]="lienYoutube(media)"
+                    [title]="alt(media, i)"
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    allowfullscreen
+                  ></iframe>
+                } @else {
+                  <button type="button" class="facade" (click)="lire(media)" [attr.aria-label]="'Lire la vidéo : ' + alt(media, i)">
+                    <img [ngSrc]="apercu(media)" fill sizes="(min-width: 64rem) 34rem, 100vw" alt="" />
+                    <span class="facade__lecture"><bi-icone nom="lecture" taille="1.75rem" /></span>
+                  </button>
+                }
+              </div>
+            }
+            @default {
+              <div class="diapo__cadre">
+                <video
+                  class="diapo__video"
+                  [src]="media.url"
+                  [attr.poster]="media.urlMiniature"
+                  preload="none"
+                  controls
+                  playsinline
+                  [attr.aria-label]="alt(media, i)"
+                ></video>
+              </div>
+            }
+          }
+        </li>
+      }
+    </ul>
+
+    @if (nombre() > 1) {
+      <p class="compteur" aria-hidden="true">{{ actif() + 1 }} / {{ nombre() }}</p>
+      <button type="button" class="fleche fleche--precedente" (click)="aller(actif() - 1)" [disabled]="actif() === 0" aria-label="Image précédente">
+        <bi-icone nom="chevron-gauche" />
+      </button>
+      <button type="button" class="fleche fleche--suivante" (click)="aller(actif() + 1)" [disabled]="actif() === nombre() - 1" aria-label="Image suivante">
+        <bi-icone nom="chevron-droite" />
+      </button>
+    }
+    @if (medias()[actif()]?.type === 'IMAGE') {
+      <button type="button" class="agrandir" (click)="ouvrirPleinEcran(actif())" aria-label="Afficher en plein écran">
+        <bi-icone nom="agrandir" taille="1.125rem" />
+      </button>
+    }
+  </div>
+
+  @if (nombre() > 1) {
+    <ul class="miniatures" role="list" aria-label="Miniatures">
+      @for (media of medias(); track media.id; let i = $index) {
+        <li>
+          <button
+            type="button"
+            class="miniature"
+            [class.miniature--active]="i === actif()"
+            [attr.aria-current]="i === actif() || null"
+            (click)="aller(i)"
+            [attr.aria-label]="'Voir : ' + alt(media, i)"
+          >
+            <img [ngSrc]="apercu(media)" width="64" height="48" alt="" />
+            @if (media.type !== 'IMAGE') {
+              <span class="miniature__lecture"><bi-icone nom="lecture" taille="0.875rem" /></span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+@if (pleinEcran()) {
+  <dialog class="plein-ecran" #fenetre (close)="apresFermeture()" aria-label="Photos en plein écran">
+    <button type="button" class="plein-ecran__fermer" (click)="fermerPleinEcran()" aria-label="Fermer">
+      <bi-icone nom="fermer" />
+    </button>
+    <ul class="piste piste--plein-ecran" #pistePleinEcran role="list">
+      @for (media of medias(); track media.id; let i = $index) {
+        @if (media.type === 'IMAGE') {
+          <li class="diapo">
+            <div
+              class="zone-zoom"
+              [class.zone-zoom--agrandie]="agrandie() === i"
+              [style.--zoom]="zoom"
+              (click)="basculerZoom($event, i)"
+            >
+              <!-- Taille réelle en plein écran : l'URL complète, sans largeur imposée -->
+              <img [src]="media.url" [alt]="alt(media, i)" decoding="async" />
+            </div>
+          </li>
+        }
+      }
+    </ul>
+    <p class="plein-ecran__aide">Touchez l'image pour l'agrandir, faites-la glisser pour la parcourir.</p>
+  </dialog>
+}

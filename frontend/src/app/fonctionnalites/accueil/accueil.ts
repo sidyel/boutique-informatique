@@ -3,24 +3,17 @@ import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { Accueil as AccueilReponse, Banniere, IconeConfiance } from '../../noyau/api/modeles';
+import { Accueil as AccueilReponse, Banniere } from '../../noyau/api/modeles';
 import { CatalogueService } from '../../noyau/donnees/catalogue.service';
 import { ParametresSiteService } from '../../noyau/donnees/parametres-site.service';
 import { SeoService } from '../../noyau/seo/seo.service';
-import { Icone, NomIcone } from '../../partage/composants/icone/icone';
+import { Icone } from '../../partage/composants/icone/icone';
+import { ICONES_CONFIANCE } from '../../partage/composants/icone/icones-confiance';
 import { RangeeProduits } from '../../partage/composants/rangee-produits/rangee-produits';
 import { Squelette } from '../../partage/composants/squelette/squelette';
 import { BannierePromo } from './banniere-promo/banniere-promo';
 import { Carrousel } from './carrousel/carrousel';
 
-const ICONES_CONFIANCE: Record<IconeConfiance, NomIcone> = {
-  LIVRAISON: 'livraison',
-  GARANTIE: 'garantie',
-  PAIEMENT: 'paiement',
-  SAV: 'sav',
-  RETOUR: 'retour',
-  BOUTIQUE: 'boutique',
-};
 const MARQUES_AFFICHEES = 12;
 
 /**

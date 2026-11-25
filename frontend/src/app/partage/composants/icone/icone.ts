@@ -27,6 +27,9 @@ const ICONES = {
   ],
   message: [{ d: 'M7.9 20A9 9 0 1 0 4 16.1L2 22Z' }],
   'chevron-bas': [{ d: 'm6 9 6 6 6-6' }],
+  coche: [{ d: 'M20 6 9 17l-5-5' }],
+  // Lucide « maximize-2 »
+  agrandir: [{ d: 'M15 3h6v6' }, { d: 'M9 21H3v-6' }, { d: 'm21 3-7 7' }, { d: 'm3 21 7-7' }],
   // Lucide « sliders-horizontal »
   filtres: [
     { d: 'M21 4h-7' },

@@ -35,3 +35,11 @@
   align-items: center;
   gap: var(--espace-3);
 }
+
+// Fiche produit sur mobile : la barre d'achat collante porte déjà WhatsApp ; le bouton flottant
+// la recouvrirait, il est masqué (règle globale : elle vise deux composants différents).
+@media (width < 64rem) {
+  body:has(bi-bloc-achat) bi-bouton-whatsapp {
+    display: none;
+  }
+}

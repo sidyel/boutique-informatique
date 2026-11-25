@@ -1,0 +1,142 @@
+@if (introuvable()) {
+  <bi-page-introuvable />
+} @else {
+  <div class="conteneur page">
+    @if (fiche(); as f) {
+      @let v = variante()!;
+      <bi-fil-ariane [etapes]="ariane()" />
+
+      <div class="produit">
+        <bi-galerie class="produit__galerie" [medias]="medias()" [nom]="nom()" />
+
+        <div class="produit__infos">
+          <header class="entete">
+            <a class="entete__marque" [routerLink]="['/marque', f.marque.slug]">{{ f.marque.nom }}</a>
+            <h1 class="entete__titre">{{ nom() }}</h1>
+            <div class="entete__meta">
+              @if (f.etat !== 'NEUF') {
+                <bi-badge [type]="f.etat === 'RECONDITIONNE' ? 'reconditionne' : 'occasion'">
+                  {{ f.etat === 'RECONDITIONNE' ? 'Reconditionné' : 'Occasion' }}
+                </bi-badge>
+              }
+              @if (f.nombreAvis > 0 && f.noteMoyenne !== null) {
+                <a class="entete__note" href="#avis">
+                  <bi-etoiles [note]="f.noteMoyenne" taille="0.9375rem" />
+                  <span>{{ noteAffichee(f.noteMoyenne) }} ({{ f.nombreAvis }} avis)</span>
+                </a>
+              }
+              <span class="entete__sku">Réf. {{ v.sku }}</span>
+            </div>
+            @if (f.descriptionCourte) {
+              <p class="entete__resume">{{ f.descriptionCourte }}</p>
+            }
+          </header>
+
+          @if (f.variantes.length > 1) {
+            <bi-choix-variante [variantes]="f.variantes" [courante]="v" (choisi)="choisirVariante($event)" />
+            <p class="message-variante" aria-live="polite">{{ messageVariante() }}</p>
+          }
+
+          <bi-bloc-achat [fiche]="f" [variante]="v" [nom]="nom()" />
+        </div>
+      </div>
+
+      @if (caracteristiques().length) {
+        <section class="section" aria-labelledby="titre-caracteristiques">
+          <h2 class="section__titre" id="titre-caracteristiques">Caractéristiques techniques</h2>
+          <div
+            class="caracteristiques"
+            id="tableau-caracteristiques"
+            [class.caracteristiques--repliees]="!caracteristiquesDepliees() && nombreLignes() > lignesRepliees"
+          >
+            @for (groupe of caracteristiques(); track groupe.groupe) {
+              <table class="tableau">
+                <caption class="tableau__groupe">{{ groupe.groupe }}</caption>
+                <tbody>
+                  @for (c of groupe.elements; track c.cle) {
+                    <tr>
+                      <th scope="row">{{ c.libelle }}</th>
+                      <td>{{ c.valeur }}@if (c.unite) { {{ c.unite }}}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+            <table class="tableau">
+              <caption class="tableau__groupe">Garantie et références</caption>
+              <tbody>
+                <tr>
+                  <th scope="row">Garantie</th>
+                  <td>{{ f.garantieMois }} mois</td>
+                </tr>
+                <tr>
+                  <th scope="row">Référence boutique</th>
+                  <td>{{ v.sku }}</td>
+                </tr>
+                @if (f.mpn) {
+                  <tr>
+                    <th scope="row">Référence fabricant</th>
+                    <td>{{ f.mpn }}</td>
+                  </tr>
+                }
+                @if (f.gtin) {
+                  <tr>
+                    <th scope="row">Code EAN</th>
+                    <td>{{ f.gtin }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (nombreLignes() > lignesRepliees) {
+            <button
+              type="button"
+              class="deplier"
+              aria-controls="tableau-caracteristiques"
+              [attr.aria-expanded]="caracteristiquesDepliees()"
+              (click)="caracteristiquesDepliees.set(!caracteristiquesDepliees())"
+            >
+              {{ caracteristiquesDepliees() ? 'Réduire' : 'Voir toutes les caractéristiques' }}
+            </button>
+          }
+        </section>
+      }
+
+      @if (f.descriptionLongue) {
+        <section class="section" aria-labelledby="titre-description">
+          <h2 class="section__titre" id="titre-description">Description</h2>
+          <!-- HTML nettoyé par le backend (liste blanche), puis par Angular ([innerHTML] assaini) -->
+          <div class="description" [innerHTML]="f.descriptionLongue"></div>
+        </section>
+      }
+
+      <section class="section" id="avis" aria-labelledby="titre-avis">
+        <h2 class="section__titre" id="titre-avis">Avis clients</h2>
+        <bi-avis-produit [slug]="f.slug" [noteMoyenne]="f.noteMoyenne" [nombreAvis]="f.nombreAvis" [premiers]="avis()" />
+      </section>
+
+      @defer (on viewport; prefetch on idle) {
+        <bi-produits-similaires class="section" [slug]="f.slug" />
+      } @placeholder {
+        <div class="section section--reservee" aria-hidden="true"></div>
+      }
+
+      @defer (on viewport) {
+        <bi-produits-recents class="section" [produitId]="f.id" />
+      } @placeholder {
+        <div aria-hidden="true"></div>
+      }
+    } @else {
+      <div class="produit" aria-hidden="true">
+        <bi-squelette class="produit__galerie" forme="bloc" hauteur="20rem" />
+        <div class="produit__infos squelette-infos">
+          <bi-squelette largeur="6rem" hauteur="1rem" />
+          <bi-squelette largeur="90%" hauteur="2rem" />
+          <bi-squelette largeur="10rem" hauteur="2.25rem" />
+          <bi-squelette hauteur="3rem" />
+          <bi-squelette hauteur="3rem" />
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -120,6 +120,112 @@ export interface ParametresPublics {
   messageBarreSuperieure: string | null;
   elementsConfiance: ElementConfiance[];
   verification: { google: string | null; meta: string | null };
+  /** Bouton d'achat mis en avant sur la fiche produit ; absent (ancien cache) : PANIER. */
+  boutonPrincipalFiche?: BoutonPrincipalFiche | null;
+  /** « Livré à Dakar en 24 h, en régions en 2 à 4 jours » ; null : rien n'est affiché. */
+  delaiLivraison?: string | null;
+}
+
+export type BoutonPrincipalFiche = 'PANIER' | 'WHATSAPP';
+
+export type TypeMedia = 'IMAGE' | 'VIDEO_FICHIER' | 'VIDEO_YOUTUBE';
+
+/** Valeur propre à une variante (RAM, stockage…), qui remplace celle du tableau de caractéristiques. */
+export interface ValeurVariante {
+  cle: string;
+  valeur: string;
+  unite: string | null;
+}
+
+export interface VarianteFiche {
+  id: number;
+  /** = item_id des événements de suivi et id des flux produits. */
+  sku: string;
+  libelle: string;
+  /** Axes de choix : `{ ram: '16 Go', stockage: '512 Go' }`. */
+  attributs: Record<string, string>;
+  prix: number;
+  prixBarre: number | null;
+  reduction: number | null;
+  disponibilite: Disponibilite;
+  poidsGrammes: number | null;
+  caracteristiques: ValeurVariante[];
+}
+
+export interface MediaFiche {
+  id: number;
+  type: TypeMedia;
+  url: string;
+  urlMiniature: string | null;
+  texteAlternatif: string | null;
+  principal: boolean;
+  /** Photo propre à une variante (une couleur) ; null : commune à toutes. */
+  varianteId: number | null;
+  idYoutube: string | null;
+}
+
+export interface CaracteristiqueFiche {
+  cle: string;
+  libelle: string;
+  /** Mise en forme française (« 15,6 », « Oui ») ; l'unité est à part. */
+  valeur: string;
+  unite: string | null;
+  /** Valeur propre aux variantes : remplacée par celle de la variante choisie. */
+  parVariante: boolean;
+}
+
+export interface GroupeCaracteristiques {
+  groupe: string;
+  elements: CaracteristiqueFiche[];
+}
+
+/** Fiche produit complète (`/api/produits/{slug}`). */
+export interface FicheProduit {
+  id: number;
+  slug: string;
+  nom: string;
+  descriptionCourte: string | null;
+  /** HTML nettoyé par le backend (liste blanche), nettoyé à nouveau par Angular à l'affichage. */
+  descriptionLongue: string | null;
+  etat: EtatProduit;
+  garantieMois: number;
+  gtin: string | null;
+  mpn: string | null;
+  metaTitre: string | null;
+  metaDescription: string | null;
+  marque: { nom: string; slug: string; logoUrl: string | null };
+  categorie: Lien;
+  /** Catégories de la racine à celle du produit (incluse). */
+  filAriane: Lien[];
+  prixMinimum: number;
+  disponibilite: Disponibilite;
+  noteMoyenne: number | null;
+  nombreAvis: number;
+  /** Variantes actives, de la moins chère à la plus chère. */
+  variantes: VarianteFiche[];
+  medias: MediaFiche[];
+  caracteristiques: GroupeCaracteristiques[];
+}
+
+/** Avis publié : aucune donnée personnelle (« Awa D. », « Client vérifié », « Client »). */
+export interface Avis {
+  id: number;
+  auteur: string;
+  achatVerifie: boolean;
+  note: number;
+  titre: string | null;
+  commentaire: string | null;
+  date: string;
+  reponseBoutique: string | null;
+  dateReponse: string | null;
+}
+
+export interface ZoneLivraison {
+  nom: string;
+  villesQuartiers: string[];
+  /** Frais en FCFA. */
+  tarif: number;
+  delaiJours: number;
 }
 
 /** Page de résultats (`PageReponse` du backend) ; `page` commence à 1. */

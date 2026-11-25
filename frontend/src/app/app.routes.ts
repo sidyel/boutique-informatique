@@ -25,6 +25,11 @@ export const routes: Routes = [
           import('./fonctionnalites/categorie/page-categorie').then((m) => m.PageCategorie),
       },
       {
+        path: 'produit/:slug',
+        loadComponent: () =>
+          import('./fonctionnalites/fiche-produit/page-fiche-produit').then((m) => m.PageFicheProduit),
+      },
+      {
         path: 'marque/:slug',
         loadComponent: () => import('./fonctionnalites/marque/page-marque').then((m) => m.PageMarque),
       },

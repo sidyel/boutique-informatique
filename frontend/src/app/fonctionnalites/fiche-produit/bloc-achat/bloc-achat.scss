@@ -1,0 +1,262 @@
+@use 'points-rupture' as pr;
+
+:host {
+  display: block;
+}
+
+.achat {
+  display: grid;
+  gap: var(--espace-3);
+}
+
+.achat__prix,
+.barre-achat__prix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-2);
+}
+
+.achat__ttc {
+  font-size: var(--taille-xs);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte-secondaire);
+  letter-spacing: 0.04em;
+}
+
+.achat__dispo {
+  margin: 0;
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+}
+
+.dispo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+}
+
+.dispo__point {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: currentColor;
+  border-radius: var(--rayon-rond);
+}
+
+.dispo--stock {
+  color: var(--couleur-succes);
+}
+
+.dispo--faible {
+  color: var(--couleur-alerte);
+}
+
+.dispo--rupture {
+  color: var(--couleur-texte-secondaire);
+}
+
+.achat__ligne {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espace-2);
+  margin: 0;
+  font-size: var(--taille-sm);
+
+  bi-icone {
+    margin-block-start: 0.125rem;
+    color: var(--couleur-texte-secondaire);
+  }
+}
+
+.achat__ligne--discrete {
+  color: var(--couleur-texte-secondaire);
+
+  a {
+    font-weight: var(--graisse-semi-gras);
+    white-space: nowrap;
+  }
+}
+
+.achat__zones {
+  justify-self: start;
+  min-height: var(--cible-tactile);
+  margin-block: calc(-1 * var(--espace-2));
+  padding: 0;
+  font: inherit;
+  font-size: var(--taille-sm);
+  color: var(--couleur-accent);
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--couleur-accent-survol);
+  }
+}
+
+.achat__actions {
+  display: grid;
+  gap: var(--espace-2);
+}
+
+/* WhatsApp en principal : il passe au-dessus du panier */
+.achat__actions--whatsapp .action--whatsapp {
+  order: -1;
+}
+
+.action {
+  gap: var(--espace-2);
+}
+
+.action--whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-2);
+  min-height: var(--hauteur-controle-lg);
+  padding: var(--espace-2) var(--espace-4);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+  text-align: center;
+  text-decoration: none;
+  background: var(--couleur-surface);
+  border: 2px solid var(--couleur-whatsapp);
+  border-radius: var(--rayon-1);
+
+  bi-icone {
+    color: var(--couleur-whatsapp-survol);
+  }
+
+  &:hover {
+    color: var(--couleur-texte);
+    background: var(--couleur-succes-fond);
+  }
+}
+
+.action--whatsapp-principal {
+  color: var(--couleur-sur-whatsapp);
+  background: var(--couleur-whatsapp);
+
+  bi-icone {
+    color: currentColor;
+  }
+
+  &:hover {
+    color: var(--couleur-sur-whatsapp);
+    background: var(--couleur-whatsapp-survol);
+  }
+}
+
+.achat__note {
+  margin: 0;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+}
+
+.achat__annonce {
+  margin: 0;
+  font-size: var(--taille-sm);
+  color: var(--couleur-info);
+
+  &:empty {
+    display: none;
+  }
+}
+
+.confiance {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--espace-3);
+  margin: var(--espace-2) 0 0;
+  padding: var(--espace-3) 0 0;
+  list-style: none;
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}
+
+.confiance__element {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espace-2);
+  font-size: var(--taille-xs);
+  line-height: var(--interligne-serre);
+
+  bi-icone {
+    color: var(--couleur-accent);
+  }
+
+  strong {
+    display: block;
+    font-size: var(--taille-sm);
+    font-weight: var(--graisse-semi-gras);
+  }
+}
+
+.confiance__texte {
+  color: var(--couleur-texte-secondaire);
+}
+
+/* --- Barre d'achat collante (mobile) -------------------------------------------------------- */
+
+.barre-achat {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-collant);
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
+  padding: var(--espace-2) var(--marge-page) calc(var(--espace-2) + env(safe-area-inset-bottom));
+  background: var(--couleur-surface);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  box-shadow: var(--ombre-2);
+  transform: translateY(110%);
+  transition: transform var(--duree-normale) var(--courbe-standard);
+  visibility: hidden;
+}
+
+.barre-achat--visible {
+  transform: none;
+  visibility: visible;
+}
+
+.barre-achat__prix {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.barre-achat__bouton {
+  flex: 0 1 auto;
+  min-height: var(--cible-tactile);
+}
+
+.barre-achat__whatsapp {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--cible-tactile);
+  height: var(--cible-tactile);
+  color: var(--couleur-sur-whatsapp);
+  background: var(--couleur-whatsapp);
+  border-radius: var(--rayon-1);
+
+  &:hover {
+    color: var(--couleur-sur-whatsapp);
+    background: var(--couleur-whatsapp-survol);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barre-achat {
+    transition: none;
+  }
+}
+
+/* Ordinateur : le bloc d'achat reste visible dans sa colonne, pas de barre */
+@media (min-width: pr.$ordinateur) {
+  .barre-achat {
+    display: none;
+  }
+}

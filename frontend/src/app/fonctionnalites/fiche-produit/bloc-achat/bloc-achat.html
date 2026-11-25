@@ -1,0 +1,140 @@
+@let v = variante();
+
+<div class="achat">
+  <div class="achat__prix">
+    <bi-prix [montant]="v.prix" [montantBarre]="v.prixBarre" taille="lg" />
+    <span class="achat__ttc">TTC</span>
+  </div>
+
+  <p class="achat__dispo">
+    @switch (v.disponibilite) {
+      @case ('EN_STOCK') {
+        <span class="dispo dispo--stock"><span class="dispo__point" aria-hidden="true"></span>En stock</span>
+      }
+      @case ('STOCK_FAIBLE') {
+        <span class="dispo dispo--faible"><span class="dispo__point" aria-hidden="true"></span>Stock limité</span>
+      }
+      @default {
+        <span class="dispo dispo--rupture"><span class="dispo__point" aria-hidden="true"></span>Rupture de stock</span>
+      }
+    }
+  </p>
+
+  @if (delai(); as texte) {
+    <p class="achat__ligne">
+      <bi-icone nom="livraison" taille="1.125rem" />
+      <span>{{ texte }}</span>
+    </p>
+  }
+  <button type="button" class="achat__zones" #declencheurZones (click)="voirZones()">
+    Livraison partout au Sénégal : voir les zones et tarifs
+  </button>
+
+  <div class="achat__actions" #actions [class.achat__actions--whatsapp]="whatsappPrincipal()">
+    <button
+      biBouton
+      type="button"
+      class="action action--panier"
+      [variante]="whatsappPrincipal() ? 'contour' : 'principal'"
+      taille="lg"
+      pleineLargeur
+      [disabled]="rupture()"
+      (click)="ajouterAuPanier()"
+    >
+      <bi-icone nom="panier" taille="1.25rem" />
+      Ajouter au panier
+    </button>
+    @if (lienWhatsApp(); as lien) {
+      <a
+        class="action action--whatsapp"
+        [class.action--whatsapp-principal]="whatsappPrincipal()"
+        [href]="lien"
+        target="_blank"
+        rel="noopener"
+        (click)="contacterWhatsApp()"
+      >
+        <bi-icone nom="message" taille="1.25rem" />
+        {{ rupture() ? 'Demander la disponibilité sur WhatsApp' : 'Commander sur WhatsApp' }}
+      </a>
+    }
+  </div>
+
+  @if (rupture()) {
+    <p class="achat__note">Ce produit est en rupture de stock : l'ajout au panier est indisponible pour le moment.</p>
+  }
+  <p class="achat__annonce" aria-live="polite">{{ annonce() }}</p>
+
+  @if (telephone().lien; as lienTel) {
+    <p class="achat__ligne achat__ligne--discrete">
+      <bi-icone nom="telephone" taille="1rem" />
+      <span>Une question ? Appelez le <a [href]="lienTel">{{ telephone().affiche }}</a></span>
+    </p>
+  }
+
+  @if (elementsConfiance().length) {
+    <ul class="confiance" role="list">
+      @for (e of elementsConfiance(); track e.titre) {
+        <li class="confiance__element">
+          @if (e.nomIcone) {
+            <bi-icone [nom]="e.nomIcone" taille="1.125rem" />
+          }
+          <span>
+            <strong>{{ e.titre }}</strong>
+            @if (e.texte) {
+              <span class="confiance__texte">{{ e.texte }}</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<!-- Barre d'achat collante (mobile) : quand les boutons principaux ne sont plus à l'écran -->
+<div class="barre-achat" [class.barre-achat--visible]="!actionsVisibles()" [attr.aria-hidden]="actionsVisibles()">
+  <div class="barre-achat__prix">
+    <bi-prix [montant]="v.prix" taille="sm" />
+    <span class="achat__ttc">TTC</span>
+  </div>
+  @if (whatsappPrincipal() && lienWhatsApp(); as lien) {
+    <a
+      class="action action--whatsapp action--whatsapp-principal barre-achat__bouton"
+      [href]="lien"
+      target="_blank"
+      rel="noopener"
+      [attr.tabindex]="actionsVisibles() ? -1 : null"
+      (click)="contacterWhatsApp()"
+    >
+      <bi-icone nom="message" taille="1.25rem" />
+      Commander
+    </a>
+  } @else {
+    @if (lienWhatsApp(); as lien) {
+      <a
+        class="barre-achat__whatsapp"
+        [href]="lien"
+        target="_blank"
+        rel="noopener"
+        aria-label="Commander sur WhatsApp"
+        [attr.tabindex]="actionsVisibles() ? -1 : null"
+        (click)="contacterWhatsApp()"
+      >
+        <bi-icone nom="message" taille="1.375rem" />
+      </a>
+    }
+    <button
+      biBouton
+      type="button"
+      class="barre-achat__bouton"
+      [disabled]="rupture()"
+      [attr.tabindex]="actionsVisibles() ? -1 : null"
+      (click)="ajouterAuPanier()"
+    >
+      {{ rupture() ? 'Rupture de stock' : 'Ajouter au panier' }}
+    </button>
+  }
+</div>
+
+@defer (on interaction(declencheurZones); prefetch on idle) {
+  <bi-zones-livraison [demandes]="demandesZones()" />
+}

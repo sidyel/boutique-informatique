@@ -1,0 +1,53 @@
+@if (nombreAvis() > 0 && noteMoyenne() !== null) {
+  <div class="synthese">
+    <p class="synthese__note"><strong>{{ noteAffichee(noteMoyenne()!) }}</strong>/5</p>
+    <div>
+      <bi-etoiles [note]="noteMoyenne()!" taille="1.25rem" />
+      <p class="synthese__nombre">{{ nombreAvis() }} avis client{{ nombreAvis() > 1 ? 's' : '' }}</p>
+    </div>
+  </div>
+
+  <ol class="liste" role="list">
+    @for (a of avis(); track a.id) {
+      <li class="avis">
+        <div class="avis__entete">
+          <bi-etoiles [note]="a.note" taille="0.875rem" />
+          @if (a.titre) {
+            <p class="avis__titre">{{ a.titre }}</p>
+          }
+        </div>
+        <p class="avis__auteur">
+          <span>{{ a.auteur }}</span>
+          @if (a.achatVerifie) {
+            <span class="avis__verifie"><bi-icone nom="coche" taille="0.875rem" />Achat vérifié</span>
+          }
+          <span class="avis__date">{{ dateAvis(a.date) }}</span>
+        </p>
+        @if (a.commentaire) {
+          <p class="avis__texte">{{ a.commentaire }}</p>
+        }
+        @if (a.reponseBoutique) {
+          <div class="reponse">
+            <p class="reponse__titre">Réponse de la boutique</p>
+            <p class="reponse__texte">{{ a.reponseBoutique }}</p>
+          </div>
+        }
+      </li>
+    }
+  </ol>
+
+  @if (reste() > 0) {
+    <button type="button" class="voir-plus" (click)="voirPlus()" [disabled]="chargement()" [attr.aria-busy]="chargement() || null">
+      @if (chargement()) {
+        Chargement…
+      } @else {
+        Voir plus d’avis ({{ reste() }})
+      }
+    </button>
+  }
+  @if (erreur()) {
+    <p class="erreur" role="status">Impossible de charger les avis suivants. Réessayez.</p>
+  }
+} @else {
+  <p class="aucun">Aucun avis pour le moment. Les clients qui ont reçu ce produit pourront bientôt donner leur avis.</p>
+}

@@ -1,0 +1,123 @@
+:host {
+  display: block;
+}
+
+.synthese {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-4);
+  margin-block-end: var(--espace-4);
+}
+
+.synthese__note {
+  margin: 0;
+  font-family: var(--police-titre);
+  font-size: var(--taille-lg);
+  color: var(--couleur-texte-secondaire);
+
+  strong {
+    font-size: var(--taille-3xl);
+    color: var(--couleur-texte);
+  }
+}
+
+.synthese__nombre {
+  margin: var(--espace-1) 0 0;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+}
+
+.liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.avis {
+  display: grid;
+  gap: var(--espace-2);
+  padding-block: var(--espace-4);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}
+
+.avis__entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2) var(--espace-3);
+}
+
+.avis__titre {
+  margin: 0;
+  font-weight: var(--graisse-semi-gras);
+}
+
+.avis__auteur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-1) var(--espace-3);
+  margin: 0;
+  font-size: var(--taille-sm);
+}
+
+.avis__verifie {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-1);
+  font-size: var(--taille-xs);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-succes);
+}
+
+.avis__date {
+  color: var(--couleur-texte-secondaire);
+}
+
+.avis__texte {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.reponse {
+  margin-inline-start: var(--espace-4);
+  padding: var(--espace-3);
+  background: var(--couleur-surface-alt);
+  border-inline-start: 3px solid var(--couleur-bordure-forte);
+}
+
+.reponse__titre {
+  margin: 0 0 var(--espace-1);
+  font-size: var(--taille-xs);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte-secondaire);
+  text-transform: uppercase;
+}
+
+.reponse__texte {
+  margin: 0;
+  font-size: var(--taille-sm);
+  white-space: pre-line;
+}
+
+.voir-plus {
+  min-height: var(--cible-tactile);
+  padding: var(--espace-2) var(--espace-4);
+  font: inherit;
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-champ);
+  border-radius: var(--rayon-1);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--couleur-texte);
+  }
+}
+
+.aucun,
+.erreur {
+  margin: 0;
+  color: var(--couleur-texte-secondaire);
+}
