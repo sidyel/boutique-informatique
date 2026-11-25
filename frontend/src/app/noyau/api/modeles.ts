@@ -122,6 +122,81 @@ export interface ParametresPublics {
   verification: { google: string | null; meta: string | null };
 }
 
+/** Page de résultats (`PageReponse` du backend) ; `page` commence à 1. */
+export interface Page<T> {
+  elements: T[];
+  page: number;
+  taille: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface OptionFiltre {
+  valeur: string;
+  libelle: string;
+  nombre: number;
+  selectionne: boolean;
+}
+
+export type TypeCaracteristique = 'NOMBRE' | 'TEXTE' | 'LISTE' | 'BOOLEEN';
+
+export interface CaracteristiqueFiltre {
+  cle: string;
+  libelle: string;
+  unite: string | null;
+  type: TypeCaracteristique;
+  groupe: string | null;
+  valeurs: OptionFiltre[];
+}
+
+/** Facettes d'une catégorie ou d'une marque : chaque famille est comptée sans son propre filtre. */
+export interface Filtres {
+  totalProduits: number;
+  /** Plage de prix des variantes qui conviennent, sans le filtre de prix. `null` si aucune. */
+  prix: { min: number; max: number } | null;
+  /** Catégorie : sous-catégories (liens). Marque : catégories proposées comme filtre. */
+  sousCategories: OptionFiltre[];
+  marques: OptionFiltre[];
+  etats: OptionFiltre[];
+  disponible: { enStock: number; selectionne: boolean };
+  caracteristiques: CaracteristiqueFiltre[];
+}
+
+export interface Categorie {
+  nom: string;
+  slug: string;
+  description: string | null;
+  imageUrl: string | null;
+  banniereUrl: string | null;
+  texteSeo: string | null;
+  metaTitre: string | null;
+  metaDescription: string | null;
+  nombreProduits: number;
+  /** Ancêtres, de la racine au parent (la catégorie elle-même n'y est pas). */
+  filAriane: Lien[];
+  enfants: CategorieNoeud[];
+}
+
+export interface Marque {
+  nom: string;
+  slug: string;
+  logoUrl: string | null;
+  description: string | null;
+  metaTitre: string | null;
+  metaDescription: string | null;
+  nombreProduits: number;
+}
+
+export interface ResultatRecherche extends Page<ProduitResume> {
+  requete: string;
+  /** Aucun résultat exact : résultats par orthographe approchée. */
+  approximatif: boolean;
+  categories: OptionFiltre[];
+  marques: OptionFiltre[];
+  /** Rien trouvé : rayons et produits recommandés. */
+  suggestions: { categories: Lien[]; produits: ProduitResume[] } | null;
+}
+
 export interface Suggestions {
   produits: ProduitResume[];
   categories: Lien[];

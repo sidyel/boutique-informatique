@@ -1,0 +1,52 @@
+@if (introuvable()) {
+  <bi-page-introuvable />
+} @else {
+  <div class="conteneur page">
+    @if (courante(); as c) {
+      <bi-fil-ariane [etapes]="ariane()" />
+      <header class="entete">
+        <h1 class="entete__titre">{{ c.nom }}</h1>
+        @if (c.description) {
+          <p class="entete__description">{{ c.description }}</p>
+        }
+      </header>
+
+      @if (sousRayons().length) {
+        <nav class="rayons" aria-label="Sous-catégories">
+          <ul role="list">
+            @for (r of sousRayons(); track r.slug) {
+              <li>
+                <a class="rayon" [routerLink]="['/categorie', r.slug]">
+                  {{ r.nom }} <span class="rayon__nombre">{{ r.nombreProduits }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      }
+    } @else {
+      <div class="entete entete--squelette" aria-hidden="true">
+        <bi-squelette largeur="12rem" hauteur="1rem" />
+        <bi-squelette largeur="16rem" hauteur="2rem" />
+      </div>
+    }
+
+    <bi-liste-produits
+      [produits]="produits.valeur()"
+      [filtres]="filtres.valeur()"
+      [criteres]="criteres()"
+      [chargement]="produits.chargement()"
+      [invalide]="invalide()"
+      [liste]="liste()"
+      [source]="source"
+    />
+
+    @if (texteSeo().length) {
+      <section class="editorial" aria-label="À propos de ce rayon">
+        @for (p of texteSeo(); track $index) {
+          <p>{{ p }}</p>
+        }
+      </section>
+    }
+  </div>
+}

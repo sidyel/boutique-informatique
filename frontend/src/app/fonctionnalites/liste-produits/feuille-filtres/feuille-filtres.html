@@ -1,0 +1,60 @@
+<dialog #dialogue class="feuille" aria-labelledby="feuille-filtres-titre" (close)="surFermeture()">
+  @if (brouillon(); as b) {
+    <header class="feuille__entete">
+      <h2 class="feuille__titre" id="feuille-filtres-titre">Filtrer et trier</h2>
+      <button type="button" class="feuille__fermer" aria-label="Fermer sans appliquer" (click)="fermer()">
+        <bi-icone nom="fermer" taille="1.25rem" />
+      </button>
+    </header>
+
+    <div class="feuille__corps">
+      <fieldset class="tri">
+        <legend class="tri__titre">Trier par</legend>
+        <div class="tri__options">
+          @for (t of source().tris; track t.code) {
+            <label class="tri__option">
+              <input
+                type="radio"
+                name="tri-feuille"
+                [value]="t.code"
+                [checked]="triCourant() === t.code"
+                (change)="trier(t.code)"
+              />
+              {{ t.libelle }}
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      @if (filtresBrouillon(); as f) {
+        <bi-panneau-filtres
+          [filtres]="f"
+          [criteres]="b"
+          [categoriesEnFiltre]="source().categoriesEnFiltre"
+          (changer)="modifier($event)"
+        />
+      }
+    </div>
+
+    <footer class="feuille__pied">
+      <button type="button" class="feuille__effacer" [disabled]="nombreActifs() === 0" (click)="toutEffacer()">
+        Tout effacer
+      </button>
+      <button
+        type="button"
+        class="feuille__valider"
+        [attr.aria-busy]="recompte() || null"
+        [disabled]="total() === 0"
+        (click)="valider()"
+      >
+        @if (total() === undefined) {
+          Voir les produits
+        } @else if (total() === 0) {
+          Aucun produit
+        } @else {
+          Voir {{ total() }} produit{{ total() === 1 ? '' : 's' }}
+        }
+      </button>
+    </footer>
+  }
+</dialog>

@@ -1,0 +1,124 @@
+@let page = produits();
+@let f = filtres();
+
+<div class="liste">
+  @if (f) {
+    <aside class="liste__colonne" aria-label="Filtres">
+      <bi-panneau-filtres
+        [filtres]="f"
+        [criteres]="criteres()"
+        [categoriesEnFiltre]="source().categoriesEnFiltre"
+        (changer)="appliquer($event)"
+      />
+    </aside>
+  }
+
+  <div class="liste__principal" #resultats>
+    <div class="barre">
+      <p class="barre__compte" aria-live="polite">
+        @if (page) {
+          <strong>{{ page.totalElements }}</strong> produit{{ page.totalElements === 1 ? '' : 's' }}
+        }
+      </p>
+      <label class="barre__tri">
+        <span class="barre__tri-libelle">Trier par</span>
+        <select [value]="triCourant()" (change)="trier($any($event.target).value)">
+          @for (t of source().tris; track t.code) {
+            <option [value]="t.code" [selected]="t.code === triCourant()">{{ t.libelle }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (puces().length) {
+      <ul class="puces" role="list" aria-label="Filtres actifs">
+        @for (p of puces(); track p.id) {
+          <li>
+            <button type="button" class="puce" (click)="appliquer(p.sans)" [attr.aria-label]="'Retirer le filtre ' + p.libelle">
+              {{ p.libelle }}
+              <bi-icone nom="fermer" taille="0.875rem" />
+            </button>
+          </li>
+        }
+        @if (puces().length > 1) {
+          <li>
+            <a class="puces__effacer" [routerLink]="[]" [queryParams]="parametresSansFiltres()" replaceUrl>Tout effacer</a>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (invalide()) {
+      <div class="vide">
+        <p class="vide__titre">Ces filtres ne sont pas valides.</p>
+        <p>Le lien est peut-être incomplet ou ancien.</p>
+        <a class="vide__action" [routerLink]="[]" [queryParams]="{}" replaceUrl>Voir toute la liste</a>
+      </div>
+    } @else if (page && page.totalElements === 0) {
+      <div class="vide">
+        @if (nombreActifs() > 0) {
+          <p class="vide__titre">Aucun produit ne correspond à ces filtres.</p>
+          <div class="vide__actions">
+            @if (puces().length; as n) {
+              <button type="button" class="vide__action" (click)="appliquer(puces()[n - 1].sans)">
+                Retirer « {{ puces()[n - 1].libelle }} »
+              </button>
+            }
+            <a class="vide__action vide__action--secondaire" [routerLink]="[]" [queryParams]="parametresSansFiltres()" replaceUrl>
+              Tout effacer
+            </a>
+          </div>
+        } @else {
+          <p class="vide__titre">Aucun produit disponible pour le moment.</p>
+          <p>De nouveaux arrivages sont prévus : revenez bientôt ou demandez-nous directement.</p>
+        }
+      </div>
+      <bi-demande-whatsapp [message]="messageWhatsApp()" [origine]="source().origineWhatsApp" />
+    } @else if (page) {
+      <ul class="grille" [class.grille--chargement]="chargement()" [attr.aria-busy]="chargement() || null" role="list">
+        @for (produit of page.elements; track produit.id; let i = $index) {
+          <li>
+            <bi-carte-produit
+              [produit]="produit"
+              [liste]="liste()"
+              [position]="(page.page - 1) * page.taille + i"
+              [prioritaire]="i < prioritaires"
+            />
+          </li>
+        }
+      </ul>
+      <bi-pagination [page]="page.page" [total]="page.totalPages" [parametres]="parametresPage()" />
+    } @else {
+      <ul class="grille" role="list" aria-busy="true" aria-label="Chargement des produits">
+        @for (i of squelettes; track i) {
+          <li class="grille__squelette">
+            <bi-squelette forme="bloc" largeur="100%" hauteur="auto" class="grille__photo" />
+            <bi-squelette largeur="90%" />
+            <bi-squelette largeur="60%" />
+            <bi-squelette largeur="45%" hauteur="1.5rem" />
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>
+
+@if (f) {
+  <button type="button" class="declencheur" (click)="ouvrirFeuille()" #declencheur>
+    <bi-icone nom="filtres" taille="1.125rem" />
+    Filtrer et trier
+    @if (nombreActifs()) {
+      <span class="declencheur__nombre">{{ nombreActifs() }}</span>
+    }
+  </button>
+
+  @defer (on interaction(declencheur); prefetch on idle) {
+    <bi-feuille-filtres
+      [criteres]="criteres()"
+      [filtres]="f"
+      [source]="source()"
+      [demandes]="demandesFeuille()"
+      (appliquer)="appliquer($event, true)"
+    />
+  }
+}

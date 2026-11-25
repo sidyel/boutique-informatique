@@ -8,6 +8,14 @@ export interface ListeSuivie {
   nom: string;
 }
 
+export type OrigineWhatsApp =
+  | 'flottant'
+  | 'entete'
+  | 'pied-de-page'
+  | 'fiche-produit'
+  | 'liste-vide'
+  | 'recherche-vide';
+
 /**
  * Point d'entrée UNIQUE du suivi publicitaire (CLAUDE.md, « Règles de suivi publicitaire »).
  * Aucun composant n'appelle gtag ou fbq directement.
@@ -38,8 +46,11 @@ export class SuiviService {
 
   choisirPromotion(_idBanniere: number, _titre: string | null): void {}
 
-  /** Ouverture de WhatsApp (contact / Contact) : bouton flottant, en-tête, fiche produit. */
-  contactWhatsApp(_origine: 'flottant' | 'entete' | 'pied-de-page' | 'fiche-produit', _sku?: string): void {}
+  /**
+   * Ouverture de WhatsApp (contact / Contact) : bouton flottant, en-tête, fiche produit, et demande
+   * d'un produit introuvable (liste vide, recherche sans résultat).
+   */
+  contactWhatsApp(_origine: OrigineWhatsApp, _sku?: string): void {}
 
   /** Appel téléphonique depuis le site (contact). */
   contactTelephone(_origine: 'entete' | 'pied-de-page'): void {}

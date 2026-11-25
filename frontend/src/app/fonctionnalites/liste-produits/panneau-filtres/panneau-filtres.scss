@@ -1,0 +1,185 @@
+.panneau {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupe {
+  margin: 0;
+  padding: var(--espace-4) 0;
+  border: 0;
+  border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  min-width: 0;
+}
+
+// Une <legend> se place dans la bordure du fieldset et ignore son padding : flottante, elle redevient
+// un bloc normal sous le padding
+.groupe__titre {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-block-end: var(--espace-2);
+  font-family: var(--police-titre);
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--couleur-texte);
+}
+
+.groupe__titre + * {
+  clear: both;
+}
+
+.options {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-3);
+  min-height: var(--cible-tactile);
+  cursor: pointer;
+  font-size: var(--taille-base);
+
+  input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    accent-color: var(--couleur-accent);
+    cursor: inherit;
+  }
+
+  @media (pointer: fine) {
+    min-height: 2rem;
+    font-size: var(--taille-sm);
+  }
+}
+
+.option__libelle {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.option__nombre {
+  flex: none;
+  font-family: var(--police-mono);
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.option--vide {
+  color: var(--couleur-texte-desactive);
+  cursor: not-allowed;
+
+  .option__nombre {
+    color: inherit;
+  }
+}
+
+.voir-plus {
+  min-height: var(--cible-tactile);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-accent);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// --- Prix ---------------------------------------------------------------------------------------
+
+.tranches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--espace-2);
+  margin: 0 0 var(--espace-3);
+  padding: 0;
+  list-style: none;
+}
+
+.tranche {
+  width: 100%;
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-3);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-forte);
+  border-radius: var(--rayon-2);
+  background: var(--couleur-surface);
+  font: inherit;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--couleur-texte);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--couleur-accent);
+    background: var(--couleur-accent-leger);
+    color: var(--couleur-accent-survol);
+    font-weight: var(--graisse-semi-gras);
+  }
+
+  @media (pointer: fine) {
+    min-height: var(--hauteur-controle-sm);
+  }
+}
+
+.prix {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--espace-2);
+  align-items: end;
+}
+
+.prix__champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-1);
+  min-width: 0;
+
+  input {
+    width: 100%;
+    min-height: var(--cible-tactile);
+    padding-inline: var(--espace-2);
+    border: var(--epaisseur-bordure) solid var(--couleur-bordure-champ);
+    border-radius: var(--rayon-1);
+    background: var(--couleur-surface);
+    // 16 px minimum : l'iPhone ne zoome pas sur le champ
+    font-family: var(--police-mono);
+    font-size: max(1rem, var(--taille-base));
+  }
+}
+
+.prix__libelle {
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.prix__ok {
+  min-width: var(--cible-tactile);
+  min-height: var(--cible-tactile);
+  border: var(--epaisseur-bordure) solid var(--couleur-texte);
+  border-radius: var(--rayon-1);
+  background: var(--couleur-surface);
+  font: inherit;
+  font-weight: var(--graisse-semi-gras);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--couleur-texte);
+    color: var(--couleur-texte-inverse);
+  }
+}

@@ -20,6 +20,11 @@ export const routes: Routes = [
         loadComponent: () => import('./fonctionnalites/accueil/accueil').then((m) => m.Accueil),
       },
       {
+        path: 'categorie/:slug',
+        loadComponent: () =>
+          import('./fonctionnalites/categorie/page-categorie').then((m) => m.PageCategorie),
+      },
+      {
         path: 'guide-style',
         loadComponent: () =>
           import('./fonctionnalites/guide-style/guide-style').then((m) => m.GuideStyle),

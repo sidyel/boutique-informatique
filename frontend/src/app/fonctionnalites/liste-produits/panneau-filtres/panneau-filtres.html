@@ -1,0 +1,110 @@
+@let f = filtres();
+@let c = criteres();
+
+<ng-template #groupe let-g>
+  <fieldset class="groupe">
+    <legend class="groupe__titre">{{ g.titre }}</legend>
+    <ul class="options" role="list">
+      @for (o of visibles(g); track o.valeur) {
+        <li>
+          <label class="option" [class.option--vide]="o.nombre === 0 && !o.selectionne">
+            <input
+              type="checkbox"
+              [checked]="o.selectionne"
+              [disabled]="o.nombre === 0 && !o.selectionne"
+              (change)="changer.emit(g.basculer(o.valeur))"
+            />
+            <span class="option__libelle">{{ o.libelle }}</span>
+            <span class="option__nombre">{{ o.nombre }}</span>
+          </label>
+        </li>
+      }
+    </ul>
+    @if (visibles(g).length < g.options.length) {
+      <button type="button" class="voir-plus" (click)="deplier(g)">
+        Voir plus ({{ g.options.length - visibles(g).length }})
+      </button>
+    }
+  </fieldset>
+</ng-template>
+
+<div class="panneau">
+  @for (g of groupesCategorie(); track g.id) {
+    <ng-container *ngTemplateOutlet="groupe; context: { $implicit: g }" />
+  }
+
+  @if (f.prix) {
+    <fieldset class="groupe">
+      <legend class="groupe__titre">Prix (FCFA)</legend>
+      @if (tranches().length) {
+        <ul class="tranches" role="list">
+          @for (t of tranches(); track t.libelle) {
+            <li>
+              <button
+                type="button"
+                class="tranche"
+                [attr.aria-pressed]="c.prixMin === t.prixMin && c.prixMax === t.prixMax"
+                (click)="choisirTranche(t.prixMin, t.prixMax)"
+              >
+                {{ t.libelle }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      <form class="prix" (submit)="saisirPrix($event)">
+        <label class="prix__champ">
+          <span class="prix__libelle">Min.</span>
+          <input
+            name="prixMin"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            [value]="c.prixMin ?? ''"
+            [placeholder]="f.prix.min"
+            [attr.aria-label]="'Prix minimum en FCFA'"
+          />
+        </label>
+        <label class="prix__champ">
+          <span class="prix__libelle">Max.</span>
+          <input
+            name="prixMax"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            [value]="c.prixMax ?? ''"
+            [placeholder]="f.prix.max"
+            [attr.aria-label]="'Prix maximum en FCFA'"
+          />
+        </label>
+        <button type="submit" class="prix__ok">OK</button>
+      </form>
+    </fieldset>
+  }
+
+  @for (g of groupesMarque(); track g.id) {
+    <ng-container *ngTemplateOutlet="groupe; context: { $implicit: g }" />
+  }
+
+  <fieldset class="groupe">
+    <legend class="groupe__titre">Disponibilité</legend>
+    <label class="option" [class.option--vide]="f.disponible.enStock === 0 && !c.disponible">
+      <input
+        type="checkbox"
+        [checked]="c.disponible"
+        [disabled]="f.disponible.enStock === 0 && !c.disponible"
+        (change)="basculerDisponible()"
+      />
+      <span class="option__libelle">En stock uniquement</span>
+      <span class="option__nombre">{{ f.disponible.enStock }}</span>
+    </label>
+  </fieldset>
+
+  @for (g of groupesEtat(); track g.id) {
+    <ng-container *ngTemplateOutlet="groupe; context: { $implicit: g }" />
+  }
+
+  @for (g of groupesCaracteristiques(); track g.id) {
+    <ng-container *ngTemplateOutlet="groupe; context: { $implicit: g }" />
+  }
+</div>

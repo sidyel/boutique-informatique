@@ -27,6 +27,18 @@ const ICONES = {
   ],
   message: [{ d: 'M7.9 20A9 9 0 1 0 4 16.1L2 22Z' }],
   'chevron-bas': [{ d: 'm6 9 6 6 6-6' }],
+  // Lucide « sliders-horizontal »
+  filtres: [
+    { d: 'M21 4h-7' },
+    { d: 'M10 4H3' },
+    { d: 'M21 12h-9' },
+    { d: 'M8 12H3' },
+    { d: 'M21 20h-5' },
+    { d: 'M12 20H3' },
+    { d: 'M14 2v4' },
+    { d: 'M8 10v4' },
+    { d: 'M16 18v4' },
+  ],
   'chevron-droite': [{ d: 'm9 18 6-6-6-6' }],
   'chevron-gauche': [{ d: 'm15 18-6-6 6-6' }],
   pause: [

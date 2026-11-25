@@ -1,0 +1,111 @@
+// Mise en page commune des pages de liste (catégorie, marque, recherche).
+// Chaque page l'importe dans sa feuille de styles : `@use 'page-liste';` (styles encapsulés par composant).
+@use 'points-rupture' as pr;
+
+.page {
+  // Place pour le bouton « Filtrer et trier » fixé en bas de l'écran
+  padding-block: var(--espace-2) calc(var(--espace-16) + env(safe-area-inset-bottom));
+
+  @media (min-width: pr.$ordinateur) {
+    padding-block-end: var(--espace-12);
+  }
+}
+
+.entete {
+  display: grid;
+  gap: var(--espace-2);
+  margin-block: var(--espace-2) var(--espace-4);
+}
+
+.entete--squelette {
+  min-height: 4.5rem;
+}
+
+.entete__titre {
+  margin: 0;
+  font-size: var(--taille-2xl);
+  overflow-wrap: anywhere;
+
+  @media (min-width: pr.$ordinateur) {
+    font-size: var(--taille-3xl);
+  }
+}
+
+.entete__description {
+  margin: 0;
+  max-width: 48rem;
+  color: var(--couleur-texte-secondaire);
+}
+
+// Sous-rayons : une ligne qui défile au doigt sur téléphone
+.rayons {
+  margin-block-end: var(--espace-5);
+  margin-inline: calc(-1 * var(--marge-page));
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  ul {
+    display: flex;
+    gap: var(--espace-2);
+    width: max-content;
+    margin: 0;
+    padding: 0 var(--marge-page);
+    list-style: none;
+  }
+
+  @media (min-width: pr.$ordinateur) {
+    margin-inline: 0;
+    overflow: visible;
+
+    ul {
+      flex-wrap: wrap;
+      width: auto;
+      padding: 0;
+    }
+  }
+}
+
+.rayon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-4);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-forte);
+  border-radius: var(--rayon-2);
+  background: var(--couleur-surface);
+  color: var(--couleur-texte);
+  font-weight: var(--graisse-semi-gras);
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--couleur-accent);
+    color: var(--couleur-accent);
+  }
+
+  &[aria-current] {
+    border-color: var(--couleur-accent);
+    background: var(--couleur-accent-leger);
+    color: var(--couleur-accent-survol);
+  }
+}
+
+.rayon__nombre {
+  font-family: var(--police-mono);
+  font-size: var(--taille-xs);
+  font-weight: var(--graisse-normale);
+  color: var(--couleur-texte-secondaire);
+}
+
+.editorial {
+  max-width: 48rem;
+  margin-block-start: var(--espace-12);
+  padding-block-start: var(--espace-6);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  color: var(--couleur-texte-secondaire);
+
+  p {
+    margin: 0 0 var(--espace-4);
+  }
+}
