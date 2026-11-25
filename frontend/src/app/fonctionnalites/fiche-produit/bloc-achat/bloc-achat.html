@@ -128,9 +128,15 @@
       class="barre-achat__bouton"
       [disabled]="rupture()"
       [attr.tabindex]="actionsVisibles() ? -1 : null"
+      [attr.aria-label]="rupture() ? null : 'Ajouter au panier'"
       (click)="ajouterAuPanier()"
     >
-      {{ rupture() ? 'Rupture de stock' : 'Ajouter au panier' }}
+      @if (rupture()) {
+        Rupture de stock
+      } @else {
+        <bi-icone nom="panier" taille="1.25rem" />
+        Ajouter
+      }
     </button>
   }
 </div>

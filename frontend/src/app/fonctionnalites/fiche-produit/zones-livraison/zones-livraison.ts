@@ -73,6 +73,8 @@ import { PrixFcfaPipe } from '../../../partage/pipes/prix-fcfa.pipe';
     .fenetre {
       width: min(100% - 2 * var(--espace-4), 36rem);
       max-height: min(100dvh - 2 * var(--espace-4), 40rem);
+      /* Centrée (la réinitialisation globale retire la marge automatique du <dialog>) */
+      margin: auto;
       padding: 0;
       color: var(--couleur-texte);
       background: var(--couleur-surface);

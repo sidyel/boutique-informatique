@@ -223,13 +223,17 @@
 }
 
 .barre-achat__prix {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 1 0 auto;
+  flex-direction: column;
+  gap: 0;
+  line-height: var(--interligne-serre);
 }
 
 .barre-achat__bouton {
   flex: 0 1 auto;
+  gap: var(--espace-2);
   min-height: var(--cible-tactile);
+  white-space: nowrap;
 }
 
 .barre-achat__whatsapp {
