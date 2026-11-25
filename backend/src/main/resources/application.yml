@@ -60,6 +60,13 @@ spring:
     port: ${SMTP_PORT:1025}
     username: ${SMTP_UTILISATEUR:}
     password: ${SMTP_MOT_DE_PASSE:}
+    properties:
+      # Sans ces deux valeurs, JavaMail résout le nom de la machine (InetAddress.getLocalHost) pour
+      # l'EHLO et pour le Message-ID : jusqu'à 5 s par résolution mesurées sous Windows, soit ~10 s par
+      # e-mail. Nom EHLO en production : le domaine du site. mail.from ne sert qu'au Message-ID
+      # (l'expéditeur visible est fixé par boutique.email.expediteur).
+      mail.smtp.localhost: ${SMTP_NOM_EHLO:localhost}
+      mail.from: ${boutique.email.expediteur}
 
 server:
   port: ${PORT_BACKEND:8080}
