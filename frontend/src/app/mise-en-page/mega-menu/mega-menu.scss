@@ -1,0 +1,119 @@
+:host {
+  display: block;
+}
+
+.barre {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barre__entree {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-1);
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-3);
+  font: inherit;
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+  text-decoration: none;
+  background: none;
+  border: 0;
+  border-block-end: 2px solid transparent;
+  cursor: pointer;
+
+  bi-icone {
+    transition: transform var(--duree-rapide) var(--courbe-standard);
+  }
+
+  &:hover,
+  &--ouverte {
+    color: var(--couleur-accent);
+    border-block-end-color: var(--couleur-accent);
+  }
+
+  &--ouverte bi-icone {
+    transform: rotate(180deg);
+  }
+}
+
+/* Panneau sous toute la largeur de l'en-tête */
+.panneau {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  z-index: var(--z-panneau);
+  background: var(--couleur-surface);
+  border-block: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  box-shadow: var(--ombre-2);
+}
+
+.panneau__contenu {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--espace-8);
+  padding-block: var(--espace-6);
+}
+
+.panneau__titre {
+  margin-block-end: var(--espace-2);
+  font-family: var(--police-titre);
+  font-size: var(--taille-lg);
+  font-weight: var(--graisse-gras);
+}
+
+.panneau__liste {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--espace-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panneau__marques {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--espace-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panneau__lien,
+.panneau__tout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2);
+  min-height: var(--cible-tactile);
+  color: var(--couleur-texte);
+  text-decoration: none;
+  border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  &:hover {
+    color: var(--couleur-accent);
+  }
+}
+
+.panneau__tout {
+  margin-block-start: var(--espace-3);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-accent);
+  border: 0;
+}
+
+.panneau__nombre {
+  font-family: var(--police-mono);
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.panneau__colonne--marques {
+  padding-inline-start: var(--espace-6);
+  border-inline-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}

@@ -1,0 +1,73 @@
+<div class="barre-superieure">
+  <div class="conteneur barre-superieure__contenu">
+    @if (site.parametres()?.messageBarreSuperieure; as message) {
+      <p class="barre-superieure__message">
+        <bi-icone nom="livraison" taille="1rem" />
+        {{ message }}
+      </p>
+    }
+    <!-- Sur mobile, ces contacts sont dans le tiroir et le bouton WhatsApp flottant (cibles de 44 px) -->
+    <div class="barre-superieure__contacts">
+      @if (site.lienTelephone(); as tel) {
+        <a [href]="tel" (click)="contactTelephone()">
+          <bi-icone nom="telephone" taille="0.875rem" />
+          {{ site.telephoneAffiche() }}
+        </a>
+      }
+      @if (site.lienWhatsApp(); as wa) {
+        <a [href]="wa" target="_blank" rel="noopener" (click)="contactWhatsApp()">
+          <bi-icone nom="message" taille="0.875rem" />
+          WhatsApp {{ site.whatsappAffiche() }}
+        </a>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="principal">
+  <div class="conteneur principal__ligne">
+    <button
+      #boutonMenu
+      type="button"
+      class="action principal__menu"
+      aria-label="Ouvrir le menu des catégories"
+      aria-controls="tiroir-navigation"
+      [attr.aria-expanded]="tiroirOuvert()"
+      (click)="tiroirOuvert.set(true)"
+    >
+      <bi-icone nom="menu" />
+    </button>
+
+    <bi-logo class="principal__logo" />
+
+    <bi-barre-recherche class="principal__recherche" ident="recherche-entete" />
+
+    <div class="principal__actions">
+      <a class="action" routerLink="/compte" aria-label="Mon compte">
+        <bi-icone nom="compte" />
+        <span class="action__texte" aria-hidden="true">Compte</span>
+      </a>
+      <a
+        class="action"
+        routerLink="/panier"
+        [attr.aria-label]="'Panier, ' + panier.nombreArticles() + ' article' + (panier.nombreArticles() > 1 ? 's' : '')"
+      >
+        <span class="action__panier">
+          <bi-icone nom="panier" />
+          @if (panier.nombreArticles() > 0) {
+            <span class="action__compteur" aria-hidden="true">{{ panier.nombreArticles() }}</span>
+          }
+        </span>
+        <span class="action__texte" aria-hidden="true">Panier</span>
+      </a>
+    </div>
+  </div>
+
+  <nav class="principal__categories" aria-label="Catégories">
+    <div class="conteneur">
+      <bi-mega-menu />
+    </div>
+  </nav>
+</div>
+
+<bi-tiroir-navigation [ouvert]="tiroirOuvert()" (fermer)="fermerTiroir()" />

@@ -1,0 +1,79 @@
+<footer class="pied">
+  <div class="conteneur pied__grille">
+    <section class="pied__bloc pied__bloc--contact" aria-labelledby="pied-contact">
+      <bi-logo [surFondSombre]="true" />
+      <h2 id="pied-contact" class="visuellement-masque">Nous contacter</h2>
+      <ul class="pied__liste" role="list">
+        @if (site.lienTelephone(); as tel) {
+          <li>
+            <a class="pied__lien" [href]="tel" (click)="contactTelephone()">
+              <bi-icone nom="telephone" taille="1rem" /> {{ site.telephoneAffiche() }}
+            </a>
+          </li>
+        }
+        @if (site.lienWhatsApp(); as wa) {
+          <li>
+            <a class="pied__lien" [href]="wa" target="_blank" rel="noopener" (click)="contactWhatsApp()">
+              <bi-icone nom="message" taille="1rem" /> WhatsApp {{ site.whatsappAffiche() }}
+            </a>
+          </li>
+        }
+        @if (site.parametres()?.email; as email) {
+          <li>
+            <a class="pied__lien" [href]="'mailto:' + email"><bi-icone nom="email" taille="1rem" /> {{ email }}</a>
+          </li>
+        }
+        @if (site.parametres()?.adresse; as adresse) {
+          <li class="pied__texte"><bi-icone nom="lieu" taille="1rem" /> {{ adresse }}</li>
+        }
+        @if (site.parametres()?.horaires; as horaires) {
+          <li class="pied__texte"><bi-icone nom="horloge" taille="1rem" /> {{ horaires }}</li>
+        }
+      </ul>
+    </section>
+
+    @if (catalogue.categories().length) {
+      <nav class="pied__bloc" aria-labelledby="pied-categories">
+        <h2 id="pied-categories" class="pied__titre">Catégories</h2>
+        <ul class="pied__liste" role="list">
+          @for (categorie of catalogue.categories(); track categorie.slug) {
+            <li>
+              <a class="pied__lien" [routerLink]="['/categorie', categorie.slug]">{{ categorie.nom }}</a>
+            </li>
+          }
+        </ul>
+      </nav>
+    }
+
+    <nav class="pied__bloc" aria-labelledby="pied-informations">
+      <h2 id="pied-informations" class="pied__titre">Informations</h2>
+      <ul class="pied__liste" role="list">
+        @for (page of informations; track page.slug) {
+          <li><a class="pied__lien" [routerLink]="['/', page.slug]">{{ page.titre }}</a></li>
+        }
+      </ul>
+    </nav>
+
+    <section class="pied__bloc" aria-labelledby="pied-paiement">
+      <h2 id="pied-paiement" class="pied__titre">Paiement</h2>
+      <ul class="pied__paiements" role="list">
+        @for (moyen of paiements; track moyen) {
+          <li class="pied__paiement">{{ moyen }}</li>
+        }
+      </ul>
+      @if (reseaux().length) {
+        <h2 class="pied__titre pied__titre--suite">Suivez-nous</h2>
+        <ul class="pied__reseaux" role="list">
+          @for (reseau of reseaux(); track reseau.url) {
+            <li>
+              <a class="pied__lien" [href]="reseau.url" target="_blank" rel="noopener">{{ reseau.nom }}</a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+  <div class="pied__bas">
+    <p class="conteneur">© {{ annee }} {{ site.nomSite() }} · Sénégal · Prix en FCFA TTC</p>
+  </div>
+</footer>

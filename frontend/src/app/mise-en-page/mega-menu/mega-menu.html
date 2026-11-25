@@ -1,0 +1,67 @@
+<ul class="barre" role="list">
+  @for (categorie of categories(); track categorie.slug) {
+    <li class="barre__element">
+      @if (categorie.enfants.length) {
+        <button
+          type="button"
+          class="barre__entree"
+          [class.barre__entree--ouverte]="ouverte() === categorie.slug"
+          [attr.data-categorie]="categorie.slug"
+          [attr.aria-expanded]="ouverte() === categorie.slug"
+          [attr.aria-controls]="'panneau-' + categorie.slug"
+          (pointerenter)="survoler($event, categorie)"
+          (click)="basculer(categorie)"
+        >
+          {{ categorie.nom }}
+          <bi-icone nom="chevron-bas" taille="1rem" />
+        </button>
+        <div
+          class="panneau"
+          [id]="'panneau-' + categorie.slug"
+          [hidden]="ouverte() !== categorie.slug"
+        >
+          <div class="conteneur panneau__contenu">
+            <div class="panneau__colonne">
+              <p class="panneau__titre">{{ categorie.nom }}</p>
+              <ul class="panneau__liste" role="list">
+                @for (enfant of categorie.enfants; track enfant.slug) {
+                  @if (enfant.nombreProduits > 0) {
+                    <li>
+                      <a class="panneau__lien" [routerLink]="['/categorie', enfant.slug]">
+                        {{ enfant.nom }}
+                        <span class="panneau__nombre">{{ enfant.nombreProduits }}</span>
+                      </a>
+                    </li>
+                  }
+                }
+              </ul>
+              <a class="panneau__tout" [routerLink]="['/categorie', categorie.slug]">
+                Tout voir : {{ categorie.nom }}
+                <span class="panneau__nombre">{{ categorie.nombreProduits }}</span>
+              </a>
+            </div>
+            @if (marques().length) {
+              <div class="panneau__colonne panneau__colonne--marques">
+                <p class="panneau__titre">Marques</p>
+                <ul class="panneau__marques" role="list">
+                  @for (marque of marques(); track marque.slug) {
+                    <li>
+                      <a class="panneau__lien" [routerLink]="['/marque', marque.slug]">{{ marque.nom }}</a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <a
+          class="barre__entree"
+          [routerLink]="['/categorie', categorie.slug]"
+          (pointerenter)="survoler($event, categorie)"
+          >{{ categorie.nom }}</a
+        >
+      }
+    </li>
+  }
+</ul>

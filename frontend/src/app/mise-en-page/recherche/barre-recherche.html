@@ -1,0 +1,110 @@
+<form class="recherche" role="search" (submit)="valider($event)">
+  <label class="visuellement-masque" [attr.for]="ident() + '-champ'">Rechercher un produit, une marque</label>
+  <!-- autocomplete="off" : l'historique du navigateur recouvrirait la liste de suggestions -->
+  <input
+    class="recherche__champ"
+    [id]="ident() + '-champ'"
+    type="search"
+    inputmode="search"
+    enterkeyhint="search"
+    autocomplete="off"
+    spellcheck="false"
+    placeholder="PC portable, RTX 4060, onduleur…"
+    role="combobox"
+    aria-autocomplete="list"
+    [attr.aria-expanded]="panneauVisible()"
+    [attr.aria-controls]="ident() + '-liste'"
+    [attr.aria-activedescendant]="idActif()"
+    [attr.maxlength]="longueurMax"
+    [value]="terme()"
+    (input)="saisir($any($event.target).value)"
+    (focus)="ouvert.set(true)"
+    (keydown)="surTouche($event)"
+  />
+  <button class="recherche__bouton" type="submit" aria-label="Lancer la recherche">
+    <bi-icone nom="recherche" />
+  </button>
+
+  <div
+    class="recherche__panneau"
+    [id]="ident() + '-liste'"
+    role="listbox"
+    aria-label="Suggestions"
+    [hidden]="!panneauVisible()"
+    (mousedown)="$event.preventDefault()"
+  >
+    @if (suggestions(); as s) {
+      @if (s.produits.length) {
+        <p class="recherche__groupe" aria-hidden="true">Produits</p>
+        @for (produit of s.produits; track produit.id; let i = $index) {
+          <a
+            role="option"
+            class="option option--produit"
+            [id]="ident() + '-produit-' + i"
+            [attr.aria-selected]="idActif() === ident() + '-produit-' + i"
+            [routerLink]="['/produit', produit.slug]"
+            [queryParams]="{ variante: produit.varianteId }"
+            tabindex="-1"
+            (click)="fermer()"
+          >
+            <span class="option__vignette">
+              @if (produit.image) {
+                <img [ngSrc]="produit.image.url" width="40" height="40" alt="" />
+              }
+            </span>
+            <span class="option__texte">
+              <span class="option__nom">{{ produit.nom }}</span>
+              <span class="option__prix">{{ produit.prix | prixFcfa }}</span>
+            </span>
+          </a>
+        }
+      }
+      @if (s.categories.length) {
+        <p class="recherche__groupe" aria-hidden="true">Catégories</p>
+        @for (categorie of s.categories; track categorie.slug; let i = $index) {
+          <a
+            role="option"
+            class="option"
+            [id]="ident() + '-categorie-' + i"
+            [attr.aria-selected]="idActif() === ident() + '-categorie-' + i"
+            [routerLink]="['/categorie', categorie.slug]"
+            tabindex="-1"
+            (click)="fermer()"
+            >{{ categorie.nom }}</a
+          >
+        }
+      }
+      @if (s.marques.length) {
+        <p class="recherche__groupe" aria-hidden="true">Marques</p>
+        @for (marque of s.marques; track marque.slug; let i = $index) {
+          <a
+            role="option"
+            class="option"
+            [id]="ident() + '-marque-' + i"
+            [attr.aria-selected]="idActif() === ident() + '-marque-' + i"
+            [routerLink]="['/marque', marque.slug]"
+            tabindex="-1"
+            (click)="fermer()"
+            >{{ marque.nom }}</a
+          >
+        }
+      }
+      @if (aucunResultat()) {
+        <p class="recherche__vide">Aucune suggestion. Essayez une marque ou un modèle : « Asus », « RTX ».</p>
+      }
+      <a
+        role="option"
+        class="option option--tout"
+        [id]="ident() + '-tout'"
+        [attr.aria-selected]="idActif() === ident() + '-tout'"
+        routerLink="/recherche"
+        [queryParams]="{ q: terme().trim() }"
+        tabindex="-1"
+        (click)="fermer()"
+      >
+        <bi-icone nom="recherche" taille="1rem" />
+        Tous les résultats pour « {{ terme().trim() }} »
+      </a>
+    }
+  </div>
+</form>

@@ -61,6 +61,11 @@
   --couleur-info-fond: #eef3ff;
 
   --couleur-focus: var(--orange-600);
+
+  // WhatsApp : vert de la marque, pictogramme sombre (contraste 10:1 ; le blanc n'atteindrait pas 3:1)
+  --couleur-whatsapp: #25d366;
+  --couleur-whatsapp-survol: #1ebe5b;
+  --couleur-sur-whatsapp: var(--gris-950);
   --couleur-voile: rgb(14 17 22 / 0.55); // fond des fenêtres modales
 
   // Reflet du squelette de chargement
@@ -134,6 +139,10 @@
   // --- Mise en page ------------------------------------------------------------
   --largeur-max: 80rem;
   --marge-page: var(--espace-4);
+  --cible-tactile: 2.75rem; // 44 px : taille minimale d'une zone cliquable
+  --hauteur-barre-superieure: 2rem;
+  --largeur-tiroir: min(22rem, 88vw);
+  --taille-icone: 1.25rem;
 
   // --- Animations --------------------------------------------------------------
   --duree-rapide: 120ms;

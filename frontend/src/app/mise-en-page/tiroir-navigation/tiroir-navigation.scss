@@ -1,0 +1,118 @@
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modale);
+  background: var(--couleur-voile);
+}
+
+.tiroir {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: var(--z-modale);
+  display: flex;
+  flex-direction: column;
+  width: var(--largeur-tiroir);
+  background: var(--couleur-surface);
+  box-shadow: var(--ombre-2);
+}
+
+.tiroir__entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--espace-4) var(--espace-2);
+  border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}
+
+.tiroir__fermer {
+  display: grid;
+  place-items: center;
+  width: var(--cible-tactile);
+  height: var(--cible-tactile);
+  color: var(--couleur-texte);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.tiroir__corps {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block-end: env(safe-area-inset-bottom);
+}
+
+.liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.liste--secondaire {
+  margin-block-start: var(--espace-4);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}
+
+.entree,
+.sous-entree {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 3rem;
+  padding-inline: var(--espace-4);
+  font: inherit;
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+  text-align: start;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  cursor: pointer;
+}
+
+.sous-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--couleur-surface-alt);
+}
+
+.sous-entree {
+  min-height: var(--cible-tactile);
+  padding-inline-start: var(--espace-8);
+  font-weight: var(--graisse-normale);
+}
+
+.sous-entree--tout {
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-accent);
+}
+
+.nombre {
+  font-family: var(--police-mono);
+  font-size: var(--taille-xs);
+  font-weight: var(--graisse-normale);
+  color: var(--couleur-texte-secondaire);
+}
+
+.tourne {
+  transform: rotate(180deg);
+}
+
+.avec-icone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-3);
+}
+
+.horaires {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
+  padding: var(--espace-4);
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+}

@@ -1,0 +1,7 @@
+// Points de rupture (mobile d'abord). Les variables CSS ne sont pas utilisables dans @media :
+// ces valeurs SCSS sont la seule exception, partagée par tous les composants.
+//   @use 'points-rupture' as pr;
+//   @media (min-width: pr.$ordinateur) { … }
+$tablette: 48rem; //   768 px
+$ordinateur: 64rem; // 1024 px
+$large: 80rem; //      1280 px

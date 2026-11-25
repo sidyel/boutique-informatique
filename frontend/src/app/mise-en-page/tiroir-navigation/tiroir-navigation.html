@@ -1,0 +1,88 @@
+@if (ouvert()) {
+  <div class="voile" (click)="fermer.emit()" aria-hidden="true"></div>
+  <div
+    #panneau
+    class="tiroir"
+    id="tiroir-navigation"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Menu"
+    (keydown)="surTouche($event)"
+  >
+    <div class="tiroir__entete">
+      <bi-logo (click)="fermer.emit()" />
+      <button type="button" class="tiroir__fermer" aria-label="Fermer le menu" (click)="fermer.emit()">
+        <bi-icone nom="fermer" />
+      </button>
+    </div>
+
+    <nav class="tiroir__corps" aria-label="Catégories">
+      <ul class="liste" role="list">
+        @for (categorie of catalogue.categories(); track categorie.slug) {
+          <li>
+            @if (categorie.enfants.length) {
+              <button
+                type="button"
+                class="entree"
+                [attr.aria-expanded]="depliee() === categorie.slug"
+                [attr.aria-controls]="'tiroir-' + categorie.slug"
+                (click)="basculer(categorie.slug)"
+              >
+                {{ categorie.nom }}
+                <bi-icone nom="chevron-bas" taille="1rem" [class.tourne]="depliee() === categorie.slug" />
+              </button>
+              <ul class="sous-liste" role="list" [id]="'tiroir-' + categorie.slug" [hidden]="depliee() !== categorie.slug">
+                <li>
+                  <a class="sous-entree sous-entree--tout" [routerLink]="['/categorie', categorie.slug]" (click)="fermer.emit()">
+                    Tout voir
+                    <span class="nombre">{{ categorie.nombreProduits }}</span>
+                  </a>
+                </li>
+                @for (enfant of categorie.enfants; track enfant.slug) {
+                  @if (enfant.nombreProduits > 0) {
+                    <li>
+                      <a class="sous-entree" [routerLink]="['/categorie', enfant.slug]" (click)="fermer.emit()">
+                        {{ enfant.nom }}
+                        <span class="nombre">{{ enfant.nombreProduits }}</span>
+                      </a>
+                    </li>
+                  }
+                }
+              </ul>
+            } @else {
+              <a class="entree" [routerLink]="['/categorie', categorie.slug]" (click)="fermer.emit()">
+                {{ categorie.nom }}
+                <span class="nombre">{{ categorie.nombreProduits }}</span>
+              </a>
+            }
+          </li>
+        }
+      </ul>
+
+      <ul class="liste liste--secondaire" role="list">
+        <li>
+          <a class="entree" routerLink="/compte" (click)="fermer.emit()">
+            <span class="avec-icone"><bi-icone nom="compte" /> Mon compte</span>
+          </a>
+        </li>
+        @if (site.lienTelephone(); as tel) {
+          <li>
+            <a class="entree" [href]="tel" (click)="contactTelephone()">
+              <span class="avec-icone"><bi-icone nom="telephone" /> Appeler le {{ site.telephoneAffiche() }}</span>
+            </a>
+          </li>
+        }
+        @if (site.lienWhatsApp(); as wa) {
+          <li>
+            <a class="entree" [href]="wa" target="_blank" rel="noopener" (click)="contactWhatsApp()">
+              <span class="avec-icone"><bi-icone nom="message" /> WhatsApp {{ site.whatsappAffiche() }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+      @if (site.parametres()?.horaires; as horaires) {
+        <p class="horaires"><bi-icone nom="horloge" taille="1rem" /> {{ horaires }}</p>
+      }
+    </nav>
+  </div>
+}
