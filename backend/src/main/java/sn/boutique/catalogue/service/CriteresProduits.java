@@ -118,6 +118,12 @@ public record CriteresProduits(
                 tri, page, taille);
     }
 
+    /** Critères limités à une seule marque (page marque : un paramètre {@code marque} éventuel est ignoré). */
+    public CriteresProduits avecMarque(String slug) {
+        return new CriteresProduits(categorie, Set.of(slug), etats, prixMin, prixMax, disponible, promotion,
+                caracteristiques, tri, page, taille);
+    }
+
     /** Lecture et validation des paramètres ; toute valeur invalide donne une erreur 400 explicite. */
     public static CriteresProduits depuis(MultiValueMap<String, String> parametres) {
         String categorie = unique(parametres, "categorie");

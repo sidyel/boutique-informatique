@@ -21,6 +21,7 @@ import sn.boutique.catalogue.modele.EtatProduit;
 import sn.boutique.catalogue.modele.TypeCaracteristique;
 import sn.boutique.catalogue.service.CriteresProduits.Famille;
 import sn.boutique.noyau.cache.CachesPublics;
+import sn.boutique.noyau.erreur.ParametreInvalideException;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 
 /**
@@ -46,6 +47,7 @@ public class FacettesService {
     private final JdbcClient jdbc;
     private final CategorieService categorieService;
     private final CaracteristiquesFiltrables caracteristiquesFiltrables;
+    private final MarqueService marqueService;
 
     @Cacheable(cacheNames = CachesPublics.FILTRES, key = "#slugCategorie + '?' + #demandes.cleCache(false)")
     public FiltresReponse filtres(String slugCategorie, CriteresProduits demandes) {
@@ -81,6 +83,76 @@ public class FacettesService {
                     categories, EnumSet.of(Partie.CARACTERISTIQUE), List.of(cle)));
         }
         return assembler(lignes, criteres, noeud, definitions);
+    }
+
+    /**
+     * Filtres de la page marque : catégories, état, prix et disponibilité, avec leurs décomptes. Les
+     * caractéristiques dépendent de la catégorie : elles ne sont pas proposées (liste vide) et un filtre
+     * {@code f.cle} est refusé. Le paramètre {@code categorie} limite à cette catégorie et à ses descendants ;
+     * la facette des catégories, elle, l'ignore (chaque facette ignore son propre filtre).
+     */
+    @Cacheable(cacheNames = CachesPublics.FILTRES, key = "'marque:' + #slugMarque + '?' + #demandes.cleCache(false)")
+    public FiltresReponse filtresMarque(String slugMarque, CriteresProduits demandes) {
+        marqueService.trouverParSlug(slugMarque);
+        if (!demandes.caracteristiques().isEmpty()) {
+            throw new ParametreInvalideException("f", "Les filtres de caractéristiques demandent une catégorie.");
+        }
+        CriteresProduits criteres = demandes.avecMarque(slugMarque);
+        ArbreCategories arbre = categorieService.chargerArbre();
+        List<Long> categories = null;
+        if (criteres.categorie() != null) {
+            categories = arbre.trouver(criteres.categorie())
+                    .orElseThrow(() -> new RessourceIntrouvableException("Catégorie", criteres.categorie()))
+                    .idsSousArbre();
+        }
+        Set<Partie> parties = EnumSet.of(Partie.TOTAL, Partie.ETAT, Partie.CATEGORIE, Partie.DISPONIBLE, Partie.PRIX);
+        List<Ligne> lignes = new ArrayList<>(executer(criteres, categories, parties, List.of()));
+        if (categories != null) {
+            remplacer(lignes, Partie.CATEGORIE, null,
+                    executer(criteres, null, EnumSet.of(Partie.CATEGORIE), List.of()));
+        }
+        if (!criteres.etats().isEmpty()) {
+            remplacer(lignes, Partie.ETAT, null,
+                    executer(criteres.sans(Famille.ETAT, null), categories, EnumSet.of(Partie.ETAT), List.of()));
+        }
+        if (criteres.prixMin() != null || criteres.prixMax() != null) {
+            remplacer(lignes, Partie.PRIX, null,
+                    executer(criteres.sans(Famille.PRIX, null), categories, EnumSet.of(Partie.PRIX), List.of()));
+        }
+        if (criteres.disponible()) {
+            remplacer(lignes, Partie.DISPONIBLE, null, executer(criteres.sans(Famille.DISPONIBLE, null),
+                    categories, EnumSet.of(Partie.DISPONIBLE), List.of()));
+        }
+
+        long total = 0;
+        long enStock = 0;
+        FiltresReponse.Prix prix = null;
+        Map<String, Long> etats = new HashMap<>();
+        List<Option> optionsCategories = new ArrayList<>();
+        for (Ligne ligne : lignes) {
+            switch (ligne.partie()) {
+                case TOTAL -> total = ligne.nombre();
+                case DISPONIBLE -> enStock = ligne.nombre();
+                case PRIX -> prix = ligne.cle() == null ? null
+                        : new FiltresReponse.Prix(Long.valueOf(ligne.cle()), Long.valueOf(ligne.valeur()));
+                case ETAT -> etats.put(ligne.cle(), ligne.nombre());
+                // Catégories où sont rangés les produits de la marque (une catégorie masquée n'est pas proposée)
+                case CATEGORIE -> arbre.trouverParId(Long.parseLong(ligne.cle())).ifPresent(noeud ->
+                        optionsCategories.add(new Option(noeud.slug(), noeud.nom(), ligne.nombre(),
+                                noeud.slug().equals(criteres.categorie()))));
+                default -> {
+                }
+            }
+        }
+        // Une catégorie choisie reste affichée (cochée) même si les produits sont rangés dans ses descendants
+        if (criteres.categorie() != null
+                && optionsCategories.stream().noneMatch(option -> option.valeur().equals(criteres.categorie()))) {
+            ArbreCategories.Noeud choisie = arbre.trouver(criteres.categorie()).orElseThrow();
+            optionsCategories.add(new Option(choisie.slug(), choisie.nom(), total, true));
+        }
+        optionsCategories.sort(Comparator.comparingLong(Option::nombre).reversed().thenComparing(Option::libelle));
+        return new FiltresReponse(total, prix, optionsCategories, List.of(), optionsEtats(etats, criteres),
+                new FiltresReponse.Disponible(enStock, criteres.disponible()), List.of());
     }
 
     private List<Ligne> executer(CriteresProduits criteres, List<Long> categories, Set<Partie> parties,
@@ -161,13 +233,7 @@ public class FacettesService {
         }
         marques.sort(Comparator.comparingLong(Option::nombre).reversed().thenComparing(Option::libelle));
 
-        List<Option> optionsEtats = new ArrayList<>();
-        for (EtatProduit etat : EtatProduit.values()) {
-            long nombre = etats.getOrDefault(etat.name(), 0L);
-            if (nombre > 0 || criteres.etats().contains(etat)) {
-                optionsEtats.add(new Option(etat.name(), LIBELLES_ETATS.get(etat), nombre, criteres.etats().contains(etat)));
-            }
-        }
+        List<Option> optionsEtats = optionsEtats(etats, criteres);
 
         List<Option> sousCategories = new ArrayList<>();
         for (ArbreCategories.Noeud enfant : noeud.enfants()) {
@@ -195,6 +261,17 @@ public class FacettesService {
         }
         return new FiltresReponse(total, prix, sousCategories, marques, optionsEtats,
                 new FiltresReponse.Disponible(enStock, criteres.disponible()), caracteristiques);
+    }
+
+    private static List<Option> optionsEtats(Map<String, Long> etats, CriteresProduits criteres) {
+        List<Option> options = new ArrayList<>();
+        for (EtatProduit etat : EtatProduit.values()) {
+            long nombre = etats.getOrDefault(etat.name(), 0L);
+            if (nombre > 0 || criteres.etats().contains(etat)) {
+                options.add(new Option(etat.name(), LIBELLES_ETATS.get(etat), nombre, criteres.etats().contains(etat)));
+            }
+        }
+        return options;
     }
 
     private static Comparator<Map.Entry<String, Long>> ordreValeurs(TypeCaracteristique type) {

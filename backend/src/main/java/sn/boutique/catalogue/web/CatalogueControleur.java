@@ -58,6 +58,13 @@ public class CatalogueControleur {
         return marqueService.trouverParSlug(slug);
     }
 
+    /** Filtres de la page marque (catégories, état, prix, disponibilité) ; mêmes paramètres que {@code /api/produits}. */
+    @GetMapping("/marques/{slug}/filtres")
+    public FiltresReponse filtresMarque(@PathVariable String slug,
+                                        @RequestParam MultiValueMap<String, String> parametres) {
+        return facettesService.filtresMarque(slug, CriteresProduits.depuis(parametres));
+    }
+
     /** Exemple : {@code /api/redirections?chemin=/produit/ancien-slug}. */
     @GetMapping("/redirections")
     public RedirectionReponse redirection(@RequestParam String chemin) {

@@ -313,7 +313,57 @@ class ListeProduitsTest extends CatalogueTestBase {
         assertThat(options(filtres, "ram_go")).containsExactly("8:2:false:8 Go", "16:4:false:16 Go", "32:1:false:32 Go");
     }
 
+    // --- Facettes de la page marque -----------------------------------------------------------------
+
+    @Test
+    void lesFiltresDUneMarqueProposentSesCategoriesSansCaracteristiques() throws Exception {
+        // Asus actifs : Vivobook (portables, 389 000 / 449 000), TUF (gaming, 650 000), ExpertCenter (bureau, 500 000)
+        JsonNode filtres = corps(lire("/api/marques/{m}/filtres?marque=" + lenovo.getSlug(), asus.getSlug()));
+
+        assertThat(filtres.get("totalProduits").asLong()).as("le paramètre marque est ignoré").isEqualTo(3);
+        assertThat(categoriesProposees(filtres))
+                .containsExactly("PC de bureau:1:false", "PC gaming:1:false", "PC portables:1:false");
+        assertThat(filtres.get("marques").size()).isZero();
+        assertThat(filtres.get("caracteristiques").size()).isZero();
+        assertThat(filtres.get("prix").get("min").asLong()).isEqualTo(389_000);
+        assertThat(filtres.get("prix").get("max").asLong()).isEqualTo(650_000);
+        assertThat(filtres.get("etats").get(0).get("nombre").asLong()).isEqualTo(3);
+        assertThat(filtres.get("disponible").get("enStock").asLong()).isEqualTo(3);
+    }
+
+    @Test
+    void laFacetteDesCategoriesDUneMarqueIgnoreSonPropreFiltre() throws Exception {
+        JsonNode filtres = corps(lire("/api/marques/{m}/filtres?categorie=" + portables.getSlug(), asus.getSlug()));
+
+        assertThat(filtres.get("totalProduits").asLong()).isEqualTo(1);
+        assertThat(categoriesProposees(filtres))
+                .containsExactly("PC de bureau:1:false", "PC gaming:1:false", "PC portables:1:true");
+        // Les autres facettes appliquent le filtre de catégorie
+        assertThat(filtres.get("prix").get("max").asLong()).isEqualTo(449_000);
+
+        // Catégorie parente choisie : elle reste affichée, cochée, avec le total de ses descendants
+        JsonNode parente = corps(lire("/api/marques/{m}/filtres?categorie=" + ordinateurs.getSlug(), asus.getSlug()));
+        assertThat(categoriesProposees(parente)).first().isEqualTo("Ordinateurs:3:true");
+    }
+
+    @Test
+    void lesFiltresDUneMarqueRefusentLesCaracteristiquesEtLesMarquesInconnues() throws Exception {
+        lire("/api/marques/{m}/filtres?f.ram_go=16", asus.getSlug())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("PARAMETRE_INVALIDE"));
+        lire("/api/marques/{m}/filtres", "marque-inconnue").andExpect(status().isNotFound());
+        lire("/api/marques/{m}/filtres?categorie=categorie-inconnue", asus.getSlug()).andExpect(status().isNotFound());
+    }
+
     // ------------------------------------------------------------------------------------------------
+
+    /** Catégories proposées : « libellé:nombre:sélectionnée ». */
+    private static List<String> categoriesProposees(JsonNode filtres) {
+        return filtres.get("sousCategories").valueStream()
+                .map(o -> "%s:%d:%s".formatted(o.get("libelle").asString(), o.get("nombre").asLong(),
+                        o.get("selectionne").asBoolean()))
+                .toList();
+    }
 
     private static void image(Produit produit) {
         produit.ajouterMedia(TypeMedia.IMAGE, "https://exemple.sn/" + produit.getSlug() + ".jpg", produit.getNom());

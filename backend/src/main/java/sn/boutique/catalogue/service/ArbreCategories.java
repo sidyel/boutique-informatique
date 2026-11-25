@@ -92,6 +92,7 @@ public final class ArbreCategories {
 
     private final List<Noeud> racines = new ArrayList<>();
     private final Map<String, Noeud> parSlug = new HashMap<>();
+    private final Map<Long, Noeud> parId = new HashMap<>();
 
     /** @param lignes catégories actives, déjà dans l'ordre d'affichage (position, nom) */
     public ArbreCategories(List<Ligne> lignes) {
@@ -115,6 +116,11 @@ public final class ArbreCategories {
         return Optional.ofNullable(parSlug.get(slug));
     }
 
+    /** Catégorie visible par son identifiant. */
+    public Optional<Noeud> trouverParId(long id) {
+        return Optional.ofNullable(parId.get(id));
+    }
+
     public List<CategorieNoeudReponse> versReponse() {
         return racines.stream().map(Noeud::versReponse).toList();
     }
@@ -122,6 +128,7 @@ public final class ArbreCategories {
     private Noeud construire(Ligne ligne, Noeud parent, Map<Long, List<Ligne>> parParent) {
         Noeud noeud = new Noeud(ligne, parent);
         parSlug.put(ligne.slug(), noeud);
+        parId.put(ligne.id(), noeud);
         for (Ligne enfant : parParent.getOrDefault(ligne.id(), List.of())) {
             noeud.enfants.add(construire(enfant, noeud, parParent));
         }
