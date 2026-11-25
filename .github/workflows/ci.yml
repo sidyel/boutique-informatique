@@ -5,9 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+# Sur main, aucun run n'est annulé : avec le filtre par chemins, un push suivant qui ne touche pas le
+# backend sauterait ses tests, et une modification annulée ne serait jamais vérifiée. Seules les pull
+# requests annulent le run précédent (le run suivant reteste toute la branche).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
