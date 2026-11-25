@@ -78,12 +78,26 @@
       <ul class="grille" [class.grille--chargement]="chargement()" [attr.aria-busy]="chargement() || null" role="list">
         @for (produit of page.elements; track produit.id; let i = $index) {
           <li>
-            <bi-carte-produit
-              [produit]="produit"
-              [liste]="liste()"
-              [position]="(page.page - 1) * page.taille + i"
-              [prioritaire]="i < prioritaires"
-            />
+            <!-- Première rangée (4 colonnes au plus) hydratée au démarrage ; les suivantes, rendues aussi par
+                 le serveur, ne sont hydratées qu'en arrivant à l'écran (un clic avant est rejoué).
+                 « on immediate » ne sert qu'aux affichages faits dans le navigateur (changement de filtre,
+                 retour arrière) : la grille doit être complète avant la restauration du défilement. -->
+            @if (i < hydrateesAuDemarrage) {
+              <bi-carte-produit
+                [produit]="produit"
+                [liste]="liste()"
+                [position]="(page.page - 1) * page.taille + i"
+                [prioritaire]="i < prioritaires"
+              />
+            } @else {
+              @defer (on immediate; hydrate on viewport) {
+                <bi-carte-produit
+                  [produit]="produit"
+                  [liste]="liste()"
+                  [position]="(page.page - 1) * page.taille + i"
+                />
+              }
+            }
           </li>
         }
       </ul>

@@ -25,6 +25,12 @@ import { SourceListe } from './source-liste';
 
 /** Cartes chargées sans attendre (2 colonnes sur téléphone : la première rangée contient l'image LCP). */
 const CARTES_PRIORITAIRES = 2;
+/**
+ * Cartes hydratées au démarrage : la première rangée quelle que soit la largeur (4 colonnes au plus).
+ * Les autres sont rendues par le serveur (HTML et SEO identiques) mais leur JavaScript ne s'exécute
+ * qu'à leur arrivée à l'écran : moins de travail au démarrage sur un Android d'entrée de gamme.
+ */
+const CARTES_HYDRATEES_AU_DEMARRAGE = 4;
 const CARTES_SQUELETTE = 8;
 
 /**
@@ -70,6 +76,7 @@ export class ListeProduits {
 
   protected readonly squelettes = Array.from({ length: CARTES_SQUELETTE }, (_, i) => i);
   protected readonly prioritaires = CARTES_PRIORITAIRES;
+  protected readonly hydrateesAuDemarrage = CARTES_HYDRATEES_AU_DEMARRAGE;
   /** Nombre de demandes d'ouverture de la feuille (son code n'est chargé qu'au premier toucher). */
   protected readonly demandesFeuille = signal(0);
 
