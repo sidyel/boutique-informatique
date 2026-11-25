@@ -60,12 +60,27 @@ class GestionnaireGlobalErreursTest {
     }
 
     @Test
-    void stockInsuffisantRenvoie409AvecLeSkuEtLeStock() throws Exception {
+    void stockInsuffisantRenvoie409AvecLaQuantiteCommandableSansLeStockExact() throws Exception {
         mockMvc.perform(get("/api/essai/stock"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("STOCK_INSUFFISANT"))
                 .andExpect(jsonPath("$.sku").value("ASUS-FA507-16-512"))
-                .andExpect(jsonPath("$.stockDisponible").value(1));
+                .andExpect(jsonPath("$.quantiteMax").value(1))
+                .andExpect(jsonPath("$.stockDisponible").doesNotExist());
+    }
+
+    @Test
+    void unGrosStockNEstJamaisRevele() throws Exception {
+        // 9 999 demandées, 437 en stock : la réponse ne dit que « 10 au plus »
+        mockMvc.perform(get("/api/essai/stock-important"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.quantiteMax").value(10))
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("437"))))
+                .andExpect(jsonPath("$.stockDisponible").doesNotExist());
+        mockMvc.perform(get("/api/essai/stock-epuise"))
+                .andExpect(jsonPath("$.quantiteMax").value(0))
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("plus disponible")));
     }
 
     @Test
@@ -141,6 +156,16 @@ class GestionnaireGlobalErreursTest {
         @GetMapping("/api/essai/stock")
         void stock() {
             throw new StockInsuffisantException("ASUS-FA507-16-512", 3, 1);
+        }
+
+        @GetMapping("/api/essai/stock-important")
+        void stockImportant() {
+            throw new StockInsuffisantException("ASUS-FA507-16-512", 9_999, 437);
+        }
+
+        @GetMapping("/api/essai/stock-epuise")
+        void stockEpuise() {
+            throw new StockInsuffisantException("ASUS-FA507-16-512", 1, -2);
         }
 
         @GetMapping("/api/essai/code-promo")

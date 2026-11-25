@@ -71,7 +71,8 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     ProblemDetail gererStockInsuffisant(StockInsuffisantException ex, HttpServletRequest requete) {
         ProblemDetail probleme = construire(HttpStatus.CONFLICT, "STOCK_INSUFFISANT", ex.getMessage(), requete);
         probleme.setProperty("sku", ex.getSku());
-        probleme.setProperty("stockDisponible", ex.getStockDisponible());
+        // Jamais le stock exact : seulement la quantité commandable plafonnée (relecture de sécurité, M7)
+        probleme.setProperty("quantiteMax", ex.getQuantiteMaxCommandable());
         return probleme;
     }
 
