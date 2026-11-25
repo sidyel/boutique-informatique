@@ -48,7 +48,8 @@ va directement du navigateur à Cloudinary, jamais par le backend.
 1. `POST /api/admin/produits/{id}/medias/videos/signature` : le backend génère l'idPublic dans le dossier
    **de ce produit** (`<racine>/produits/<id>/videos/<slug>-<aléatoire>`) et signe uniquement : cet idPublic,
    ce dossier, `overwrite=false`, `allowed_formats=mp4,webm` et l'horodatage. L'URL d'envoi fixe la ressource
-   `video`. Le secret de l'API ne sort jamais du backend.
+   `video`. Le secret de l'API ne sort jamais du backend. **Ce que la signature ne peut pas couvrir** : voir
+   « Limites de la signature » ci-dessous.
 2. **Validité courte** : Cloudinary accepte une signature pendant 1 h après son horodatage, sans réglage
    possible. Le backend **antidate** l'horodatage (`maintenant − 1 h + validite-signature`) : l'envoi doit
    commencer dans les **50 minutes** par défaut, pour les connexions mobiles lentes
@@ -65,10 +66,36 @@ va directement du navigateur à Cloudinary, jamais par le backend.
 6. URL de la vidéo transformée (`f_auto,q_auto`) ; **image d'aperçu générée par Cloudinary** (`so_auto` : image
    choisie automatiquement, puis `f_auto,q_auto`), en URL transformée comme les images.
 
-**Vidéos envoyées mais jamais déclarées** (navigateur fermé en cours de route) : présentes sur Cloudinary,
-absentes de `media_produit`. On les retrouve par leurs signatures expirées et jamais utilisées. **La tâche de
-nettoyage de la phase 9 traitera aussi ce cas**, en plus de `media_orphelin` : elle supprimera ces idPublic sur
-Cloudinary (ressource vidéo, puis image par précaution), puis marquera ou retirera les signatures.
+**Limites de la signature (relecture de sécurité, M8 ; vérifié dans la documentation officielle de Cloudinary,
+novembre 2026).**
+- *Type de ressource* : `resource_type` n'entre **jamais** dans la chaîne signée (« `file`, `cloud_name`,
+  `resource_type`, and `api_key` are never part of the string to sign », page *Authentication signatures*) :
+  il est dans le chemin de l'URL d'envoi (`/v1_1/<cloud>/<type>/upload`). Une signature peut donc être
+  présentée à `image/upload` ou `raw/upload` avec le même idPublic. `allowed_formats` reste signé, mais la
+  documentation ne précise pas comment il s'applique aux fichiers `raw` (contrôle de l'extension seulement ?).
+- *Taille* : **aucun paramètre d'envoi ne limite la taille** du fichier ; seules les limites du forfait du
+  compte s'appliquent (et 100 Mo par requête sans découpage en morceaux). Un plafond ne peut donc pas être
+  signé.
+- *Conséquence* : quiconque obtient une signature (journaux, extension de navigateur sur le poste d'un
+  gestionnaire) peut, pendant sa validité (50 min au plus), envoyer **un** fichier sous cet idPublic exact,
+  sans écraser quoi que ce soit (`overwrite=false`), dans le type de ressource de son choix, jusqu'au plafond
+  du compte. Ce fichier n'est **jamais diffusé par le site** : la déclaration relit la ressource `video`
+  seulement, refuse et supprime un format ou une taille non autorisés (étape 5). Le risque se limite à
+  l'occupation du stockage.
+- *Réduction du risque déjà en place* : signature émise seulement aux rôles médias, liée à un idPublic
+  aléatoire et à un produit, courte, enregistrée (`signature_envoi_video`), une seule vidéo déclarable.
+
+**Vidéos envoyées mais jamais déclarées** (navigateur fermé en cours de route), et fichiers envoyés avec une
+signature dans un autre type de ressource : présents sur Cloudinary, absents de `media_produit`. On les
+retrouve par leurs signatures expirées et jamais utilisées. **La tâche de nettoyage de la phase 9 traitera
+aussi ce cas**, en plus de `media_orphelin` :
+- pour chaque signature expirée et jamais utilisée, supprimer l'idPublic dans **les trois types de ressources**
+  (`video`, `image` et `raw`), puis marquer ou retirer la signature ;
+- parcourir aussi, par l'API d'administration, **tous les types de ressources** du dossier
+  `<racine>/produits/*/videos/` et supprimer tout fichier qui n'est ni une vidéo déclarée de `media_produit`
+  ni une signature encore valide (cas d'un envoi `image` ou `raw` sous l'idPublic d'une vidéo déclarée) ;
+- journaliser au niveau WARN tout fichier `image` ou `raw` trouvé dans un dossier vidéo : c'est le signe
+  d'une signature détournée.
 
 **Vidéos YouTube** (`POST …/medias/youtube`, lien `watch`, `youtu.be`, `shorts`, `embed`) :
 - vérification par **oEmbed** avec un délai court (`boutique.medias.youtube.delai`, 3 s). Une vidéo privée,
