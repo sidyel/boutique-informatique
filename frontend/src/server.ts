@@ -37,6 +37,14 @@ app.use(
 );
 
 /**
+ * L'API n'est jamais servie ici (nginx l'envoie au backend). Une requête /api arrivée jusqu'au SSR reçoit
+ * une 404 sèche : la rendre avec Angular relancerait les appels de l'application vers ce même serveur.
+ */
+app.use('/api', (_requete, reponse) => {
+  reponse.status(404).type('text/plain').send('API indisponible sur le serveur de rendu');
+});
+
+/**
  * Toutes les autres requêtes sont rendues par Angular. Les statuts (404…) sont fixés
  * par les composants via RESPONSE_INIT.
  */

@@ -9,6 +9,7 @@ import {
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
+import { REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Observable, of } from 'rxjs';
 
@@ -25,7 +26,7 @@ class FauxFetch {
   }
 }
 
-function configurer(base: string) {
+function configurer(base: string, urlPage?: string) {
   const vues: string[] = [];
   TestBed.configureTestingModule({
     providers: [
@@ -40,6 +41,7 @@ function configurer(base: string) {
         ]),
       ),
       { provide: URL_API, useValue: base },
+      ...(urlPage ? [{ provide: REQUEST, useValue: new Request(urlPage) }] : []),
       { provide: FetchBackend, useClass: FauxFetch },
       { provide: HttpBackend, useClass: BackendServeur },
     ],
@@ -77,5 +79,16 @@ describe('BackendServeur', () => {
     const navigateur = configurer('');
     navigateur.http.get('/api/accueil').subscribe();
     expect(navigateur.transport.envoyees[0].url).toBe('/api/accueil');
+  });
+
+  it('réécrit aussi l’URL rendue absolue avec l’origine de la page : le SSR ne s’appelle jamais lui-même', () => {
+    const { http, transport } = configurer('http://backend:8080', 'http://boutique.sn/guide-style');
+    http.get('http://boutique.sn/api/parametres').subscribe();
+    http.get('http://autre-site.sn/api/parametres').subscribe();
+
+    expect(transport.envoyees.map((r) => r.url)).toEqual([
+      'http://backend:8080/api/parametres',
+      'http://autre-site.sn/api/parametres',
+    ]);
   });
 });
