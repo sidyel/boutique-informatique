@@ -136,3 +136,10 @@ réglables par variables d'environnement du service `nginx` (`infra/docker-compo
 La zone `pages` existe parce que le SSR appelle le backend directement, sans repasser par nginx : sans
 elle, des pages de liste aux filtres aléatoires feraient travailler le backend sans limite. Si un CDN est
 placé devant nginx, la clé doit devenir l'IP réelle du visiteur (module `real_ip`).
+
+**À revoir avant le lancement : les valeurs de la zone `pages`.** `5r/s` et une rafale de `40` sont une
+estimation : derrière le CGNAT d'un opérateur mobile, beaucoup de clients partagent une même IP publique.
+Avant l'ouverture, puis après les premières campagnes publicitaires, relever les `429` réels dans les
+journaux nginx (`limiting requests` au niveau `warn`) et ajuster `NGINX_DEBIT_PAGES` / `NGINX_RAFALE_PAGES`
+en conséquence. Les fichiers statiques (JS, CSS, polices, images) ne sont pas concernés : la `map
+$cle_pages` leur donne une clé vide, que nginx ne compte pas (vérifié : 80 requêtes d'affilée, aucune `429`).
