@@ -68,7 +68,13 @@ Site e-commerce complet de vente de matériel informatique (PC portables, PC de 
 - Interdit : dégradés violet-bleu, effet verre dépoli généralisé, émojis servant d'icônes, illustrations 3D génériques, slogans creux (« Élevez votre expérience »), cartes très arrondies avec de grandes ombres partout.
 - À faire : une couleur d'accent forte et une base neutre, une typographie avec du caractère (titres en *Space Grotesk* ou *Inter Tight*, caractéristiques techniques en *JetBrains Mono*), des polices **hébergées sur le site**, une forte densité d'information comme sur les vrais sites d'informatique, des textes concrets et locaux (« Livraison à Dakar en 24 h »), des icônes cohérentes (Lucide ou Phosphor), des animations discrètes et des squelettes de chargement.
 - Toutes les couleurs, tailles et espacements passent par des variables CSS (`--couleur-accent`, `--espace-4`…). Aucune couleur écrite en dur dans les composants.
-- **Mobile d'abord** : la majorité du trafic publicitaire arrivera sur téléphone.
+- **Mobile d'abord** : la majorité du trafic publicitaire arrivera sur téléphone, souvent des Android d'entrée de gamme avec un forfait data limité. Pour toutes les pages (vitrine, panier, commande, compte) :
+  - **Largeurs testées** : 360 px (Android courant au Sénégal, le plus contraignant), 390 px, 768 px et 1440 px. Les captures de chaque livraison incluent 360 px. Aucun défilement horizontal parasite, aucun texte coupé.
+  - **Tactile** : zones cliquables d'au moins 44 × 44 px, espacées. Aucune fonction accessible uniquement au survol (le méga-menu a son tiroir, le zoom de galerie son équivalent au toucher). Actions principales accessibles au pouce, en bas de l'écran sur mobile.
+  - **Formulaires** : champs en 16 px minimum (sinon l'iPhone zoome), bons claviers (`inputmode="tel"`, `type="email"`, `inputmode="search"`…), autocomplétion du navigateur activée (`autocomplete`).
+  - **Poids** : premier chargement de l'accueil sur mobile < 1 Mo au total (HTML, JS, CSS, polices, images visibles). Images en largeur adaptée à l'écran (`srcset`), rien de plus lourd que nécessaire. Le poids mesuré figure dans chaque rapport.
+  - **Appareils modestes** : JavaScript initial le plus léger possible (taille des bundles vérifiée à chaque livraison), animations sobres, aucun effet coûteux au défilement.
+  - **Liens directs** : téléphone en `tel:`, WhatsApp en `https://wa.me/…`, pour qu'un toucher ouvre directement l'application.
 
 ## Commandes utiles
 ```

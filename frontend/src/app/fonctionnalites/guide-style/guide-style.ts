@@ -59,7 +59,7 @@ export class GuideStyle {
       titre: 'États',
       nuances: [
         { jeton: '--couleur-succes', valeur: '#15803D', contraste: '4,60:1 sur son fond' },
-        { jeton: '--couleur-alerte', valeur: '#B45309', contraste: '4,67:1 sur son fond' },
+        { jeton: '--couleur-alerte', valeur: '#806000', contraste: '5,43:1 sur son fond' },
         { jeton: '--couleur-promo', valeur: '#DC2626', contraste: '4,83:1 avec blanc' },
         { jeton: '--couleur-promo-fonce', valeur: '#B91C1C', contraste: '5,74:1 sur son fond' },
         { jeton: '--couleur-info', valeur: '#1D4ED8', contraste: '6,03:1 sur son fond' },
@@ -102,12 +102,12 @@ export class GuideStyle {
     { type: 'info', texte: 'Livraison 24 h' },
   ];
 
+  /** Carte : 4 caractéristiques au plus, libellés courts, une ligne chacune. */
   protected readonly caracteristiques = [
-    ['Processeur', 'AMD Ryzen 7 7735HS · 8 cœurs'],
-    ['Mémoire', '16 Go DDR5-4800'],
-    ['Stockage', 'SSD NVMe 512 Go'],
-    ['Graphique', 'RTX 4050 · 6 Go · 140 W'],
-    ['Écran', '15,6" FHD IPS 144 Hz'],
+    ['CPU', 'AMD Ryzen 7 7735HS · 8 cœurs · 4,75 GHz'],
+    ['RAM', '16 Go DDR5-4800'],
+    ['SSD', '512 Go NVMe PCIe 4.0'],
+    ['GPU', 'RTX 4050 · 6 Go · 140 W'],
   ];
 
   protected readonly chargement = signal(false);

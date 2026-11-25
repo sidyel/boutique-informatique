@@ -35,6 +35,12 @@
   font-size: var(--taille-base);
 }
 
+.guide__note {
+  margin-block: var(--espace-4) var(--espace-2);
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+}
+
 .guide__ligne + .guide__ligne {
   margin-block-start: var(--espace-3);
 }
@@ -59,11 +65,12 @@
 .carte-demo__visuel {
   display: grid;
   place-items: center;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: var(--ratio-photo);
   font-family: var(--police-mono);
   font-size: var(--taille-xs);
   color: var(--couleur-texte-secondaire);
-  background: var(--couleur-surface-alt);
+  background: var(--couleur-fond-photo);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
   border-radius: var(--rayon-1);
 }
 
@@ -87,7 +94,7 @@
 
   div {
     display: grid;
-    grid-template-columns: 6rem 1fr;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
     gap: var(--espace-2);
   }
 
@@ -97,9 +104,12 @@
   }
 
   dd {
+    margin: 0;
+    overflow: hidden;
     font-family: var(--police-mono);
     font-size: var(--taille-xs);
-    margin: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 

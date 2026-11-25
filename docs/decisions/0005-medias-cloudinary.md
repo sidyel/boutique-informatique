@@ -108,6 +108,17 @@ aussi ce cas**, en plus de `media_orphelin` :
 - **phase 3** : le lecteur utilisera `youtube-nocookie.com` et ne sera chargé **qu'au clic** sur la
   miniature. Rien n'est chargé depuis YouTube avant ce clic (performances, vie privée, consentement).
 
+## 1 bis (affichage). Photos produit : cadre carré, jamais recadrées
+
+- Sur les cartes et la fiche, la photo est affichée dans un **cadre carré (1:1) à fond blanc**, en
+  `object-fit: contain` : l'image n'est **jamais recadrée** (un produit coupé trompe le client).
+- **Format conseillé à l'envoi : carré, fond blanc, 1 200 × 1 200 px au moins.** C'est aussi le format le
+  mieux accepté par les catalogues Meta (Advantage+ catalogue, 1:1 recommandé) et Google Merchant Center
+  (fond uni, produit entier) : la même photo sert au site et aux flux publicitaires.
+- Une photo non carrée reste acceptée (marges blanches), mais l'équipe est invitée à la recadrer avant envoi.
+  Aucune transformation Cloudinary de recadrage n'est appliquée aux photos produit (`c_fill` interdit) ; le
+  chargeur d'images de la phase 3 n'ajoute qu'une largeur (`w_…`).
+
 ## 1 quater. Identité du site et bannières
 
 | Image | Règles | Ce que renvoie `/api/parametres` |

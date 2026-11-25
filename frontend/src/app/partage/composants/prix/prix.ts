@@ -39,11 +39,12 @@ export type TaillePrix = 'sm' | 'md' | 'lg';
       align-items: baseline;
       column-gap: var(--espace-2);
       row-gap: var(--espace-1);
+      font-family: var(--police-prix);
       font-variant-numeric: tabular-nums;
     }
 
     .prix__actuel {
-      font-family: var(--police-titre);
+      font-family: var(--police-prix);
       font-size: var(--taille-xl);
       font-weight: var(--graisse-gras);
       line-height: var(--interligne-serre);

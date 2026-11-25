@@ -1,7 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-/** Espace fine insécable : séparateur de milliers typographique en français. */
-const SEPARATEUR_MILLIERS = ' ';
+/**
+ * Espace insécable normale (U+00A0) entre les milliers. L'espace fine (U+202F), plus typographique,
+ * était presque invisible à l'écran : on lisait « 649000 ».
+ */
+const SEPARATEUR_MILLIERS = ' ';
 /** Espace insécable : « FCFA » ne passe jamais seul à la ligne. */
 const ESPACE_DEVISE = ' ';
 

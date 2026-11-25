@@ -49,8 +49,9 @@
 
   --couleur-succes: #15803d; // « En stock »
   --couleur-succes-fond: #ecf8f0;
-  --couleur-alerte: #b45309; // « Stock faible »
-  --couleur-alerte-fond: #fef6e7;
+  // Ambre foncé (teinte 45°), nettement distinct de l'orange d'action (teinte 17°)
+  --couleur-alerte: #806000; // « Stock faible » : 5,43:1 sur son fond, 5,85:1 sur blanc
+  --couleur-alerte-fond: #fef7d6;
   --couleur-promo: #dc2626; // prix barré, badge de réduction
   --couleur-promo-fonce: #b91c1c;
   --couleur-promo-fond: #fdeeee;
@@ -70,6 +71,8 @@
   --police-titre: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   --police-texte: 'Inter', 'Inter Repli', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --police-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  // Prix : Inter à chiffres tabulaires (le « 1 » de Space Grotesk gêne la lecture des montants)
+  --police-prix: var(--police-texte);
 
   --taille-2xs: 0.6875rem; // 11 px — mentions légales, compteurs
   --taille-xs: 0.75rem; //   12 px
@@ -123,6 +126,10 @@
   --hauteur-controle-sm: 2rem;
   --hauteur-controle-md: 2.75rem;
   --hauteur-controle-lg: 3.25rem;
+
+  // --- Photos produit : cadre carré, fond blanc, image jamais recadrée -----------
+  --ratio-photo: 1 / 1;
+  --couleur-fond-photo: var(--gris-0);
 
   // --- Mise en page ------------------------------------------------------------
   --largeur-max: 80rem;

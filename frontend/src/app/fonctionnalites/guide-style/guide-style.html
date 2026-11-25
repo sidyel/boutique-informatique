@@ -13,10 +13,9 @@
     <h2 id="titre-exemple">Exemple d'assemblage</h2>
     <div class="exemples">
       <article class="carte-demo">
-        <div class="carte-demo__visuel" aria-hidden="true">Photo 4:3</div>
+        <div class="carte-demo__visuel" aria-hidden="true">Photo 1:1, fond blanc</div>
         <div class="grappe">
           <bi-badge type="neuf">Neuf</bi-badge>
-          <bi-badge type="promo">Promo</bi-badge>
         </div>
         <p class="carte-demo__marque">ASUS</p>
         <h3 class="carte-demo__titre">TUF Gaming A15 FA507NV</h3>
@@ -31,14 +30,13 @@
         <bi-prix [montant]="649000" [montantBarre]="729000" />
         <p class="carte-demo__dispo">
           <bi-badge type="stock">En stock</bi-badge>
-          <span>Livraison à Dakar en 24 h</span>
         </p>
         <p class="carte-demo__sku">Réf. ASUS-FA507NV-16-512</p>
         <button biBouton pleineLargeur type="button">Ajouter au panier</button>
       </article>
 
       <article class="carte-demo" aria-label="Carte en cours de chargement">
-        <bi-squelette forme="bloc" hauteur="10rem" />
+        <bi-squelette forme="bloc" class="carte-demo__visuel" />
         <bi-squelette largeur="30%" />
         <bi-squelette largeur="85%" hauteur="1.5rem" />
         <bi-squelette largeur="100%" />
@@ -168,6 +166,14 @@
       @for (badge of badges; track badge.type) {
         <bi-badge [type]="badge.type">{{ badge.texte }}</bi-badge>
       }
+    </div>
+    <p class="guide__note">
+      Une carte en promotion n'affiche que le badge « −x % » du prix : jamais « Promo » en plus.
+      « Stock faible » (ambre) et le bouton d'action (orange) ne se confondent pas :
+    </p>
+    <div class="grappe">
+      <bi-badge type="stock-faible">Plus que 2</bi-badge>
+      <button biBouton type="button" taille="sm">Ajouter au panier</button>
     </div>
   </section>
 

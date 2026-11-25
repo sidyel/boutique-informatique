@@ -1,7 +1,7 @@
 import { PrixFcfaPipe, formaterPrixFcfa } from './prix-fcfa.pipe';
 
 /** Remplace les espaces insécables par des espaces simples pour des attentes lisibles. */
-const lisible = (texte: string) => texte.replace(/[  ]/g, ' ');
+const lisible = (texte: string) => texte.replace(/ /g, ' ');
 
 describe('formaterPrixFcfa', () => {
   it.each([
@@ -15,8 +15,9 @@ describe('formaterPrixFcfa', () => {
     expect(lisible(formaterPrixFcfa(montant))).toBe(attendu);
   });
 
-  it('utilise une espace fine insécable pour les milliers et une espace insécable avant FCFA', () => {
-    expect(formaterPrixFcfa(450000)).toBe('450 000 FCFA');
+  it('utilise une espace insécable normale (U+00A0) pour les milliers et avant FCFA, jamais U+202F', () => {
+    expect(formaterPrixFcfa(1450000)).toBe('1 450 000 FCFA');
+    expect(formaterPrixFcfa(1450000)).not.toContain(' ');
   });
 
   it('arrondit les montants non entiers (sécurité : les montants doivent déjà être entiers)', () => {
