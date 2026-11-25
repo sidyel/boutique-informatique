@@ -20,6 +20,8 @@ management:
 
 boutique:
   url-site: ${URL_SITE}
+  medias:
+    dossier-racine: boutique
   cors-origines: ${CORS_ORIGINES}
   email:
     expediteur: ${EMAIL_EXPEDITEUR}

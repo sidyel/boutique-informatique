@@ -16,6 +16,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import sn.boutique.media.ProprietesMedias;
+import sn.boutique.media.StockageMedia;
+import sn.boutique.support.FauxStockageMedia;
 
 /**
  * Vérifie que l'application démarre sur une vraie base PostgreSQL et un vrai Redis.
@@ -30,6 +33,18 @@ class DemarrageApplicationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    StockageMedia stockageMedia;
+    @Autowired
+    ProprietesMedias proprietesMedias;
+
+    @Test
+    void lesTestsNUtilisentJamaisLeVraiCloudinary() {
+        assertThat(stockageMedia).isInstanceOf(FauxStockageMedia.class);
+        assertThat(proprietesMedias.cloudinaryUrl()).as("clé du .env local ignorée").isEmpty();
+        assertThat(proprietesMedias.dossierRacine()).isEqualTo("dev/boutique");
+    }
 
     @Test
     void lesMigrationsFlywayInstallentLesExtensionsDeRecherche() {

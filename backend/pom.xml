@@ -124,6 +124,25 @@
 			<version>${tika.version}</version>
 		</dependency>
 
+		<!-- Dimensions des images lues dans les en-têtes (JPEG, PNG, WebP), sans décoder les pixels -->
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parser-image-module</artifactId>
+			<version>${tika.version}</version>
+			<exclusions>
+				<!-- Décodeurs TIFF, JPEG 2000 et JBIG2 inutiles (seuls JPEG, PNG et WebP sont acceptés) :
+				     moins de code exposé aux fichiers envoyés -->
+				<exclusion>
+					<groupId>com.github.jai-imageio</groupId>
+					<artifactId>jai-imageio-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.pdfbox</groupId>
+					<artifactId>jbig2-imageio</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 		<!-- Tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

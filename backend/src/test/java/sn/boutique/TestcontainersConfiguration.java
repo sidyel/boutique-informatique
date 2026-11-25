@@ -3,11 +3,13 @@ package sn.boutique;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import sn.boutique.support.CompteurRequetesSql;
+import sn.boutique.support.FauxStockageMedia;
 
 /**
  * Conteneurs PostgreSQL, Redis et Mailpit partagés par les tests d'intégration.
@@ -15,6 +17,22 @@ import sn.boutique.support.CompteurRequetesSql;
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
+
+    /** Remplace Cloudinary : aucun test n'envoie de fichier au vrai service. */
+    @Bean
+    @Primary
+    FauxStockageMedia fauxStockageMedia() {
+        return new FauxStockageMedia();
+    }
+
+    /**
+     * La clé CLOUDINARY_URL du .env local est ignorée par les tests : même un appel direct à
+     * StockageCloudinary échouerait au lieu de joindre le compte réel.
+     */
+    @Bean
+    DynamicPropertyRegistrar sansCleCloudinary() {
+        return registre -> registre.add("boutique.medias.cloudinary-url", () -> "");
+    }
 
     /** Compte les requêtes SQL (détection des N+1), dans tous les contextes de test. */
     @Bean

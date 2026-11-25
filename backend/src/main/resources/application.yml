@@ -51,8 +51,10 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 110MB
+      # Images : 5 Mo par fichier, 50 Mo par envoi groupé. Les vidéos (100 Mo) vont directement du
+      # navigateur à Cloudinary (envoi signé) et ne passent jamais par le backend.
+      max-file-size: 5MB
+      max-request-size: 50MB
 
   mail:
     host: ${SMTP_HOTE:localhost}
@@ -138,6 +140,27 @@ boutique:
       nom: jeton_rafraichissement
       chemin: /api/auth
       secure: true
+  # Médias : Cloudinary (CLOUDINARY_URL, jamais dans Git) et contrôles des fichiers envoyés (ADR 0005)
+  medias:
+    cloudinary-url: ${CLOUDINARY_URL:}
+    # Dossier propre à l'environnement : dev/boutique ici, boutique en production
+    dossier-racine: dev/boutique
+    delai: 30s
+    images:
+      taille-max: 5MB
+      # Au-delà : refus (bombe de décompression)
+      cote-max: 8000
+      # Plus petit côté minimal, par usage
+      cote-min:
+        produit: 800
+        banniere: 600
+        partage: 600
+        logo: 16
+    svg:
+      taille-max: 512KB
+    videos:
+      taille-max: 100MB
+      max-par-produit: 1
   # Cache des lectures publiques, sur une instance Redis dédiée (maxmemory-policy allkeys-lru).
   # Panne du cache : erreur journalisée, lecture en base (le site continue de répondre).
   cache:

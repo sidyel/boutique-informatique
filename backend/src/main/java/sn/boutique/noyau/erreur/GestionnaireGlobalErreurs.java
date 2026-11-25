@@ -21,6 +21,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import sn.boutique.media.StockageIndisponibleException;
 import sn.boutique.noyau.limitation.TropDeRequetesException;
 
 /**
@@ -76,6 +77,15 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RegleMetierException.class)
     ProblemDetail gererRegleMetier(RegleMetierException ex, HttpServletRequest requete) {
         return construire(HttpStatus.UNPROCESSABLE_CONTENT, ex.getCode(), ex.getMessage(), requete);
+    }
+
+    /** Cloudinary injoignable ou refus : détail technique dans le journal seulement (il peut citer un idPublic). */
+    @ExceptionHandler(StockageIndisponibleException.class)
+    ProblemDetail gererStockageIndisponible(StockageIndisponibleException ex, HttpServletRequest requete) {
+        log.error("Stockage des médias indisponible sur {} {} : {}", requete.getMethod(), requete.getRequestURI(),
+                ex.getMessage());
+        return construire(HttpStatus.SERVICE_UNAVAILABLE, "STOCKAGE_INDISPONIBLE",
+                "Le stockage des images est momentanément indisponible. Réessayez dans quelques instants.", requete);
     }
 
     @ExceptionHandler(TropDeRequetesException.class)
