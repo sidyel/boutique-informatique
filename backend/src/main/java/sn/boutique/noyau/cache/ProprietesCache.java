@@ -14,7 +14,8 @@ import org.springframework.validation.annotation.Validated;
  * Le cache a <strong>sa propre instance Redis</strong>, distincte de l'instance principale (compteurs de
  * limitation de débit) : {@code maxmemory} et la politique d'éviction valent pour toute une instance,
  * toutes bases confondues. Le cache peut ainsi évincer librement ({@code allkeys-lru}) sans jamais
- * toucher aux compteurs, que l'instance principale garde ({@code noeviction}).
+ * toucher aux compteurs, que l'instance principale ne supprime qu'au plus près de leur expiration
+ * ({@code volatile-ttl}).
  *
  * @param duree durée de vie des entrées (l'invalidation après modification est immédiate)
  */

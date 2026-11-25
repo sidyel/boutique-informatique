@@ -136,8 +136,17 @@ IP sont donc larges et complétées par des limites **par e-mail** plus strictes
   adresse e-mail en clair dans Redis.
 - **Mot de passe oublié et renvoi** : la limite par e-mail s'applique que le compte existe ou non ;
   la réponse 429 ne révèle donc pas quelles adresses ont un compte.
-- **Redis indisponible** : la requête passe (erreur journalisée). Une panne de Redis ne doit pas empêcher
-  de se connecter ; le verrouillage par compte, en base, protège toujours contre la force brute.
+- **Instance Redis principale** (relecture de sécurité, I2) : `maxmemory 256mb`, `volatile-ttl`. Tous les
+  compteurs expirent : pleine, l'instance supprime ceux qui sont les plus proches de leur fin au lieu de
+  refuser les écritures. Avec l'ancien réglage (`64mb`, `noeviction`), quelques centaines d'IP envoyant des
+  e-mails inventés remplissaient l'instance, et le limiteur, qui laissait alors tout passer, était désactivé.
+- **Redis en erreur** (arrêté, injoignable, ou plein malgré tout) : la requête est comptée par un
+  **limiteur de secours en mémoire locale** (`LimiteurLocal` : même fenêtre fixe, 10 000 compteurs au
+  plus, les moins récemment utilisés sont oubliés). Une panne de Redis n'empêche donc ni de se connecter, ni
+  de limiter. Limite : propre à chaque instance (avec N instances, au plus N fois la règle).
+- **Alerte** : chaque panne est journalisée au niveau ERROR avec un marqueur stable, `ALERTE_REDIS_PLEIN`
+  (cause « OOM ») ou `ALERTE_REDIS_INDISPONIBLE`, au plus une fois toutes les 30 s par marqueur avec le
+  nombre d'erreurs depuis le message précédent. À brancher sur la supervision (phase 9).
 
 ### 10. Mots de passe
 

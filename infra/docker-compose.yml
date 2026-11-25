@@ -27,14 +27,15 @@ services:
       timeout: 5s
       retries: 10
 
-  # Instance principale : compteurs de limitation du débit. Jamais d'éviction (un compteur évincé
-  # remettrait une fenêtre à zéro) ; pleine, elle refuse les écritures et le limiteur laisse passer en
-  # journalisant. 64 Mo couvrent plusieurs centaines de milliers de compteurs.
+  # Instance principale : compteurs de limitation du débit, qui expirent tous. volatile-ttl : pleine, elle
+  # supprime les compteurs les plus proches de leur fin au lieu de refuser les écritures (avec noeviction,
+  # la remplir d'e-mails inventés désactivait toute la limitation). 256 Mo : plusieurs millions de
+  # compteurs. Si Redis est en erreur malgré tout, le backend bascule sur un limiteur de secours local.
   redis:
     image: redis:8-alpine
     restart: unless-stopped
     env_file: ../.env
-    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_MOT_DE_PASSE\" --appendonly yes --maxmemory 64mb --maxmemory-policy noeviction"]
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_MOT_DE_PASSE\" --appendonly yes --maxmemory 256mb --maxmemory-policy volatile-ttl"]
     ports:
       - "127.0.0.1:${REDIS_PORT_HOTE:-6379}:6379"
     volumes:

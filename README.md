@@ -86,9 +86,12 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 
 ## Redis : deux instances
 
-- **`redis`** (principale) : compteurs de limitation du débit. `maxmemory 64mb`, `noeviction` : un compteur
-  n'est jamais évincé avant la fin de sa fenêtre. Pleine, elle refuse les écritures ; le limiteur laisse alors
-  passer la requête et journalise l'erreur (testé dans `LimiteurRedisPleinTest`).
+- **`redis`** (principale) : compteurs de limitation du débit, qui ont tous une expiration. `maxmemory 256mb`,
+  `volatile-ttl` : pleine, elle supprime les compteurs les plus proches de leur fin au lieu de refuser les
+  écritures. Si Redis est malgré tout en erreur (arrêté, injoignable, plein), les routes d'authentification
+  restent limitées par un **limiteur de secours en mémoire locale** (10 000 compteurs au plus) et la panne
+  est journalisée au niveau ERROR avec le marqueur `ALERTE_REDIS_PLEIN` ou `ALERTE_REDIS_INDISPONIBLE`, à
+  brancher sur une alerte (testé dans `LimiteurRedisPleinTest`).
 - **`redis-cache`** : cache des lectures publiques (10 min, vidé après chaque modification du catalogue).
   `maxmemory 256mb`, `allkeys-lru`, sans persistance. Une seule instance ne suffirait pas : `maxmemory` et la
   politique d'éviction valent pour toute l'instance, toutes bases confondues. Si le cache tombe, le site lit

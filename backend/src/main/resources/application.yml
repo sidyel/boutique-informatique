@@ -34,7 +34,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
-  # Instance Redis principale : compteurs de limitation du débit (maxmemory-policy noeviction).
+  # Instance Redis principale : compteurs de limitation du débit (256 Mo, maxmemory-policy volatile-ttl :
+  # toutes les clés expirent, Redis supprime les plus proches de leur fin au lieu de refuser les écritures).
+  # En erreur : limiteur de secours en mémoire locale (LimiteurDebit).
   # Le cache a sa propre instance : boutique.cache.redis.
   data:
     redis:
