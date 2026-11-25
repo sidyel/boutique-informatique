@@ -93,14 +93,19 @@ final class FiltresSql {
      * (colonnes {@code v.id}, {@code v.prix}, {@code v.stock}). Un produit sans variante qui convient est écarté.
      */
     String produitsAvecVarianteRetenue() {
+        return produitsAvecVarianteRetenue("");
+    }
+
+    /** Idem, avec des jointures supplémentaires sur {@code p} (fragment fixe, jamais saisi par l'utilisateur). */
+    String produitsAvecVarianteRetenue(String jointures) {
         return """
-                from produit p
+                from produit p %s
                 cross join lateral (select v.id, v.prix, v.stock
                                       from variante_produit v
                                      where v.produit_id = p.id and v.actif%s
                                      order by v.prix, v.id
                                      limit 1) v
-                where p.actif%s""".formatted(et(conditionsVariante), et(conditionsProduit));
+                where p.actif%s""".formatted(jointures, et(conditionsVariante), et(conditionsProduit));
     }
 
     /** Toutes les variantes qui conviennent (une ligne par couple produit, variante) : base des facettes. */
