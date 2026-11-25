@@ -80,11 +80,21 @@ public class VerificationFichiers {
             throw refus("IMAGE_TROP_GRANDE", "L'image mesure %d × %d px : %d px de côté au maximum."
                     .formatted(largeur, hauteur, coteMax));
         }
+        if (usage == UsageImage.PARTAGE
+                && (largeur < UsageImage.PARTAGE_LARGEUR_MIN || hauteur < UsageImage.PARTAGE_HAUTEUR_MIN)) {
+            throw refus("IMAGE_TROP_PETITE", "L'image de partage mesure %d × %d px : au moins %d × %d px "
+                    .formatted(largeur, hauteur, UsageImage.PARTAGE_LARGEUR_MIN, UsageImage.PARTAGE_HAUTEUR_MIN)
+                    + "(format conseillé 1200 × 630 px).");
+        }
         int coteMin = proprietes.images().coteMinPour(usage);
         if (Math.min(largeur, hauteur) < coteMin) {
             throw refus("IMAGE_TROP_PETITE", "L'image mesure %d × %d px : au moins %d px sur le plus petit côté%s."
                     .formatted(largeur, hauteur, coteMin,
                             usage == UsageImage.PRODUIT ? " pour une photo produit (zoom net, Google Merchant)" : ""));
+        }
+        if (usage == UsageImage.FAVICON && largeur != hauteur) {
+            throw refus("IMAGE_NON_CARREE", "Le favicon doit être carré (%d × %d px envoyé), au moins %d × %d px."
+                    .formatted(largeur, hauteur, coteMin, coteMin));
         }
         return new FichierVerifie(contenu, type, EXTENSIONS.get(type), largeur, hauteur);
     }

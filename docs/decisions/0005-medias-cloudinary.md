@@ -51,7 +51,9 @@ va directement du navigateur à Cloudinary, jamais par le backend.
    `video`. Le secret de l'API ne sort jamais du backend.
 2. **Validité courte** : Cloudinary accepte une signature pendant 1 h après son horodatage, sans réglage
    possible. Le backend **antidate** l'horodatage (`maintenant − 1 h + validite-signature`) : l'envoi doit
-   commencer dans les 30 minutes (`boutique.medias.videos.validite-signature`, entre 1 et 50 min).
+   commencer dans les **50 minutes** par défaut, pour les connexions mobiles lentes
+   (`boutique.medias.videos.validite-signature`, entre 1 et 50 min). Une vidéo produit devrait durer **20 à
+   40 secondes et peser moins de 30 Mo** (README).
 3. **Chaque signature est enregistrée** (`signature_envoi_video` : produit, idPublic, dossier, expiration,
    date d'utilisation).
 4. `POST …/medias/videos` déclare la vidéo. Elle est refusée si l'idPublic n'a pas été signé **pour ce
@@ -79,12 +81,37 @@ Cloudinary (ressource vidéo, puis image par précaution), puis marquera ou reti
 - **phase 3** : le lecteur utilisera `youtube-nocookie.com` et ne sera chargé **qu'au clic** sur la
   miniature. Rien n'est chargé depuis YouTube avant ce clic (performances, vie privée, consentement).
 
+## 1 quater. Identité du site et bannières
+
+| Image | Règles | Ce que renvoie `/api/parametres` |
+|---|---|---|
+| Logo, logo sombre | JPEG, PNG, WebP ou SVG nettoyé (§5), 16 px au moins | URL transformée |
+| Favicon | **carré**, 512 × 512 px au moins, pas de SVG (déclinaisons raster) | `favicons` : 32 × 32 (onglet), 180 × 180 (apple-touch-icon), 192 × 192 et 512 × 512 (manifeste web), en PNG (`c_fill,w_…,h_…,f_png,q_auto`) |
+| Image de partage | **600 × 315 px au moins** (sinon Facebook et WhatsApp montrent une petite vignette), 1200 × 630 conseillé | `imagePartageUrl` recadrée en 1200 × 630 (`c_fill,g_auto,w_1200,h_630,f_jpg,q_auto`) |
+
+Les déclinaisons **remplacent** la transformation de diffusion de l'URL enregistrée (jamais d'empilement,
+version et idPublic intacts) ; une URL d'image de démonstration est renvoyée telle quelle
+(`TransformationsImages`). Remplacer une image vide les caches publics (dont `/api/parametres`, testé) et
+supprime l'ancien fichier après la validation.
+
+**Bannières** (`POST /api/admin/bannieres/images`, `format` = `ORDINATEUR` ou `MOBILE`) : 600 px au moins sur le
+plus petit côté. Les proportions **ne bloquent pas** l'envoi ; la réponse porte des avertissements :
+
+| Format | Conseillé | Avertissement si |
+|---|---|---|
+| Ordinateur | 1920 × 600 px (3,2:1) | proportions à plus de 25 % de 3,2:1, ou moins de 1440 px de large |
+| Mobile | 800 × 1000 px (4:5) | proportions à plus de 25 % de 4:5, ou moins de 640 px de large |
+
+L'image envoyée est rattachée à une bannière par le formulaire du back-office (phase 6) ; une image envoyée
+mais jamais rattachée sera repérée par la tâche de nettoyage de la phase 9 (fichiers de
+`<racine>/bannieres` absents de la table `banniere`).
+
 ## 2. Contrôle des fichiers envoyés (`VerificationFichiers`)
 
 1. **Poids** : 5 Mo par image (multipart Spring 5 Mo par fichier, 50 Mo par requête ; nginx 55 Mo).
    Les vidéos (100 Mo) vont directement du navigateur à Cloudinary par envoi signé, jamais par le backend.
 2. **Type réel** détecté par Tika sur les premiers octets, jamais d'après le nom ou le `Content-Type` envoyés :
-   JPEG, PNG, WebP ; SVG pour le logo et le favicon uniquement.
+   JPEG, PNG, WebP ; SVG pour le logo et le logo sombre uniquement.
 3. **Dimensions lues dans les en-têtes** (`SOF` JPEG, `IHDR` PNG, `VP8X` WebP) par les analyseurs de Tika
    (`tika-parser-image-module`, sans les décodeurs TIFF/JPEG 2000/JBIG2, exclus) : l'image n'est **jamais
    décodée** dans le backend.
@@ -120,7 +147,8 @@ démonstration (renvoyée telle quelle).
 
 ## 5. SVG : nettoyés à l'envoi, affichés uniquement par `<img src>`
 
-Le SVG est accepté pour le logo, le logo sombre et le favicon (le vectoriel reste net sur tous les écrans).
+Le SVG est accepté pour le logo et le logo sombre (le vectoriel reste net sur tous les écrans). Le favicon
+est une image raster : ses déclinaisons PNG en sont tirées.
 
 - **Nettoyage par liste blanche** (`NettoyeurSvg`) : le document est reconstruit avec les seuls éléments et
   attributs autorisés. Retirés (tests dans `NettoyeurSvgTest`) : `<script>`, `<foreignObject>`, `<a>`,

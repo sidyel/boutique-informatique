@@ -69,8 +69,10 @@ public class SecuriteConfig {
                         BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(autorisations -> autorisations
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Prix et publication des variantes : ni le service client ni la gestion du stock
-                        .requestMatchers("/api/admin/variantes/**").hasAnyRole(ROLES_ADMINISTRATION)
+                        // Prix et publication des variantes, identité du site, bannières :
+                        // ni le service client ni la gestion du stock
+                        .requestMatchers("/api/admin/variantes/**", "/api/admin/parametres/**",
+                                "/api/admin/bannieres/**").hasAnyRole(ROLES_ADMINISTRATION)
                         .requestMatchers("/api/admin/produits/*/medias/**", "/api/admin/medias/**")
                         .hasAnyRole(ROLES_MEDIAS)
                         .requestMatchers("/api/admin/**").hasAnyRole(ROLES_INTERNES)

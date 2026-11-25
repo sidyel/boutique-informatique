@@ -93,3 +93,23 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
   `maxmemory 256mb`, `allkeys-lru`, sans persistance. Une seule instance ne suffirait pas : `maxmemory` et la
   politique d'éviction valent pour toute l'instance, toutes bases confondues. Si le cache tombe, le site lit
   la base (erreur journalisée, testé dans `CacheCatalogueTest`).
+
+## Médias (Cloudinary)
+
+Règles complètes : [ADR 0005](docs/decisions/0005-medias-cloudinary.md).
+
+- **Clé** : `CLOUDINARY_URL` dans `.env` (jamais dans Git). Sans clé, l'application démarre et les envois
+  répondent `503`. Les tests n'appellent jamais Cloudinary (faux stockage en mémoire).
+- **Dossiers** : `dev/boutique` en développement, `boutique` en production (`boutique.medias.dossier-racine`).
+- **Photos produit** : JPEG, PNG ou WebP, 5 Mo, 800 px au moins sur le plus petit côté, 8 000 px au plus,
+  15 par produit, texte alternatif descriptif obligatoire.
+- **Vidéo produit** : une par produit, MP4 ou WebM, 100 Mo au plus, envoyée directement du navigateur à
+  Cloudinary (signature valable 50 min, pour les connexions mobiles lentes). **Conseillé : 20 à 40 secondes
+  et moins de 30 Mo** — la fiche se charge plus vite sur mobile et la vidéo est regardée jusqu'au bout. Ou un
+  lien YouTube public dont l'intégration est autorisée.
+- **Identité du site** : logo et logo sombre (SVG accepté, nettoyé), favicon carré de 512 px au moins
+  (décliné en 32, 180, 192 et 512 px), image de partage de 600 × 315 px au moins (1200 × 630 conseillé).
+- **Bannières** : ordinateur 1920 × 600 px, mobile 800 × 1000 px conseillés (avertissement si l'image s'en
+  éloigne, sans blocage).
+- **Fichiers à nettoyer** (tâche planifiée en phase 9) : table `media_orphelin` (suppressions en échec) et
+  signatures `signature_envoi_video` expirées jamais utilisées (vidéos envoyées mais jamais déclarées).

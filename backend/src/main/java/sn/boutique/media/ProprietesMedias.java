@@ -65,7 +65,8 @@ public record ProprietesMedias(
     /**
      * Vidéos envoyées directement à Cloudinary par le navigateur (envoi signé).
      *
-     * @param validiteSignature durée pendant laquelle l'envoi peut commencer ; Cloudinary accepte une signature
+     * @param validiteSignature durée pendant laquelle l'envoi peut commencer (50 min par défaut : connexions
+     *                          mobiles lentes) ; Cloudinary accepte une signature
      *                          pendant 1 h après son horodatage, que l'on antidate pour raccourcir ce délai
      * @param delaiDeclaration  délai supplémentaire, après l'expiration, pour déclarer la vidéo envoyée
      */

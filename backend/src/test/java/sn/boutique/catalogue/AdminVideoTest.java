@@ -69,12 +69,12 @@ class AdminVideoTest extends CatalogueTestBase {
         String idPublic = signature.get("idPublic").asString();
         assertThat(idPublic).matches("dev/boutique/produits/" + produit.getId() + "/videos/" + produit.getSlug()
                 + "-[a-z2-9]{8}");
-        assertThat(Instant.parse(signature.get("expiration").asString())).isEqualTo(maintenant.plus(Duration.ofMinutes(30)));
+        assertThat(Instant.parse(signature.get("expiration").asString())).isEqualTo(maintenant.plus(Duration.ofMinutes(50)));
         assertThat(signature.get("tailleMax").asLong()).isEqualTo(100L * 1024 * 1024);
         assertThat(signature.get("formats")).extracting(JsonNode::asString).containsExactly("mp4", "webm");
         assertThat(signature.get("parametres").get("public_id").asString()).isEqualTo(idPublic);
-        // Antidatée : Cloudinary accepte 1 h, il reste donc 30 min
-        assertThat(stockage.horodatageSigne(idPublic)).isEqualTo(maintenant.minus(Duration.ofMinutes(30)));
+        // Antidatée : Cloudinary accepte 1 h, il reste donc 50 min
+        assertThat(stockage.horodatageSigne(idPublic)).isEqualTo(maintenant.minus(Duration.ofMinutes(10)));
 
         var trace = jdbc.sql("select produit_id, dossier, date_expiration, date_utilisation from signature_envoi_video "
                         + "where id_public = ?").param(idPublic).query().singleRow();
@@ -180,7 +180,7 @@ class AdminVideoTest extends CatalogueTestBase {
         stockage.simulerEnvoiVideo(idPublic, "mp4", 1_000_000L);
 
         // Envoi commencé avant l'expiration, déclaration tardive mais dans le délai : acceptée
-        horloge.avancer(Duration.ofMinutes(30).plus(Duration.ofMinutes(59)));
+        horloge.avancer(Duration.ofMinutes(50).plus(Duration.ofMinutes(59)));
         String autre = signer(produitAvecImage()).get("idPublic").asString();
         assertThat(autre).isNotEqualTo(idPublic);
 

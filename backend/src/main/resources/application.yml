@@ -154,7 +154,8 @@ boutique:
       cote-min:
         produit: 800
         banniere: 600
-        partage: 600
+        partage: 315
+        favicon: 512
         logo: 16
       max-par-produit: 15
     svg:
@@ -164,7 +165,8 @@ boutique:
       max-par-produit: 1
       formats: [mp4, webm]
       # Durée pendant laquelle l'envoi peut commencer (Cloudinary plafonne à 1 h)
-      validite-signature: 30m
+      # 50 min par défaut : connexions mobiles lentes (Cloudinary plafonne à 1 h)
+      validite-signature: 50m
       # Délai supplémentaire pour déclarer la vidéo une fois l'envoi terminé (connexions lentes)
       delai-declaration: 1h
     youtube:
