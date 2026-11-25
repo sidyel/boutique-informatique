@@ -1,0 +1,65 @@
+@let p = produit();
+<article class="carte" [class.carte--rupture]="p.disponibilite === 'RUPTURE'">
+  <div class="carte__photo">
+    @if (p.image) {
+      <img
+        [ngSrc]="p.image.url"
+        fill
+        sizes="(min-width: 64rem) 15rem, (min-width: 48rem) 30vw, 45vw"
+        [priority]="prioritaire()"
+        [alt]="p.image.texteAlternatif ?? p.nom"
+      />
+    }
+  </div>
+
+  <div class="carte__corps">
+    @if (p.etat !== 'NEUF') {
+      <p class="carte__etat">
+        <bi-badge [type]="p.etat === 'RECONDITIONNE' ? 'reconditionne' : 'occasion'">
+          {{ p.etat === 'RECONDITIONNE' ? 'Reconditionné' : 'Occasion' }}
+        </bi-badge>
+      </p>
+    }
+    <p class="carte__marque">{{ p.marque.nom }}</p>
+    <h3 class="carte__titre">
+      <a
+        class="carte__lien"
+        [routerLink]="['/produit', p.slug]"
+        [queryParams]="{ variante: p.varianteId }"
+        (click)="choisir()"
+        >{{ p.nom }}</a
+      >
+    </h3>
+
+    @if (caracteristiques().length) {
+      <dl class="carte__specs">
+        @for (c of caracteristiques(); track c.libelle) {
+          <div>
+            <dt>{{ c.libelle }}</dt>
+            <dd>{{ c.valeur }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    <div class="carte__bas">
+      <bi-prix [montant]="p.prix" [montantBarre]="p.prixBarre" taille="sm" />
+      <p class="carte__dispo">
+        @switch (p.disponibilite) {
+          @case ('EN_STOCK') {
+            <span class="dispo dispo--stock">En stock</span>
+          }
+          @case ('STOCK_FAIBLE') {
+            <span class="dispo dispo--faible">Stock limité</span>
+          }
+          @default {
+            <span class="dispo dispo--rupture">Rupture de stock</span>
+          }
+        }
+        @if (p.nombreVariantes > 1) {
+          <span class="carte__variantes">· {{ p.nombreVariantes }} configurations</span>
+        }
+      </p>
+    </div>
+  </div>
+</article>

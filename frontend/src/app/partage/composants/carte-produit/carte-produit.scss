@@ -1,0 +1,149 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.carte {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+  transition: border-color var(--duree-rapide) var(--courbe-standard);
+
+  &:hover {
+    border-color: var(--couleur-texte-secondaire);
+  }
+
+  &:has(.carte__lien:focus-visible) {
+    box-shadow: var(--anneau-focus);
+  }
+}
+
+.carte__photo {
+  position: relative;
+  aspect-ratio: var(--ratio-photo);
+  margin: var(--espace-2);
+  background: var(--couleur-fond-photo);
+
+  img {
+    object-fit: contain;
+  }
+}
+
+.carte--rupture .carte__photo img {
+  opacity: 0.55;
+}
+
+.carte__corps {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espace-1);
+  padding: 0 var(--espace-3) var(--espace-3);
+}
+
+.carte__etat {
+  display: flex;
+}
+
+.carte__marque {
+  font-size: var(--taille-2xs);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte-secondaire);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.carte__titre {
+  display: -webkit-box;
+  overflow: hidden;
+  font-family: var(--police-texte);
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+  line-height: var(--interligne-serre);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  // Deux lignes réservées : les cartes d'une rangée restent alignées
+  min-height: calc(2em * var(--interligne-serre));
+}
+
+.carte__lien {
+  color: var(--couleur-texte);
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  // Zone cliquable étendue à toute la carte
+  &::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+}
+
+.carte__specs {
+  // Colonne des libellés à la largeur du plus long de la carte, plafonnée (ellipse au-delà)
+  display: grid;
+  grid-template-columns: fit-content(4.5rem) minmax(0, 1fr);
+  gap: var(--espace-px) var(--espace-2);
+  margin-block: var(--espace-1);
+  padding-block: var(--espace-2);
+  border-block: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  div {
+    display: contents;
+  }
+
+  dt {
+    overflow: hidden;
+    font-size: var(--taille-2xs);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--couleur-texte-secondaire);
+    line-height: 1.6;
+  }
+
+  // Une ligne par caractéristique : coupée proprement si trop longue
+  dd {
+    overflow: hidden;
+    font-family: var(--police-mono);
+    font-size: var(--taille-2xs);
+    line-height: 1.6;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.carte__bas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-1);
+  margin-block-start: auto;
+  padding-block-start: var(--espace-1);
+}
+
+.carte__dispo {
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.dispo {
+  font-weight: var(--graisse-semi-gras);
+}
+
+.dispo--stock {
+  color: var(--couleur-succes);
+}
+
+.dispo--faible {
+  color: var(--couleur-alerte);
+}
+
+.dispo--rupture {
+  color: var(--couleur-texte-secondaire);
+}

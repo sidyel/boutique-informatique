@@ -7,7 +7,11 @@ import {
   LOCALE_ID,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import {
+  provideClientHydration,
+  withEventReplay,
+  withIncrementalHydration,
+} from '@angular/platform-browser';
 import {
   provideRouter,
   withComponentInputBinding,
@@ -27,7 +31,9 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
-    provideClientHydration(withEventReplay()),
+    // Hydratation incrémentale : les blocs @defer (hydrate on …) restent rendus par le serveur, mais leur
+    // JavaScript n'est chargé et exécuté qu'au besoin (moins de travail au démarrage sur un petit Android).
+    provideClientHydration(withEventReplay(), withIncrementalHydration()),
     // Le transfer cache (activé par provideClientHydration) réutilise dans le navigateur les réponses
     // obtenues pendant le SSR : voir BackendServeur pour la réécriture des URL côté serveur
     provideHttpClient(withFetch()),

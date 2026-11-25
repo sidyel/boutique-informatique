@@ -58,6 +58,10 @@
   display: flex;
   flex-wrap: wrap;
   column-gap: var(--espace-4);
+
+  .pied__lien {
+    min-width: var(--cible-tactile);
+  }
 }
 
 .pied__lien,

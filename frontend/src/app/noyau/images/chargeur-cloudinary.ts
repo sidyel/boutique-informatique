@@ -40,3 +40,13 @@ export function chargeurCloudinary(config: ImageLoaderConfig): string {
 export function fournirChargeurImages(): Provider {
   return { provide: IMAGE_LOADER, useValue: chargeurCloudinary };
 }
+
+/**
+ * `srcset` d'une image Cloudinary aux largeurs données, pour un `<source>` de `<picture>` (que
+ * NgOptimizedImage ne gère pas). `null` pour une image qui n'a pas de déclinaison (démonstration, SVG) :
+ * le navigateur prend alors simplement `src`.
+ */
+export function srcsetCloudinary(src: string, largeurs: readonly number[]): string | null {
+  const urls = largeurs.map((width) => [chargeurCloudinary({ src, width }), width] as const);
+  return urls.every(([url]) => url === src) ? null : urls.map(([url, w]) => `${url} ${w}w`).join(', ');
+}

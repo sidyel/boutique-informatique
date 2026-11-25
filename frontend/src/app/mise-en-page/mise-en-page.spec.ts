@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ApplicationRef, Type } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, DeferBlockState, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { CategorieNoeud, ParametresPublics } from '../noyau/api/modeles';
@@ -35,10 +35,16 @@ const CATEGORIES: CategorieNoeud[] = [
 
 async function rendre<T>(composant: Type<T>, parametres: Partial<ParametresPublics> = PARAMETRES) {
   TestBed.configureTestingModule({
+    imports: [composant],
     providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
   });
+  await TestBed.compileComponents();
   const fixture = TestBed.createComponent(composant);
   fixture.detectChanges();
+  // Blocs @defer (hydrate on viewport) : rendus d'emblée, comme au rendu serveur
+  for (const bloc of await fixture.getDeferBlocks()) {
+    await bloc.render(DeferBlockState.Complete);
+  }
   const http = TestBed.inject(HttpTestingController);
   http.match('/api/parametres').forEach((r) => r.flush(parametres));
   http.match('/api/categories').forEach((r) => r.flush(CATEGORIES));

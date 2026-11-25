@@ -1,0 +1,120 @@
+<section class="carrousel" aria-roledescription="carrousel" aria-label="Offres du moment">
+  <div
+    class="carrousel__diapos"
+    [attr.aria-live]="defilementActif() ? 'off' : 'polite'"
+    (pointerdown)="debutBalayage($event)"
+    (pointerup)="finBalayage($event)"
+    (pointercancel)="debutBalayage($event)"
+  >
+    @for (b of bannieres(); track b.id; let i = $index) {
+      @let source = sources()[i];
+      <div
+        class="diapo"
+        [class.diapo--active]="i === actif()"
+        [class.diapo--sans-mobile]="!b.imageMobileUrl"
+        role="group"
+        aria-roledescription="diapositive"
+        [attr.aria-label]="i + 1 + ' sur ' + nombre()"
+        [inert]="i !== actif()"
+      >
+        <div class="diapo__cadre">
+          @if (chargees().has(i)) {
+            <picture>
+              @if (source.mobile) {
+                <source media="(max-width: 47.99rem)" [attr.srcset]="source.mobile" sizes="100vw" />
+              }
+              <img
+                class="diapo__image"
+                [src]="b.imageOrdinateurUrl"
+                [attr.srcset]="source.ordinateur"
+                sizes="100vw"
+                width="1920"
+                height="600"
+                [alt]="b.texteAlternatif ?? b.titre ?? ''"
+                [attr.fetchpriority]="i === 0 ? 'high' : null"
+                [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+                decoding="async"
+              />
+            </picture>
+          }
+        </div>
+
+        @if (b.titre) {
+          <div class="diapo__texte">
+            <h2 class="diapo__titre">{{ b.titre }}</h2>
+            @if (b.sousTitre) {
+              <p class="diapo__sous-titre">{{ b.sousTitre }}</p>
+            }
+            @if (b.lien) {
+              @if (estInterne(b.lien)) {
+                <a class="diapo__bouton" [routerLink]="b.lien" (click)="choisir(b)">
+                  {{ b.texteBouton ?? 'Découvrir' }}
+                  <bi-icone nom="chevron-droite" taille="1rem" />
+                </a>
+              } @else {
+                <a class="diapo__bouton" [href]="b.lien" rel="noopener" (click)="choisir(b)">
+                  {{ b.texteBouton ?? 'Découvrir' }}
+                  <bi-icone nom="chevron-droite" taille="1rem" />
+                </a>
+              }
+            }
+          </div>
+        } @else if (b.lien) {
+          <!-- Bannière sans texte (le texte est dans l'image) : toute l'image est le lien -->
+          @if (estInterne(b.lien)) {
+            <a
+              class="diapo__lien-image"
+              [routerLink]="b.lien"
+              [attr.aria-label]="b.texteAlternatif ?? 'Voir l’offre'"
+              (click)="choisir(b)"
+            ></a>
+          } @else {
+            <a
+              class="diapo__lien-image"
+              [href]="b.lien"
+              rel="noopener"
+              [attr.aria-label]="b.texteAlternatif ?? 'Voir l’offre'"
+              (click)="choisir(b)"
+            ></a>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  @if (nombre() > 1) {
+    <div class="controles" (keydown)="surTouche($event)">
+      <button
+        type="button"
+        class="controle"
+        [attr.aria-label]="enPause() ? 'Reprendre le défilement automatique' : 'Mettre en pause le défilement automatique'"
+        (click)="basculerPause()"
+      >
+        <bi-icone [nom]="enPause() ? 'lecture' : 'pause'" taille="1rem" />
+      </button>
+
+      <div class="points" role="group" aria-label="Choisir une diapositive">
+        @for (b of bannieres(); track b.id; let i = $index) {
+          <button
+            type="button"
+            class="point"
+            [attr.aria-label]="'Diapositive ' + (i + 1) + ' : ' + (b.titre ?? b.texteAlternatif ?? '')"
+            [attr.aria-current]="i === actif() ? 'true' : null"
+            (click)="aller(i)"
+          >
+            <span class="point__marque" aria-hidden="true"></span>
+          </button>
+        }
+      </div>
+
+      <div class="fleches">
+        <button type="button" class="controle" aria-label="Diapositive précédente" (click)="aller(actif() - 1)">
+          <bi-icone nom="chevron-gauche" taille="1rem" />
+        </button>
+        <button type="button" class="controle" aria-label="Diapositive suivante" (click)="aller(actif() + 1)">
+          <bi-icone nom="chevron-droite" taille="1rem" />
+        </button>
+      </div>
+    </div>
+  }
+</section>

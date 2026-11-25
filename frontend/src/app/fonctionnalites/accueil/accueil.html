@@ -1,0 +1,102 @@
+<h1 class="visuellement-masque">{{ site.nomSite() }} : matériel informatique au Sénégal</h1>
+
+<!-- Carrousel : squelette aux proportions finales pendant le chargement (aucun décalage), rien si vide -->
+@if (carrousel.isLoading() && !carrousel.hasValue()) {
+  <bi-squelette forme="bloc" class="squelette-carrousel" />
+} @else if (bannieres().length) {
+  <bi-carrousel [bannieres]="bannieres()" />
+}
+
+<div class="conteneur accueil">
+  @if (promesses().length) {
+    <ul class="promesses" role="list" aria-label="Nos engagements">
+      @for (p of promesses(); track p.titre) {
+        <li class="promesse">
+          @if (p.icone) {
+            <bi-icone class="promesse__icone" [nom]="p.icone" />
+          }
+          <span>
+            <strong class="promesse__titre">{{ p.titre }}</strong>
+            @if (p.texte) {
+              <span class="promesse__texte">{{ p.texte }}</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (catalogue.categories().length) {
+    <section aria-labelledby="titre-rayons">
+      <h2 id="titre-rayons" class="titre-bloc">Nos rayons</h2>
+      <ul class="rayons" role="list">
+        @for (c of catalogue.categories(); track c.slug) {
+          <li>
+            <a class="rayon" [routerLink]="['/categorie', c.slug]">
+              @if (c.imageUrl) {
+                <img class="rayon__image" [ngSrc]="c.imageUrl" width="48" height="48" alt="" />
+              }
+              <span class="rayon__nom">{{ c.nom }}</span>
+              <span class="rayon__nombre">{{ c.nombreProduits }} produits</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  } @else if (!catalogue.categoriesChargees()) {
+    <div class="rayons" aria-hidden="true">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <bi-squelette forme="bloc" hauteur="4.5rem" />
+      }
+    </div>
+  }
+
+  @if (accueil.isLoading() && !accueil.hasValue()) {
+    @for (i of [1, 2]; track i) {
+      <div class="rangee-squelette" aria-hidden="true">
+        <bi-squelette largeur="12rem" hauteur="1.5rem" />
+        <div class="rangee-squelette__cartes">
+          @for (j of [1, 2, 3, 4, 5, 6]; track j) {
+            <bi-squelette forme="bloc" hauteur="22rem" />
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Sous la ligne de flottaison : rendu serveur complet, hydratation à l'arrivée à l'écran -->
+  @for (section of sections(); track section.code; let premiere = $first) {
+    @defer (hydrate on viewport) {
+      <bi-rangee-produits [titre]="section.titre" [produits]="section.produits" [liste]="section.liste" />
+    }
+    @if (premiere && bannierePromo(); as promo) {
+      @defer (hydrate on viewport) {
+        <bi-banniere-promo [banniere]="promo" />
+      }
+    }
+  }
+  @if (!sections().length && bannierePromo(); as promo) {
+    @defer (hydrate on viewport) {
+      <bi-banniere-promo [banniere]="promo" />
+    }
+  }
+
+  @if (marques().length) {
+    <section aria-labelledby="titre-marques">
+      <h2 id="titre-marques" class="titre-bloc">Marques</h2>
+      <ul class="marques" role="list">
+        @for (m of marques(); track m.slug) {
+          <li>
+            <a class="marque" [routerLink]="['/marque', m.slug]">
+              @if (m.logoUrl) {
+                <img class="marque__logo" [ngSrc]="m.logoUrl" width="96" height="32" [alt]="m.nom" />
+              } @else {
+                {{ m.nom }}
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>

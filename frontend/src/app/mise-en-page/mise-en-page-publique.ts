@@ -16,7 +16,9 @@ import { PiedDePage } from './pied-de-page/pied-de-page';
     <main id="contenu" tabindex="-1">
       <router-outlet />
     </main>
-    <bi-pied-de-page />
+    @defer (hydrate on viewport) {
+      <bi-pied-de-page />
+    }
     <bi-bouton-whatsapp />
   `,
   styles: `

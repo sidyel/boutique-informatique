@@ -1,4 +1,4 @@
-import { chargeurCloudinary } from './chargeur-cloudinary';
+import { chargeurCloudinary, srcsetCloudinary } from './chargeur-cloudinary';
 
 const ENREGISTREE =
   'https://res.cloudinary.com/boutique-sn/image/upload/f_auto,q_auto/v1764000000/boutique/produits/12/asus-tuf.jpg';
@@ -43,5 +43,12 @@ describe('chargeurCloudinary', () => {
     expect(chargeurCloudinary({ src: brute, width: 96 })).toBe(
       'https://res.cloudinary.com/boutique-sn/image/upload/f_auto,q_auto,w_96/v9/boutique/marques/asus.png',
     );
+  });
+
+  it('construit le srcset d’un <source>, ou aucun pour une image sans déclinaison', () => {
+    expect(srcsetCloudinary(ENREGISTREE, [640, 960])).toBe(
+      `${chargeurCloudinary({ src: ENREGISTREE, width: 640 })} 640w, ${chargeurCloudinary({ src: ENREGISTREE, width: 960 })} 960w`,
+    );
+    expect(srcsetCloudinary('/demo/images/banniere-gaming-mobile.svg', [640, 960])).toBeNull();
   });
 });

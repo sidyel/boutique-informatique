@@ -27,6 +27,7 @@ import { ParametresSiteService } from '../../noyau/donnees/parametres-site.servi
     .logo {
       display: inline-flex;
       align-items: center;
+      max-width: 100%;
       gap: var(--espace-2);
       min-height: var(--cible-tactile);
       color: var(--couleur-texte);
@@ -52,6 +53,7 @@ import { ParametresSiteService } from '../../noyau/donnees/parametres-site.servi
 
     /* Détail graphique : un carré d'accent, comme un témoin lumineux de façade de PC */
     .logo__repere {
+      flex: none;
       width: 0.625rem;
       height: 0.625rem;
       background: var(--couleur-accent-decor);
@@ -59,9 +61,13 @@ import { ParametresSiteService } from '../../noyau/donnees/parametres-site.servi
       transform: translateY(-0.15em);
     }
 
+    /* Une seule ligne : sur 360 px, un nom long est réduit puis coupé proprement */
     .logo__nom {
+      overflow: hidden;
       font-family: var(--police-titre);
-      font-size: var(--taille-xl);
+      font-size: clamp(var(--taille-base), 4.4vw, var(--taille-xl));
+      white-space: nowrap;
+      text-overflow: ellipsis;
       font-weight: var(--graisse-gras);
       letter-spacing: var(--approche-titre);
       line-height: 1;

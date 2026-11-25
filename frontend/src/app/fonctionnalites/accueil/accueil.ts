@@ -1,54 +1,77 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { httpResource } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
+import { Accueil as AccueilReponse, Banniere, IconeConfiance } from '../../noyau/api/modeles';
+import { CatalogueService } from '../../noyau/donnees/catalogue.service';
+import { ParametresSiteService } from '../../noyau/donnees/parametres-site.service';
 import { SeoService } from '../../noyau/seo/seo.service';
+import { Icone, NomIcone } from '../../partage/composants/icone/icone';
+import { RangeeProduits } from '../../partage/composants/rangee-produits/rangee-produits';
+import { Squelette } from '../../partage/composants/squelette/squelette';
+import { BannierePromo } from './banniere-promo/banniere-promo';
+import { Carrousel } from './carrousel/carrousel';
+
+const ICONES_CONFIANCE: Record<IconeConfiance, NomIcone> = {
+  LIVRAISON: 'livraison',
+  GARANTIE: 'garantie',
+  PAIEMENT: 'paiement',
+  SAV: 'sav',
+  RETOUR: 'retour',
+  BOUTIQUE: 'boutique',
+};
+const MARQUES_AFFICHEES = 12;
 
 /**
- * Page d'accueil provisoire. Le carrousel, les tuiles de catégories et les sélections
- * de produits arrivent en phase 3.
+ * Accueil : carrousel, promesses, rayons, sélections de produits (titres choisis par le serveur selon les
+ * données : jamais « Meilleures ventes » sans ventes réelles), bannière promotionnelle, marques.
+ * Chaque bloc a son squelette pendant le chargement et disparaît s'il est vide ou en erreur.
+ * Les réponses lues pendant le rendu serveur sont reprises par le navigateur (transfer cache).
  */
 @Component({
   selector: 'bi-accueil',
+  imports: [BannierePromo, Carrousel, Icone, NgOptimizedImage, RangeeProduits, RouterLink, Squelette],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="conteneur accueil">
-      <h1>Matériel informatique au Sénégal</h1>
-      <p class="chapeau">
-        PC portables, PC de bureau, composants, écrans, périphériques et réseau.
-        Livraison à Dakar en 24 h, paiement Wave, Orange Money ou à la livraison.
-      </p>
-      <p class="mention">Le catalogue est en cours de mise en ligne.</p>
-    </section>
-  `,
-  styles: `
-    .accueil {
-      padding-block: var(--espace-12);
-    }
-
-    h1 {
-      max-width: 20ch;
-    }
-
-    .chapeau {
-      max-width: 60ch;
-      margin-block-start: var(--espace-4);
-      font-size: var(--taille-lg);
-      color: var(--couleur-texte-secondaire);
-    }
-
-    .mention {
-      margin-block-start: var(--espace-6);
-      font-family: var(--police-mono);
-      font-size: var(--taille-sm);
-    }
-  `,
+  templateUrl: './accueil.html',
+  styleUrl: './accueil.scss',
 })
 export class Accueil {
+  protected readonly site = inject(ParametresSiteService);
+  protected readonly catalogue = inject(CatalogueService);
+
+  protected readonly accueil = httpResource<AccueilReponse>(() => '/api/accueil');
+  protected readonly carrousel = httpResource<Banniere[]>(() => ({
+    url: '/api/bannieres',
+    params: { emplacement: 'ACCUEIL_CARROUSEL' },
+  }));
+  protected readonly promo = httpResource<Banniere[]>(() => ({
+    url: '/api/bannieres',
+    params: { emplacement: 'ACCUEIL_PROMO' },
+  }));
+
+  protected readonly sections = computed(() =>
+    (this.accueil.hasValue() ? this.accueil.value().sections : [])
+      .filter((s) => s.produits.length)
+      // Liste de suivi calculée une fois : un objet recréé à chaque rendu relancerait view_item_list
+      .map((s) => ({ ...s, liste: { id: `accueil-${s.code}`, nom: s.titre } })),
+  );
+  protected readonly bannieres = computed(() => (this.carrousel.hasValue() ? this.carrousel.value() : []));
+  protected readonly bannierePromo = computed(() => (this.promo.hasValue() ? (this.promo.value()[0] ?? null) : null));
+  protected readonly marques = computed(() => this.catalogue.marques().slice(0, MARQUES_AFFICHEES));
+  protected readonly promesses = computed(() =>
+    (this.site.parametres()?.elementsConfiance ?? []).map((e) => ({
+      ...e,
+      icone: e.icone ? ICONES_CONFIANCE[e.icone] : null,
+    })),
+  );
+
   constructor() {
     inject(SeoService).definirPage({
       titre: 'Matériel informatique au Sénégal',
       description:
-        'PC portables, composants, écrans et périphériques au meilleur prix au Sénégal. ' +
-        'Livraison à Dakar en 24 h, paiement mobile ou à la livraison.',
+        'PC portables, PC de bureau, composants, écrans, périphériques et réseau au Sénégal. ' +
+        'Prix en FCFA, paiement Wave, Orange Money ou à la livraison.',
     });
   }
 }

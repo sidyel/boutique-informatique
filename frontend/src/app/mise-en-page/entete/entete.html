@@ -40,7 +40,10 @@
 
     <bi-logo class="principal__logo" />
 
-    <bi-barre-recherche class="principal__recherche" ident="recherche-entete" />
+    <!-- Hydratée à la première interaction (frappe, clic) : l'événement est rejoué ensuite -->
+    @defer (hydrate on interaction) {
+      <bi-barre-recherche class="principal__recherche" ident="recherche-entete" />
+    }
 
     <div class="principal__actions">
       <a class="action" routerLink="/compte" aria-label="Mon compte">
@@ -65,7 +68,10 @@
 
   <nav class="principal__categories" aria-label="Catégories">
     <div class="conteneur">
-      <bi-mega-menu />
+      <!-- Invisible sur téléphone : son JavaScript n'est chargé qu'au survol ou à l'interaction -->
+      @defer (hydrate on hover; hydrate on interaction) {
+        <bi-mega-menu />
+      }
     </div>
   </nav>
 </div>

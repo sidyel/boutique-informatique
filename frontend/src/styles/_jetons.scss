@@ -170,3 +170,10 @@
     --duree-normale: 0ms;
   }
 }
+
+// Écran tactile : même les petits boutons offrent une cible de 44 px (CLAUDE.md, « Mobile d'abord »)
+@media (pointer: coarse) {
+  :root {
+    --hauteur-controle-sm: var(--cible-tactile);
+  }
+}

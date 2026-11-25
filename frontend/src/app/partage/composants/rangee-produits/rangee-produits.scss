@@ -1,0 +1,82 @@
+@use 'points-rupture' as pr;
+
+:host {
+  display: block;
+  // Hors de l'écran, le navigateur saute la mise en page de la rangée (contenu toujours dans le HTML) ;
+  // la hauteur réservée évite que la barre de défilement saute
+  content-visibility: auto;
+  contain-intrinsic-size: auto 26rem;
+}
+
+.rangee__entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-4);
+  margin-block-end: var(--espace-3);
+}
+
+.rangee__titre {
+  font-size: var(--taille-xl);
+}
+
+// Au doigt, on fait glisser la rangée : les flèches ne servent qu'à la souris
+.rangee__fleches {
+  display: none;
+  gap: var(--espace-1);
+
+  @media (min-width: pr.$tablette) {
+    display: flex;
+  }
+}
+
+.fleche {
+  display: grid;
+  place-items: center;
+  width: var(--cible-tactile);
+  height: var(--cible-tactile);
+  color: var(--couleur-texte);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--couleur-accent);
+    border-color: var(--couleur-accent);
+  }
+}
+
+// Nombre de cartes visibles : la fraction laisse deviner la suivante sur téléphone
+.rangee__piste {
+  --colonnes: 2.2;
+
+  display: grid;
+  grid-auto-columns: calc((100% - (var(--colonnes) - 1) * var(--espace-3)) / var(--colonnes));
+  grid-auto-flow: column;
+  gap: var(--espace-3);
+  margin: 0;
+  padding: 0 0 var(--espace-2);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  list-style: none;
+
+  @media (min-width: pr.$tablette) {
+    --colonnes: 3.3;
+  }
+
+  @media (min-width: pr.$ordinateur) {
+    --colonnes: 5;
+  }
+
+  @media (min-width: pr.$large) {
+    --colonnes: 6;
+  }
+}
+
+.rangee__element {
+  min-width: 0;
+  scroll-snap-align: start;
+}

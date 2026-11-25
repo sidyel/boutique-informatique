@@ -43,10 +43,16 @@ export class TiroirNavigation {
   protected readonly depliee = signal<string | null>(null);
 
   private readonly panneau = viewChild<ElementRef<HTMLElement>>('panneau');
+  /** Dernier état appliqué à la page : on ne touche au style de <body> qu'à l'ouverture et à la fermeture. */
+  private etatApplique = false;
 
   constructor() {
     afterRenderEffect(() => {
       const ouvert = this.ouvert();
+      if (ouvert === this.etatApplique) {
+        return;
+      }
+      this.etatApplique = ouvert;
       this.document.body.style.overflow = ouvert ? 'hidden' : '';
       if (ouvert) {
         this.panneau()?.nativeElement.querySelector<HTMLElement>('.tiroir__fermer')?.focus();

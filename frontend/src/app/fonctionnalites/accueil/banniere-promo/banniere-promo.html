@@ -1,0 +1,44 @@
+@let b = banniere();
+<section class="promo" [class.promo--sans-mobile]="!b.imageMobileUrl" [attr.aria-label]="b.titre ?? b.texteAlternatif ?? 'Offre'">
+  <picture class="promo__cadre">
+    @if (srcsetMobile(); as mobile) {
+      <source media="(max-width: 47.99rem)" [attr.srcset]="mobile" sizes="100vw" />
+    }
+    <img
+      class="promo__image"
+      [src]="b.imageOrdinateurUrl"
+      [attr.srcset]="srcsetOrdinateur()"
+      sizes="(min-width: 80rem) 80rem, 100vw"
+      width="1920"
+      height="600"
+      loading="lazy"
+      decoding="async"
+      [alt]="b.texteAlternatif ?? b.titre ?? ''"
+    />
+  </picture>
+
+  <div class="promo__texte">
+    @if (b.titre) {
+      <h2 class="promo__titre">{{ b.titre }}</h2>
+    }
+    @if (b.sousTitre) {
+      <p class="promo__sous-titre">{{ b.sousTitre }}</p>
+    }
+    @if (finMs(); as fin) {
+      <p class="promo__echeance">
+        <bi-icone nom="horloge" taille="1rem" />
+        @if (compteARebours(); as reste) {
+          <span>Se termine dans <strong class="promo__reste">{{ reste }}</strong></span>
+        } @else {
+          <span>Jusqu'au {{ fin | date: "d MMMM 'à' HH'h'mm" : 'UTC' : 'fr' }}</span>
+        }
+      </p>
+    }
+    @if (b.lien) {
+      <a class="promo__bouton" [routerLink]="b.lien" (click)="choisir()">
+        {{ b.texteBouton ?? 'Voir l’offre' }}
+        <bi-icone nom="chevron-droite" taille="1rem" />
+      </a>
+    }
+  </div>
+</section>

@@ -1,8 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" role="img" aria-label="Protégez votre matériel">
-  <rect width="800" height="800" fill="#EEF0F2"/>
-  <rect y="792" width="800" height="8" fill="#C2410C"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="Protégez votre matériel">
+  <rect width="800" height="1000" fill="#EEF0F2"/>
+  <rect y="992" width="800" height="8" fill="#C2410C"/>
   <g transform="translate(0 -40)" fill="none" stroke="#5B6573" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><style>.a{stroke:#C2410C}</style><rect x="300" y="170" width="200" height="270" rx="10"/><circle cx="400" cy="240" r="30"/><path d="M400 215 v20" class="a"/><path d="M330 320 h140 M330 350 h140 M330 380 h140"/><path d="M420 290 l-25 45 h25 l-20 40" class="a"/></g>
-  <text x="400.0" y="610" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="44" font-weight="700" fill="#1C2128">Protégez votre matériel</text>
-  <text x="400.0" y="664" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="26" fill="#5B6573">Onduleurs APC contre les coupures</text>
-  <text x="776" y="772" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" fill="#5B6573">Image de démonstration</text>
+  <text x="776" y="972" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" fill="#5B6573">Image de démonstration</text>
 </svg>
