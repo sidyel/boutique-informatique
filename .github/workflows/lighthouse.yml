@@ -1,0 +1,91 @@
+name: Lighthouse
+
+# Performance mesurée sur une machine propre : la stack Docker complète (nginx, SSR, backend, PostgreSQL,
+# Redis) avec les données de démonstration, puis Lighthouse mobile 5 fois par page, médiane retenue.
+# Échec si LCP > 2,5 s, CLS > 0,1 ou poids du premier chargement > 1 Mo ; avertissement si performance < 90
+# (seuils et calcul : infra/scripts/lighthouse_mediane.py).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'infra/**'
+      - '.github/workflows/lighthouse.yml'
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  LIGHTHOUSE_VERSION: '13.6.0'
+  PASSAGES: '5'
+
+jobs:
+  lighthouse:
+    name: Lighthouse mobile (médiane de 5 passages)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Installation de Lighthouse
+        run: npm install --global "lighthouse@${LIGHTHOUSE_VERSION}"
+
+      # Valeurs factices de l'exemple ; le profil prod exige une vraie clé JWT : clé jetable propre à ce job
+      - name: Fichier .env de CI
+        run: |
+          cp .env.exemple .env
+          sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')|" .env
+          grep -q '^JWT_SECRET=.\+' .env
+
+      - name: Démarrage de la stack avec les données de démonstration
+        working-directory: infra
+        env:
+          DEMO: '1'
+        run: >-
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml
+          up -d --build --wait --wait-timeout 900
+
+      - name: Attente du catalogue de démonstration
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost/api/accueil | python3 -c 'import json,sys; sys.exit(0 if any(s["produits"] for s in json.load(sys.stdin)["sections"]) else 1)'; then
+              echo "Catalogue prêt"; exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Le catalogue de démonstration n'est pas disponible"; exit 1
+
+      # Pages ajoutées au fil des parties : catégorie (3b), fiche produit (3c)
+      - name: Lighthouse mobile
+        env:
+          LIGHTHOUSE_CMD: lighthouse
+        run: >-
+          python3 infra/scripts/lighthouse_mediane.py
+          --base http://localhost
+          --passages "${PASSAGES}"
+          --sortie rapports-lighthouse
+          --page accueil=/
+
+      - name: Rapports Lighthouse
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-lighthouse
+          path: rapports-lighthouse/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Journaux de la stack
+        if: failure()
+        working-directory: infra
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml logs --no-color --tail=200
