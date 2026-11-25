@@ -99,9 +99,14 @@ public class CacheConfig implements CachingConfigurer {
             throw new IllegalStateException("Chaque cache public doit avoir son type : " + CachesPublics.TOUS);
         }
 
-        // SCAN plutôt que KEYS pour vider un cache : KEYS bloque Redis pendant le parcours
+        // SCAN plutôt que KEYS pour vider un cache : KEYS bloque Redis pendant le parcours.
+        // Écritures immédiates : par défaut (Lettuce), Spring Data Redis 4 écrit en tâche de fond ; une mise en
+        // cache pourrait alors arriver après une invalidation et resservir l'ancienne version jusqu'à expiration.
+        RedisCacheWriter ecrivain = RedisCacheWriter.create(connexion.fabrique(), configuration -> configuration
+                .batchStrategy(BatchStrategies.scan(500))
+                .immediateWrites());
         RedisCacheManager.RedisCacheManagerBuilder constructeur = RedisCacheManager
-                .builder(RedisCacheWriter.nonLockingRedisCacheWriter(connexion.fabrique(), BatchStrategies.scan(500)))
+                .builder(ecrivain)
                 .cacheDefaults(base)
                 .disableCreateOnMissingCache();
         typesParCache.forEach((nom, type) -> constructeur.withCacheConfiguration(nom,
