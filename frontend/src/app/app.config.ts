@@ -1,5 +1,5 @@
 import { registerLocaleData } from '@angular/common';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import localeFr from '@angular/common/locales/fr';
 import {
   ApplicationConfig,
@@ -15,7 +15,7 @@ import {
 } from '@angular/router';
 
 import { routes } from './app.routes';
-import { urlApiIntercepteur } from './noyau/api/url-api.intercepteur';
+import { fournirChargeurImages } from './noyau/images/chargeur-cloudinary';
 
 registerLocaleData(localeFr);
 
@@ -28,7 +28,11 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(withFetch(), withInterceptors([urlApiIntercepteur])),
+    // Le transfer cache (activé par provideClientHydration) réutilise dans le navigateur les réponses
+    // obtenues pendant le SSR : voir BackendServeur pour la réécriture des URL côté serveur
+    provideHttpClient(withFetch()),
+    // NgOptimizedImage : largeur adaptée à l'écran (srcset) sur les URL Cloudinary
+    fournirChargeurImages(),
     { provide: LOCALE_ID, useValue: 'fr' },
     { provide: DEFAULT_CURRENCY_CODE, useValue: 'XOF' },
   ],

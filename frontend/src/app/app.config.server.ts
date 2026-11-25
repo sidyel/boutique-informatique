@@ -1,8 +1,10 @@
+import { HttpBackend } from '@angular/common/http';
 import { ApplicationConfig, mergeApplicationConfig } from '@angular/core';
 import { provideServerRendering, withRoutes } from '@angular/ssr';
 
 import { appConfig } from './app.config';
 import { serverRoutes } from './app.routes.server';
+import { BackendServeur } from './noyau/api/backend-serveur';
 import { URL_API } from './noyau/api/url-api';
 
 /**
@@ -14,6 +16,8 @@ const serverConfig: ApplicationConfig = {
   providers: [
     provideServerRendering(withRoutes(serverRoutes)),
     { provide: URL_API, useFactory: () => process.env['API_URL_SERVEUR'] ?? 'http://localhost:8080' },
+    // Remplace le transport HTTP (fourni par withFetch) : préfixe l'URL du backend au dernier maillon
+    { provide: HttpBackend, useClass: BackendServeur },
   ],
 };
 
