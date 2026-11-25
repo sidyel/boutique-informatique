@@ -101,7 +101,8 @@ public class VerificationFichiers {
 
     private FichierVerifie verifierSvg(byte[] contenu, UsageImage usage) {
         if (!usage.svgAccepte()) {
-            throw refus("TYPE_NON_AUTORISE", "Le SVG n'est accepté que pour le logo et le favicon.");
+            throw refus("TYPE_NON_AUTORISE", "Le SVG n'est accepté que pour le logo et le logo sombre. Pour le "
+                    + "favicon, envoyer un PNG carré de 512 × 512 px au moins (ses déclinaisons en sont tirées).");
         }
         long tailleMax = proprietes.svg().tailleMax().toBytes();
         if (contenu.length > tailleMax) {

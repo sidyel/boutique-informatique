@@ -51,7 +51,7 @@ public record ProprietesMedias(
         }
     }
 
-    /** SVG acceptés pour le logo et le favicon uniquement, après nettoyage. */
+    /** SVG acceptés pour le logo et le logo sombre uniquement, après nettoyage. */
     public record Svg(@NotNull DataSize tailleMax) {
     }
 

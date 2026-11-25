@@ -85,7 +85,9 @@ class AdminImagesSiteTest extends CatalogueTestBase {
         envoyer("favicon", png(256, 256)).andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("IMAGE_TROP_PETITE"));
         envoyer("favicon", svg()).andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.code").value("TYPE_NON_AUTORISE"));
+                .andExpect(jsonPath("$.code").value("TYPE_NON_AUTORISE"))
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString(
+                        "que pour le logo et le logo sombre")));
         assertThat(stockage.suppressions()).isEmpty();
     }
 
