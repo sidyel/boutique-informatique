@@ -113,3 +113,19 @@ Règles complètes : [ADR 0005](docs/decisions/0005-medias-cloudinary.md).
   éloigne, sans blocage).
 - **Fichiers à nettoyer** (tâche planifiée en phase 9) : table `media_orphelin` (suppressions en échec) et
   signatures `signature_envoi_video` expirées jamais utilisées (vidéos envoyées mais jamais déclarées).
+
+## Limitation du débit (nginx)
+
+nginx limite les requêtes par IP (réponse `429`), en plus des limites de l'authentification dans le backend.
+Valeurs généreuses à cause du CGNAT des opérateurs mobiles (beaucoup d'abonnés derrière une même IP),
+réglables par variables d'environnement du service `nginx` (`infra/docker-compose.yml`) :
+
+| Zone | Routes | Débit / rafale par défaut |
+|---|---|---|
+| `api` | `/api/`, `/flux/` | `NGINX_DEBIT_API=20r/s`, `NGINX_RAFALE_API=100` |
+| `recherche` | `/api/recherche` (dont l'autocomplétion) | `NGINX_DEBIT_RECHERCHE=5r/s`, `NGINX_RAFALE_RECHERCHE=40` |
+| `pages` | pages HTML rendues par le SSR (les fichiers statiques ne sont pas comptés) | `NGINX_DEBIT_PAGES=5r/s`, `NGINX_RAFALE_PAGES=40` |
+
+La zone `pages` existe parce que le SSR appelle le backend directement, sans repasser par nginx : sans
+elle, des pages de liste aux filtres aléatoires feraient travailler le backend sans limite. Si un CDN est
+placé devant nginx, la clé doit devenir l'IP réelle du visiteur (module `real_ip`).

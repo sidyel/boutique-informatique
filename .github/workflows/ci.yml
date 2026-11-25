@@ -107,4 +107,7 @@ jobs:
         run: python3 infra/scripts/verifier_env_frontend.py
 
       - name: Configuration nginx valide
-        run: docker run --rm -v "$PWD/infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.29-alpine nginx -t
+        run: >-
+          docker run --rm -v "$PWD/infra/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro"
+          -e NGINX_DEBIT_API=20r/s -e NGINX_RAFALE_API=100 -e NGINX_DEBIT_RECHERCHE=5r/s -e NGINX_RAFALE_RECHERCHE=40
+          -e NGINX_DEBIT_PAGES=5r/s -e NGINX_RAFALE_PAGES=40 nginx:1.29-alpine nginx -t

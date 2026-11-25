@@ -1,6 +1,33 @@
 # Frontal nginx : l'API, le sitemap, robots.txt et les flux produits vont au backend,
 # tout le reste au serveur de rendu Angular (SSR).
 # HTTPS, brotli et CSP complète seront ajoutés pour la production (phase 9).
+#
+# Modèle de l'image nginx officielle : au démarrage, les ${NGINX_…} sont remplacés par les variables
+# d'environnement du conteneur (valeurs par défaut dans infra/docker-compose.yml). Seules les variables
+# définies sont substituées : les variables nginx ($remote_addr…) restent intactes.
+
+# --- Limitation du débit par IP (relecture de sécurité, M4) -------------------
+# Valeurs GÉNÉREUSES : au Sénégal, les opérateurs mobiles placent beaucoup d'abonnés derrière une même
+# IP publique (CGNAT). Le but est d'arrêter les robots qui inondent le site, pas un bureau qui navigue.
+# Chaque zone : un débit moyen et une rafale (burst) servie sans attente (nodelay).
+#  - api       : toutes les routes /api/ appelées par le navigateur ;
+#  - recherche : /api/recherche (autocomplétion à chaque frappe, requêtes pg_trgm coûteuses) ;
+#  - pages     : pages HTML rendues par le SSR. Le SSR appelle le backend directement, sans repasser par
+#                nginx : sans cette zone, des pages de liste aux filtres aléatoires feraient travailler
+#                le backend sans aucune limite. Les fichiers statiques (JS, CSS, polices, images) n'y
+#                sont pas comptés.
+# Au-delà : 429. Si un CDN est placé devant nginx, la clé doit devenir l'IP réelle (module real_ip).
+limit_req_zone $binary_remote_addr zone=api:10m rate=${NGINX_DEBIT_API};
+limit_req_zone $binary_remote_addr zone=recherche:10m rate=${NGINX_DEBIT_RECHERCHE};
+# Pages : les fichiers statiques (JS, CSS, polices, images ; une page en charge plusieurs dizaines, sans
+# rendu ni appel au backend) ont une clé vide, et nginx ne compte pas une requête à clé vide.
+map $uri $cle_pages {
+    ~*\.(?:js|mjs|css|map|woff2?|ttf|png|jpe?g|webp|avif|gif|svg|ico|webmanifest|txt)$  "";
+    default  $binary_remote_addr;
+}
+limit_req_zone $cle_pages zone=pages:10m rate=${NGINX_DEBIT_PAGES};
+limit_req_status 429;
+limit_req_log_level warn;
 
 server {
     listen 80;
@@ -54,6 +81,12 @@ server {
     # proxy_pass SANS partie URI après la variable : nginx transmet l'URI d'origine intacte (chemin
     # encodé et paramètres). Ne jamais écrire « http://$backend/ » : le chemin serait remplacé par « / ».
     location /api/ {
+        limit_req zone=api burst=${NGINX_RAFALE_API} nodelay;
+        proxy_pass http://$backend;
+    }
+
+    location /api/recherche {
+        limit_req zone=recherche burst=${NGINX_RAFALE_RECHERCHE} nodelay;
         proxy_pass http://$backend;
     }
 
@@ -61,6 +94,7 @@ server {
     # 50 Mo côté Spring, marge pour l'encodage multipart.
     location ~ ^/api/admin/(produits/[0-9]+/medias|parametres/[a-z-]+|bannieres/images)$ {
         client_max_body_size 55m;
+        limit_req zone=api burst=${NGINX_RAFALE_API} nodelay;
         proxy_pass http://$backend;
     }
 
@@ -77,6 +111,7 @@ server {
     }
 
     location /flux/ {
+        limit_req zone=api burst=${NGINX_RAFALE_API} nodelay;
         proxy_pass http://$backend;
     }
 
@@ -89,6 +124,7 @@ server {
     # Le serveur SSR (Express) pose lui-même Cache-Control : un an, immuable,
     # pour les fichiers JS/CSS à empreinte et les polices.
     location / {
+        limit_req zone=pages burst=${NGINX_RAFALE_PAGES} nodelay;
         proxy_pass http://$frontend;
     }
 }
