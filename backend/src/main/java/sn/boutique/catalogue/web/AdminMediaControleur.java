@@ -20,13 +20,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import sn.boutique.catalogue.dto.AjoutYoutubeRequete;
+import sn.boutique.catalogue.dto.DeclarationVideoRequete;
 import sn.boutique.catalogue.dto.MediasProduitAdminReponse;
 import sn.boutique.catalogue.dto.ModificationMediaRequete;
 import sn.boutique.catalogue.dto.OrdreMediasRequete;
+import sn.boutique.catalogue.dto.SignatureEnvoiVideoReponse;
 import sn.boutique.catalogue.service.MediaAdminService;
+import sn.boutique.catalogue.service.VideoAdminService;
 
 /**
- * Images d'un produit dans le back-office. Réservé à ADMIN, SUPER_ADMIN et GESTIONNAIRE_STOCK (règle dans
+ * Images et vidéos d'un produit dans le back-office. Réservé à ADMIN, SUPER_ADMIN et GESTIONNAIRE_STOCK (règle dans
  * SecuriteConfig). Chaque route renvoie la liste à jour des médias du produit.
  */
 @RestController
@@ -35,6 +39,7 @@ import sn.boutique.catalogue.service.MediaAdminService;
 public class AdminMediaControleur {
 
     private final MediaAdminService mediaAdminService;
+    private final VideoAdminService videoAdminService;
 
     /** Médias, limites et textes alternatifs suggérés (pour préremplir le formulaire). */
     @GetMapping
@@ -56,6 +61,30 @@ public class AdminMediaControleur {
         String[] textes = requete.getParameterValues("textesAlternatifs");
         return mediaAdminService.ajouterImages(produitId, fichiers, textes == null ? List.of() : Arrays.asList(textes),
                 varianteId);
+    }
+
+    /**
+     * Signature d'un envoi direct de vidéo (navigateur → Cloudinary), propre à ce produit et de courte durée.
+     * Une fois l'envoi terminé, déclarer la vidéo avec {@code POST /videos}.
+     */
+    @PostMapping("/videos/signature")
+    public SignatureEnvoiVideoReponse signerEnvoiVideo(@PathVariable Long produitId) {
+        return videoAdminService.signer(produitId);
+    }
+
+    @PostMapping("/videos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MediasProduitAdminReponse declarerVideo(@PathVariable Long produitId,
+                                                   @Valid @RequestBody DeclarationVideoRequete requete) {
+        return videoAdminService.declarer(produitId, requete);
+    }
+
+    /** 422 pour une vidéo privée, supprimée ou non intégrable ; 502 si YouTube ne répond pas. */
+    @PostMapping("/youtube")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MediasProduitAdminReponse ajouterYoutube(@PathVariable Long produitId,
+                                                    @Valid @RequestBody AjoutYoutubeRequete requete) {
+        return videoAdminService.ajouterYoutube(produitId, requete);
     }
 
     @PutMapping("/ordre")

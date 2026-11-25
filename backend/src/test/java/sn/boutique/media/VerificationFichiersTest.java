@@ -142,7 +142,9 @@ class VerificationFichiersTest {
                         Map.of(UsageImage.PRODUIT, 800, UsageImage.BANNIERE, 600, UsageImage.PARTAGE, 600,
                                 UsageImage.LOGO, 16), 15),
                 new ProprietesMedias.Svg(DataSize.ofKilobytes(512)),
-                new ProprietesMedias.Videos(DataSize.ofMegabytes(100), 1),
-                new ProprietesMedias.Suppression(3, Duration.ZERO));
+                new ProprietesMedias.Videos(DataSize.ofMegabytes(100), 1, java.util.List.of("mp4", "webm"),
+                        Duration.ofMinutes(30), Duration.ofHours(1)),
+                new ProprietesMedias.Suppression(3, Duration.ZERO),
+                new ProprietesMedias.Youtube("https://www.youtube.com/oembed", Duration.ofSeconds(3)));
     }
 }

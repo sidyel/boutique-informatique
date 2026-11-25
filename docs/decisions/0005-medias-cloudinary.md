@@ -40,6 +40,45 @@ clé `CLOUDINARY_URL` du `.env` local est vidée dans leur contexte : **aucun te
 - La dernière image d'un produit publié ne peut pas être supprimée (`409 DERNIERE_IMAGE`). Retirer l'image
   principale promeut la suivante.
 
+## 1 ter. Vidéos
+
+**Vidéos envoyées** (MP4 ou WebM, 100 Mo, une vidéo au plus par produit, vidéo YouTube comprise) : le fichier
+va directement du navigateur à Cloudinary, jamais par le backend.
+
+1. `POST /api/admin/produits/{id}/medias/videos/signature` : le backend génère l'idPublic dans le dossier
+   **de ce produit** (`<racine>/produits/<id>/videos/<slug>-<aléatoire>`) et signe uniquement : cet idPublic,
+   ce dossier, `overwrite=false`, `allowed_formats=mp4,webm` et l'horodatage. L'URL d'envoi fixe la ressource
+   `video`. Le secret de l'API ne sort jamais du backend.
+2. **Validité courte** : Cloudinary accepte une signature pendant 1 h après son horodatage, sans réglage
+   possible. Le backend **antidate** l'horodatage (`maintenant − 1 h + validite-signature`) : l'envoi doit
+   commencer dans les 30 minutes (`boutique.medias.videos.validite-signature`, entre 1 et 50 min).
+3. **Chaque signature est enregistrée** (`signature_envoi_video` : produit, idPublic, dossier, expiration,
+   date d'utilisation).
+4. `POST …/medias/videos` déclare la vidéo. Elle est refusée si l'idPublic n'a pas été signé **pour ce
+   produit et dans son dossier** (`VIDEO_AUTRE_PRODUIT` : pas de réutilisation de l'idPublic d'un autre
+   produit, qui n'est pas supprimé pour autant), si elle est déjà déclarée, ou au-delà de l'expiration
+   augmentée de `delai-declaration` (1 h, pour les connexions lentes).
+5. La vidéo est relue sur Cloudinary (présente, en ressource vidéo, format et taille autorisés) ; sinon elle
+   est supprimée et refusée (`VIDEO_INVALIDE`).
+6. URL de la vidéo transformée (`f_auto,q_auto`) ; **image d'aperçu générée par Cloudinary** (`so_auto` : image
+   choisie automatiquement, puis `f_auto,q_auto`), en URL transformée comme les images.
+
+**Vidéos envoyées mais jamais déclarées** (navigateur fermé en cours de route) : présentes sur Cloudinary,
+absentes de `media_produit`. On les retrouve par leurs signatures expirées et jamais utilisées. **La tâche de
+nettoyage de la phase 9 traitera aussi ce cas**, en plus de `media_orphelin` : elle supprimera ces idPublic sur
+Cloudinary (ressource vidéo, puis image par précaution), puis marquera ou retirera les signatures.
+
+**Vidéos YouTube** (`POST …/medias/youtube`, lien `watch`, `youtu.be`, `shorts`, `embed`) :
+- vérification par **oEmbed** avec un délai court (`boutique.medias.youtube.delai`, 3 s). Une vidéo privée,
+  supprimée ou dont l'auteur a désactivé l'intégration est refusée en 422 avec un message clair
+  (`YOUTUBE_NON_INTEGRABLE`, `YOUTUBE_INTROUVABLE`). Si YouTube ne répond pas : **502**
+  `YOUTUBE_INDISPONIBLE` ;
+- miniature (`i.ytimg.com/vi/<id>/hqdefault.jpg`, adresse construite par le code, jamais reprise d'une
+  réponse tierce) copiée sur Cloudinary et servie en URL transformée : afficher la fiche ne contacte pas
+  YouTube ;
+- **phase 3** : le lecteur utilisera `youtube-nocookie.com` et ne sera chargé **qu'au clic** sur la
+  miniature. Rien n'est chargé depuis YouTube avant ce clic (performances, vie privée, consentement).
+
 ## 2. Contrôle des fichiers envoyés (`VerificationFichiers`)
 
 1. **Poids** : 5 Mo par image (multipart Spring 5 Mo par fichier, 50 Mo par requête ; nginx 55 Mo).
@@ -69,7 +108,15 @@ aléatoire (`SecureRandom`) évite les collisions et empêche de deviner les aut
 Les originaux peuvent contenir des métadonnées EXIF (coordonnées GPS du téléphone qui a pris la photo,
 modèle, date). **Aucune URL d'original ne sort du site** : pages, JSON-LD, Open Graph et flux Google/Meta
 (phase 7) utilisent une URL Cloudinary transformée, au minimum `f_auto,q_auto`, ce qui produit un fichier
-réencodé sans métadonnées. La base garde l'idPublic ; les URL sont construites à la lecture.
+réencodé sans métadonnées. La base garde l'idPublic et l'URL de diffusion déjà transformée, avec sa version
+(`…/image/upload/f_auto,q_auto/v<version>/<idPublic>.<format>`).
+
+**Pour la phase 3 (chargeur `NgOptimizedImage`)** : les URL en base contiennent **déjà** `f_auto,q_auto`. Le
+chargeur Angular doit **compléter** cette transformation avec la largeur demandée (`f_auto,q_auto,w_640`), sans
+la dupliquer (jamais `f_auto,q_auto/f_auto,q_auto,w_640` ni deux `w_`). Les images de démonstration
+(`/images/demo/….svg`, servies par le site, sans transformation) restent inchangées. Le chargeur aura un test
+sur une URL enregistrée (largeur ajoutée une seule fois, version et idPublic intacts) et sur une URL d'image de
+démonstration (renvoyée telle quelle).
 
 ## 5. SVG : nettoyés à l'envoi, affichés uniquement par `<img src>`
 

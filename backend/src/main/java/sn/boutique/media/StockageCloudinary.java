@@ -1,9 +1,13 @@
 package sn.boutique.media;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.api.exceptions.NotFound;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +24,8 @@ public class StockageCloudinary implements StockageMedia {
 
     /** Réencodage au format le mieux adapté au navigateur, qualité automatique, métadonnées retirées. */
     static final String TRANSFORMATION_DIFFUSION = "f_auto,q_auto";
+    /** Aperçu d'une vidéo : image choisie automatiquement par Cloudinary, puis même transformation. */
+    static final String TRANSFORMATION_MINIATURE = "so_auto," + TRANSFORMATION_DIFFUSION;
 
     private final ProprietesMedias proprietes;
     private volatile Cloudinary client;
@@ -30,20 +36,26 @@ public class StockageCloudinary implements StockageMedia {
 
     @Override
     public MediaStocke envoyerImage(FichierVerifie fichier, String idPublic) {
+        return envoyer(fichier.contenu(), idPublic, "de l'image");
+    }
+
+    @Override
+    public MediaStocke envoyerImageDistante(String url, String idPublic) {
+        return envoyer(url, idPublic, "de la miniature");
+    }
+
+    private MediaStocke envoyer(Object source, String idPublic, String quoi) {
         Map<String, Object> options = optionsCommunes("image");
         options.put("public_id", idPublic);
         // Mode « dossiers dynamiques » de Cloudinary : range aussi le fichier dans la médiathèque
-        options.put("asset_folder", idPublic.substring(0, idPublic.lastIndexOf('/')));
+        options.put("asset_folder", dossierDe(idPublic));
         options.put("overwrite", false);
         options.put("unique_filename", false);
         options.put("use_filename", false);
         try {
-            Map<?, ?> reponse = client().uploader().upload(fichier.contenu(), options);
-            return new MediaStocke((String) reponse.get("public_id"), nombre(reponse.get("version")),
-                    (String) reponse.get("format"), entier(reponse.get("width")), entier(reponse.get("height")),
-                    nombre(reponse.get("bytes")));
+            return mediaStocke(client().uploader().upload(source, options));
         } catch (Exception e) {
-            throw new StockageIndisponibleException("Envoi de l'image impossible (" + idPublic + ") : "
+            throw new StockageIndisponibleException("Envoi " + quoi + " impossible (" + idPublic + ") : "
                     + e.getMessage(), e);
         }
     }
@@ -56,6 +68,55 @@ public class StockageCloudinary implements StockageMedia {
     static String urlImage(String nomDuCloud, MediaStocke media) {
         return "https://res.cloudinary.com/" + nomDuCloud + "/image/upload/" + TRANSFORMATION_DIFFUSION + "/v"
                 + media.version() + "/" + media.idPublic() + "." + media.format();
+    }
+
+    @Override
+    public String urlVideo(MediaStocke video) {
+        return "https://res.cloudinary.com/" + client().config.cloudName + "/video/upload/" + TRANSFORMATION_DIFFUSION
+                + "/v" + video.version() + "/" + video.idPublic() + "." + video.format();
+    }
+
+    @Override
+    public String urlMiniatureVideo(MediaStocke video) {
+        return "https://res.cloudinary.com/" + client().config.cloudName + "/video/upload/" + TRANSFORMATION_MINIATURE
+                + "/v" + video.version() + "/" + video.idPublic() + ".jpg";
+    }
+
+    /**
+     * Seuls ces paramètres sont signés : le navigateur ne peut ni changer l'idPublic, ni écraser un fichier,
+     * ni envoyer un autre format. La ressource vidéo est fixée par l'URL d'envoi et revérifiée à la
+     * déclaration.
+     */
+    @Override
+    public SignatureEnvoi signerEnvoiVideo(String idPublic, Instant horodatage) {
+        Cloudinary cloudinary = client();
+        Map<String, Object> signes = new LinkedHashMap<>();
+        signes.put("timestamp", String.valueOf(horodatage.getEpochSecond()));
+        signes.put("public_id", idPublic);
+        signes.put("asset_folder", dossierDe(idPublic));
+        signes.put("overwrite", "false");
+        signes.put("allowed_formats", String.join(",", proprietes.videos().formats()));
+        String signature = cloudinary.apiSignRequest(signes, cloudinary.config.apiSecret,
+                cloudinary.config.signatureVersion);
+
+        Map<String, String> parametres = new LinkedHashMap<>();
+        signes.forEach((cle, valeur) -> parametres.put(cle, String.valueOf(valeur)));
+        parametres.put("api_key", cloudinary.config.apiKey);
+        parametres.put("signature", signature);
+        return new SignatureEnvoi("https://api.cloudinary.com/v1_1/" + cloudinary.config.cloudName + "/video/upload",
+                parametres);
+    }
+
+    @Override
+    public Optional<MediaStocke> lireVideo(String idPublic) {
+        try {
+            return Optional.of(mediaStocke(client().api().resource(idPublic, optionsCommunes("video"))));
+        } catch (NotFound e) {
+            return Optional.empty();
+        } catch (Exception e) {
+            throw new StockageIndisponibleException("Lecture de la vidéo impossible (" + idPublic + ") : "
+                    + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -75,6 +136,16 @@ public class StockageCloudinary implements StockageMedia {
         } catch (Exception e) {
             throw new StockageIndisponibleException("Suppression impossible (" + idPublic + ") : " + e.getMessage(), e);
         }
+    }
+
+    private static String dossierDe(String idPublic) {
+        return idPublic.substring(0, idPublic.lastIndexOf('/'));
+    }
+
+    private static MediaStocke mediaStocke(Map<?, ?> reponse) {
+        return new MediaStocke((String) reponse.get("public_id"), nombre(reponse.get("version")),
+                (String) reponse.get("format"), entier(reponse.get("width")), entier(reponse.get("height")),
+                nombre(reponse.get("bytes")));
     }
 
     private Map<String, Object> optionsCommunes(String typeRessource) {

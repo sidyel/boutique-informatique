@@ -10,6 +10,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import sn.boutique.support.CompteurRequetesSql;
 import sn.boutique.support.FauxStockageMedia;
+import sn.boutique.support.FauxVerificationYoutube;
 
 /**
  * Conteneurs PostgreSQL, Redis et Mailpit partagés par les tests d'intégration.
@@ -23,6 +24,13 @@ public class TestcontainersConfiguration {
     @Primary
     FauxStockageMedia fauxStockageMedia() {
         return new FauxStockageMedia();
+    }
+
+    /** Remplace l'appel oEmbed à YouTube (l'implémentation réelle est testée contre un faux serveur HTTP). */
+    @Bean
+    @Primary
+    FauxVerificationYoutube fauxVerificationYoutube() {
+        return new FauxVerificationYoutube();
     }
 
     /**

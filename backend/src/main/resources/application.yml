@@ -162,6 +162,14 @@ boutique:
     videos:
       taille-max: 100MB
       max-par-produit: 1
+      formats: [mp4, webm]
+      # Durée pendant laquelle l'envoi peut commencer (Cloudinary plafonne à 1 h)
+      validite-signature: 30m
+      # Délai supplémentaire pour déclarer la vidéo une fois l'envoi terminé (connexions lentes)
+      delai-declaration: 1h
+    youtube:
+      url-oembed: https://www.youtube.com/oembed
+      delai: 3s
     # Suppression sur Cloudinary : 3 essais, puis enregistrement dans media_orphelin
     suppression:
       essais: 3

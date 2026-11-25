@@ -262,7 +262,7 @@ public class MediaAdminService {
         }
     }
 
-    private void compenser(List<MediaStocke> envoyes, String raison) {
+    void compenser(List<MediaStocke> envoyes, String raison) {
         for (MediaStocke stocke : envoyes) {
             nettoyage.supprimer(stocke.idPublic(), TypeRessource.IMAGE, "compensation : " + raison);
         }
@@ -278,7 +278,7 @@ public class MediaAdminService {
                 .orElseThrow(() -> new RessourceIntrouvableException("Média", String.valueOf(mediaId)));
     }
 
-    private static VarianteProduit varianteDuProduit(Produit produit, Long varianteId) {
+    static VarianteProduit varianteDuProduit(Produit produit, Long varianteId) {
         if (varianteId == null) {
             return null;
         }
@@ -297,6 +297,6 @@ public class MediaAdminService {
     }
 
     private MediasProduitAdminReponse reponse(Produit produit) {
-        return MediasProduitAdminReponse.depuis(produit, proprietes.images().maxParProduit());
+        return MediasProduitAdminReponse.depuis(produit, proprietes);
     }
 }

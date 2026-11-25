@@ -22,6 +22,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import sn.boutique.media.StockageIndisponibleException;
+import sn.boutique.media.YoutubeIndisponibleException;
 import sn.boutique.noyau.limitation.TropDeRequetesException;
 
 /**
@@ -91,6 +92,15 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
                 ex.getMessage());
         return construire(HttpStatus.SERVICE_UNAVAILABLE, "STOCKAGE_INDISPONIBLE",
                 "Le stockage des images est momentanément indisponible. Réessayez dans quelques instants.", requete);
+    }
+
+    /** YouTube injoignable : détail dans le journal, message clair pour l'administrateur. */
+    @ExceptionHandler(YoutubeIndisponibleException.class)
+    ProblemDetail gererYoutubeIndisponible(YoutubeIndisponibleException ex, HttpServletRequest requete) {
+        log.warn("YouTube indisponible sur {} {} : {}", requete.getMethod(), requete.getRequestURI(), ex.getMessage());
+        return construire(HttpStatus.BAD_GATEWAY, "YOUTUBE_INDISPONIBLE",
+                "YouTube ne répond pas pour le moment : la vidéo n'a pas pu être vérifiée. Réessayez dans quelques "
+                        + "instants.", requete);
     }
 
     @ExceptionHandler(TropDeRequetesException.class)
