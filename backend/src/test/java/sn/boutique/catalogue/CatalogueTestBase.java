@@ -3,6 +3,7 @@ package sn.boutique.catalogue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -100,6 +101,8 @@ abstract class CatalogueTestBase {
      * Les valeurs de caractéristiques propres à une variante s'ajoutent ensuite avec {@link #caracteristiques}.
      */
     Produit produit(String nom, Marque marque, Categorie categorie, Consumer<Produit> configuration) {
+        // L'horloge des tests est figée : on l'avance pour que l'ordre de création (tri « nouveauté ») soit net
+        horloge.avancer(Duration.ofSeconds(1));
         Produit cree = enTransaction(em -> {
             Produit produit = new Produit(nom, unique("produit"), em.getReference(Marque.class, marque.getId()),
                     em.getReference(Categorie.class, categorie.getId()));

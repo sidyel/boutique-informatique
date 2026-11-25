@@ -58,6 +58,13 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
         return construire(HttpStatus.NOT_FOUND, "RESSOURCE_INTROUVABLE", ex.getMessage(), requete);
     }
 
+    @ExceptionHandler(ParametreInvalideException.class)
+    ProblemDetail gererParametreInvalide(ParametreInvalideException ex, HttpServletRequest requete) {
+        ProblemDetail probleme = construire(HttpStatus.BAD_REQUEST, "PARAMETRE_INVALIDE", ex.getMessage(), requete);
+        probleme.setProperty("parametre", ex.getParametre());
+        return probleme;
+    }
+
     @ExceptionHandler(StockInsuffisantException.class)
     ProblemDetail gererStockInsuffisant(StockInsuffisantException ex, HttpServletRequest requete) {
         ProblemDetail probleme = construire(HttpStatus.CONFLICT, "STOCK_INSUFFISANT", ex.getMessage(), requete);
