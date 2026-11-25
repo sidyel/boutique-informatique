@@ -1,0 +1,8 @@
+# Mode HTTP simple : DÉVELOPPEMENT LOCAL uniquement (http://localhost, aucun certificat nécessaire).
+# Choisi par défaut par docker-compose.dev.yml ; jamais en production (voir ADR 0006).
+server {
+    listen 80;
+    server_name _;
+
+    include /etc/nginx/conf.d/commun/emplacements.conf;
+}

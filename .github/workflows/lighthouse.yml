@@ -1,7 +1,10 @@
 name: Lighthouse
 
 # Performance mesurée sur une machine propre : la stack Docker complète (nginx, SSR, backend, PostgreSQL,
-# Redis) avec les données de démonstration, puis Lighthouse mobile 5 fois par page, médiane retenue.
+# Redis) avec les données de démonstration, puis Lighthouse mobile 7 fois par page, médiane retenue
+# (la CI varie d'environ 0,5 s d'un passage à l'autre).
+# Le site est servi comme en production : nginx en mode HTTPS + HTTP/2 (infra/nginx/modes/https.conf.template),
+# avec un certificat autosigné généré pendant le job, jamais commité (ADR 0006).
 # Échec si LCP > 2,5 s, CLS > 0,1 ou poids du premier chargement > 1 Mo ; avertissement si performance < 90
 # (seuils et calcul : infra/scripts/lighthouse_mediane.py).
 on:
@@ -23,11 +26,11 @@ permissions:
 
 env:
   LIGHTHOUSE_VERSION: '13.6.0'
-  PASSAGES: '5'
+  PASSAGES: '7'
 
 jobs:
   lighthouse:
-    name: Lighthouse mobile (médiane de 5 passages)
+    name: Lighthouse mobile (médiane de 7 passages)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -47,10 +50,21 @@ jobs:
           sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')|" .env
           grep -q '^JWT_SECRET=.\+' .env
 
+      # Seule différence avec la production : le certificat (Let's Encrypt en phase 9). Clé jetable.
+      - name: Certificat autosigné pour nginx
+        run: |
+          mkdir -p infra/certificats
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj "/CN=localhost" \
+            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
+            -keyout infra/certificats/privkey.pem -out infra/certificats/fullchain.pem
+          chmod 644 infra/certificats/privkey.pem
+
       - name: Démarrage de la stack avec les données de démonstration
         working-directory: infra
         env:
           DEMO: '1'
+          NGINX_MODE: https
+          URL_SITE_DOCKER: https://localhost
         run: >-
           docker compose -f docker-compose.yml -f docker-compose.dev.yml
           up -d --build --wait --wait-timeout 900
@@ -58,20 +72,22 @@ jobs:
       - name: Attente du catalogue de démonstration
         run: |
           for i in $(seq 1 60); do
-            if curl -fsS http://localhost/api/accueil | python3 -c 'import json,sys; sys.exit(0 if any(s["produits"] for s in json.load(sys.stdin)["sections"]) else 1)'; then
+            if curl -fsSk https://localhost/api/accueil | python3 -c 'import json,sys; sys.exit(0 if any(s["produits"] for s in json.load(sys.stdin)["sections"]) else 1)'; then
               echo "Catalogue prêt"; exit 0
             fi
             sleep 5
           done
           echo "::error::Le catalogue de démonstration n'est pas disponible"; exit 1
 
-      # Pages ajoutées au fil des parties : fiche produit en 3c
+      # Pages ajoutées au fil des parties : fiche produit en 3c.
+      # --certificat-autosigne (Chrome --ignore-certificate-errors) : uniquement dans ce job.
       - name: Lighthouse mobile
         env:
           LIGHTHOUSE_CMD: lighthouse
         run: >-
           python3 infra/scripts/lighthouse_mediane.py
-          --base http://localhost
+          --base https://localhost
+          --certificat-autosigne
           --passages "${PASSAGES}"
           --sortie rapports-lighthouse
           --page accueil=/
@@ -89,4 +105,6 @@ jobs:
       - name: Journaux de la stack
         if: failure()
         working-directory: infra
+        env:
+          NGINX_MODE: https
         run: docker compose -f docker-compose.yml -f docker-compose.dev.yml logs --no-color --tail=200

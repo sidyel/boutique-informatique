@@ -9,8 +9,12 @@ passage médian (score de performance), puis applique les seuils du projet (CLAU
   - simple AVERTISSEMENT si le score de performance est < 90.
 
 Usage :
-  python3 infra/scripts/lighthouse_mediane.py --base http://localhost --page accueil=/ \\
-      [--page categorie=/categorie/pc-portables] [--passages 5] [--sortie rapports-lighthouse]
+  python3 infra/scripts/lighthouse_mediane.py --base https://localhost --page accueil=/ \\
+      [--page categorie=/categorie/pc-portables] [--passages 7] [--sortie rapports-lighthouse] \\
+      [--certificat-autosigne]
+
+--certificat-autosigne : le site est servi en HTTPS avec un certificat autosigné (workflow Lighthouse, voir
+ADR 0006) ; Chrome et la requête de chauffe acceptent alors ce certificat. Jamais pour un vrai site.
 
 La commande Lighthouse se règle par la variable LIGHTHOUSE_CMD (défaut : « lighthouse »).
 Le tableau récapitulatif est ajouté au résumé du job GitHub Actions (GITHUB_STEP_SUMMARY) s'il existe.
@@ -19,6 +23,7 @@ Le tableau récapitulatif est ajouté au résumé du job GitHub Actions (GITHUB_
 from __future__ import annotations
 
 import argparse
+import ssl
 import json
 import os
 import shlex
@@ -37,7 +42,7 @@ SEUIL_PERFORMANCE = 90
 CATEGORIES = "performance,accessibility,best-practices,seo"
 
 
-def lancer_lighthouse(url: str, destination: Path) -> dict:
+def lancer_lighthouse(url: str, destination: Path, certificat_autosigne: bool) -> dict:
     commande = shlex.split(os.environ.get("LIGHTHOUSE_CMD", "lighthouse"))
     commande += [
         url,
@@ -47,7 +52,8 @@ def lancer_lighthouse(url: str, destination: Path) -> dict:
         f"--output-path={destination}",
         f"--only-categories={CATEGORIES}",
         # Profil mobile par défaut de Lighthouse : téléphone moyen, 4G lente et processeur ralenti simulés
-        "--chrome-flags=--headless=new --no-sandbox",
+        "--chrome-flags=--headless=new --no-sandbox"
+        + (" --ignore-certificate-errors" if certificat_autosigne else ""),
     ]
     subprocess.run(commande, check=True)
     with open(f"{destination}.report.json", encoding="utf-8") as fichier:
@@ -70,16 +76,17 @@ def metriques(rapport: dict) -> dict:
     }
 
 
-def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path) -> dict:
+def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, certificat_autosigne: bool) -> dict:
     url = base.rstrip("/") + chemin
     # Chauffe : le premier rendu SSR (compilation à la volée de Node) ne doit pas fausser le 1er passage
-    urllib.request.urlopen(url, timeout=60).read()
+    contexte = ssl._create_unverified_context() if certificat_autosigne else None
+    urllib.request.urlopen(url, timeout=60, context=contexte).read()
 
     resultats = []
     for numero in range(1, passages + 1):
         destination = sortie / f"{nom}-{numero}"
         print(f"[{nom}] passage {numero}/{passages} : {url}", flush=True)
-        resultats.append(metriques(lancer_lighthouse(url, destination)))
+        resultats.append(metriques(lancer_lighthouse(url, destination, certificat_autosigne)))
 
     mediane = {cle: statistics.median(r[cle] for r in resultats) for cle in resultats[0]}
     # Rapport HTML conservé : celui du passage dont le score de performance est le plus proche de la médiane
@@ -127,10 +134,15 @@ def tableau(pages: list[dict], passages: int) -> str:
 
 def main() -> int:
     analyseur = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    analyseur.add_argument("--base", default="http://localhost")
+    analyseur.add_argument("--base", default="https://localhost")
     analyseur.add_argument("--page", action="append", required=True, help="nom=/chemin (répétable)")
-    analyseur.add_argument("--passages", type=int, default=5)
+    analyseur.add_argument("--passages", type=int, default=7)
     analyseur.add_argument("--sortie", default="rapports-lighthouse")
+    analyseur.add_argument(
+        "--certificat-autosigne",
+        action="store_true",
+        help="accepter le certificat autosigné du site (workflow Lighthouse uniquement)",
+    )
     args = analyseur.parse_args()
 
     sortie = Path(args.sortie)
@@ -141,7 +153,7 @@ def main() -> int:
         nom, _, chemin = definition.partition("=")
         if not nom or not chemin.startswith("/"):
             analyseur.error(f"page invalide : « {definition} » (attendu : nom=/chemin)")
-        pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie))
+        pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie, args.certificat_autosigne))
 
     resume = tableau(pages, args.passages)
     print(resume)

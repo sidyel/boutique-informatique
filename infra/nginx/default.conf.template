@@ -1,6 +1,14 @@
 # Frontal nginx : l'API, le sitemap, robots.txt et les flux produits vont au backend,
 # tout le reste au serveur de rendu Angular (SSR).
-# HTTPS, brotli et CSP complète seront ajoutés pour la production (phase 9).
+#
+# Organisation (voir ADR 0006) :
+#  - ce fichier : réglages globaux (limitation du débit) puis inclusion des serveurs du mode choisi ;
+#  - modes/https.conf.template : base de la PRODUCTION (HTTPS, HTTP/2, redirection 80 → 443), aussi
+#    utilisée par le workflow Lighthouse avec un certificat autosigné ;
+#  - modes/http.conf.template : HTTP simple sur le port 80, pour le développement local uniquement ;
+#  - commun/emplacements.conf.template : routes et en-têtes, identiques dans les deux modes.
+# Le mode est choisi par NGINX_MODE (docker-compose.yml : https ; docker-compose.dev.yml : http par défaut).
+# Brotli et CSP complète : phase 9.
 #
 # Modèle de l'image nginx officielle : au démarrage, les ${NGINX_…} sont remplacés par les variables
 # d'environnement du conteneur (valeurs par défaut dans infra/docker-compose.yml). Seules les variables
@@ -29,103 +37,5 @@ limit_req_zone $cle_pages zone=pages:10m rate=${NGINX_DEBIT_PAGES};
 limit_req_status 429;
 limit_req_log_level warn;
 
-server {
-    listen 80;
-    server_name _;
-
-    # Résolution DNS à chaque expiration (10 s) par le DNS interne de Docker, au lieu d'une seule fois au
-    # démarrage : quand le backend ou le frontend est recréé (nouvelle IP), nginx le retrouve sans
-    # redémarrage ni 502. Cela impose des variables dans proxy_pass (et nginx -t ne dépend plus de la
-    # présence des conteneurs). Contrepartie : pas de bloc upstream, donc pas de connexions keepalive
-    # vers les conteneurs, négligeable à notre échelle.
-    resolver 127.0.0.11 valid=10s ipv6=off;
-    resolver_timeout 5s;
-    set $backend  backend:8080;
-    set $frontend frontend:4000;
-
-    # Corps de requête : 1 Mo partout (JSON de l'API, formulaires). Seules les routes d'envoi de médias du
-    # back-office acceptent 55 Mo (voir plus bas). Les vidéos vont directement du navigateur à Cloudinary.
-    client_max_body_size 1m;
-    server_tokens off;
-
-    # --- Compression ----------------------------------------------------
-    gzip on;
-    gzip_vary on;
-    gzip_proxied any;
-    gzip_comp_level 5;
-    gzip_min_length 1024;
-    # text/javascript : type servi par le serveur SSR (Express) pour les fichiers .js
-    gzip_types text/plain text/css text/xml application/xml application/rss+xml
-               text/javascript application/javascript application/json application/problem+json
-               application/ld+json image/svg+xml image/x-icon;
-
-    # --- En-têtes de sécurité de base -----------------------------------
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
-
-    proxy_http_version 1.1;
-    proxy_set_header Connection "";
-    proxy_set_header Host $host;
-    # nginx est le point d'entrée public : l'IP du client est celle de la connexion TCP ($remote_addr).
-    # On ÉCRASE X-Forwarded-For au lieu de l'allonger ($proxy_add_x_forwarded_for recopierait la valeur
-    # envoyée par le client, qui pourrait alors se faire passer pour n'importe quelle IP et contourner
-    # la limitation du débit). Voir ADR 0003 §13. Si un CDN est ajouté devant nginx, revoir cette règle
-    # (module real_ip avec la liste des adresses du CDN).
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $host;
-
-    # --- Backend --------------------------------------------------------
-    # proxy_pass SANS partie URI après la variable : nginx transmet l'URI d'origine intacte (chemin
-    # encodé et paramètres). Ne jamais écrire « http://$backend/ » : le chemin serait remplacé par « / ».
-    location /api/ {
-        limit_req zone=api burst=${NGINX_RAFALE_API} nodelay;
-        proxy_pass http://$backend;
-    }
-
-    location /api/recherche {
-        limit_req zone=recherche burst=${NGINX_RAFALE_RECHERCHE} nodelay;
-        proxy_pass http://$backend;
-    }
-
-    # Envois de médias du back-office (authentifiés, rôles vérifiés par le backend) : images groupées,
-    # 50 Mo côté Spring, marge pour l'encodage multipart.
-    location ~ ^/api/admin/(produits/[0-9]+/medias|parametres/[a-z-]+|bannieres/images)$ {
-        client_max_body_size 55m;
-        limit_req zone=api burst=${NGINX_RAFALE_API} nodelay;
-        proxy_pass http://$backend;
-    }
-
-    location = /sitemap.xml {
-        proxy_pass http://$backend;
-    }
-
-    location ~ ^/sitemap-[a-z0-9-]+\.xml$ {
-        proxy_pass http://$backend;
-    }
-
-    location = /robots.txt {
-        proxy_pass http://$backend;
-    }
-
-    location /flux/ {
-        limit_req zone=api burst=${NGINX_RAFALE_API} nodelay;
-        proxy_pass http://$backend;
-    }
-
-    # La supervision n'est jamais exposée publiquement.
-    location /actuator/ {
-        return 404;
-    }
-
-    # --- Pages rendues côté serveur (SSR) et fichiers statiques -------------
-    # Le serveur SSR (Express) pose lui-même Cache-Control : un an, immuable,
-    # pour les fichiers JS/CSS à empreinte et les polices.
-    location / {
-        limit_req zone=pages burst=${NGINX_RAFALE_PAGES} nodelay;
-        proxy_pass http://$frontend;
-    }
-}
+# Serveurs du mode choisi (HTTPS ou HTTP simple), qui incluent les routes communes
+include /etc/nginx/conf.d/mode/serveurs.conf;

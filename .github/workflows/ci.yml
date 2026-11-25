@@ -109,8 +109,22 @@ jobs:
       - name: Le frontend SSR ne reçoit aucun secret
         run: python3 infra/scripts/verifier_env_frontend.py
 
-      - name: Configuration nginx valide
-        run: >-
-          docker run --rm -v "$PWD/infra/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro"
-          -e NGINX_DEBIT_API=20r/s -e NGINX_RAFALE_API=100 -e NGINX_DEBIT_RECHERCHE=5r/s -e NGINX_RAFALE_RECHERCHE=40
-          -e NGINX_DEBIT_PAGES=5r/s -e NGINX_RAFALE_PAGES=40 nginx:1.29-alpine nginx -t
+      # Les deux modes (ADR 0006) : https, base de la production (certificat jetable pour le test), et http,
+      # développement local. Mêmes montages que infra/docker-compose.yml.
+      - name: Configuration nginx valide (modes https et http)
+        run: |
+          mkdir -p "$RUNNER_TEMP/certificats"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=localhost" \
+            -keyout "$RUNNER_TEMP/certificats/privkey.pem" -out "$RUNNER_TEMP/certificats/fullchain.pem"
+          chmod 644 "$RUNNER_TEMP/certificats/privkey.pem"
+          for mode in https http; do
+            echo "Mode $mode"
+            docker run --rm \
+              -v "$PWD/infra/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro" \
+              -v "$PWD/infra/nginx/commun/emplacements.conf.template:/etc/nginx/templates/commun/emplacements.conf.template:ro" \
+              -v "$PWD/infra/nginx/modes/$mode.conf.template:/etc/nginx/templates/mode/serveurs.conf.template:ro" \
+              -v "$RUNNER_TEMP/certificats:/etc/nginx/certificats:ro" \
+              -e NGINX_CERTIFICAT=/etc/nginx/certificats/fullchain.pem -e NGINX_CLE_CERTIFICAT=/etc/nginx/certificats/privkey.pem \
+              -e NGINX_DEBIT_API=20r/s -e NGINX_RAFALE_API=100 -e NGINX_DEBIT_RECHERCHE=5r/s -e NGINX_RAFALE_RECHERCHE=40 \
+              -e NGINX_DEBIT_PAGES=5r/s -e NGINX_RAFALE_PAGES=40 nginx:1.29-alpine nginx -t
+          done

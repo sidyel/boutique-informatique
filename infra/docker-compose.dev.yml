@@ -40,3 +40,10 @@ services:
     depends_on:
       mailpit:
         condition: service_started
+
+  # HTTP simple sur http://localhost par défaut : aucun certificat pour développer (ADR 0006).
+  # NGINX_MODE=https (avec un certificat dans infra/certificats/) sert le site comme en production :
+  # c'est ce que fait le workflow Lighthouse. Compose remplace le volume de même destination.
+  nginx:
+    volumes:
+      - ./nginx/modes/${NGINX_MODE:-http}.conf.template:/etc/nginx/templates/mode/serveurs.conf.template:ro

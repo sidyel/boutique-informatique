@@ -25,3 +25,8 @@ Thumbs.db
 
 # Claude Code (réglages locaux)
 .claude/settings.local.json
+
+# Certificats TLS (autosignés en local et en CI, Let's Encrypt en production) : jamais dans Git
+infra/certificats/
+*.pem
+*.key

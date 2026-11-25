@@ -119,10 +119,19 @@ services:
     restart: unless-stopped
     ports:
       - "${NGINX_PORT_HOTE:-80}:80"
+      - "${NGINX_PORT_HTTPS_HOTE:-443}:443"
     volumes:
-      # Modèle : les ${NGINX_…} sont remplacés au démarrage (voir l'en-tête du fichier)
+      # Modèles : les ${NGINX_…} sont remplacés au démarrage (voir l'en-tête de default.conf.template).
+      # Les sous-dossiers de templates/ sont rendus dans conf.d/ et inclus par default.conf.
       - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/commun/emplacements.conf.template:/etc/nginx/templates/commun/emplacements.conf.template:ro
+      # Mode : https (production) ; docker-compose.dev.yml choisit http par défaut (ADR 0006)
+      - ./nginx/modes/${NGINX_MODE:-https}.conf.template:/etc/nginx/templates/mode/serveurs.conf.template:ro
+      # Certificat TLS (jamais commité) : Let's Encrypt en production (phase 9), autosigné pour Lighthouse
+      - ${NGINX_DOSSIER_CERTIFICATS:-./certificats}:/etc/nginx/certificats:ro
     environment:
+      NGINX_CERTIFICAT: ${NGINX_CERTIFICAT:-/etc/nginx/certificats/fullchain.pem}
+      NGINX_CLE_CERTIFICAT: ${NGINX_CLE_CERTIFICAT:-/etc/nginx/certificats/privkey.pem}
       # Limitation du débit par IP (CGNAT : valeurs généreuses). Débit en r/s ou r/m, rafale en requêtes.
       NGINX_DEBIT_API: ${NGINX_DEBIT_API:-20r/s}
       NGINX_RAFALE_API: ${NGINX_RAFALE_API:-100}

@@ -55,6 +55,33 @@ docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
 Après la reconstruction d'un seul service (`... up -d --build backend`), nginx le retrouve tout seul
 (résolution DNS Docker toutes les 10 s) : pas besoin de le redémarrer.
 
+### nginx : HTTP simple en développement, HTTPS comme en production
+
+La configuration nginx de production est en **HTTPS + HTTP/2** (redirection 80 → 443, HSTS ; voir
+`docs/decisions/0006-https-http2-et-mesure-des-performances.md`). Le mode est choisi par `NGINX_MODE` :
+
+| Mode | Quand | Adresse | Certificat |
+|---|---|---|---|
+| `http` | développement (défaut de `docker-compose.dev.yml`) | http://localhost | aucun |
+| `https` | production (défaut de `docker-compose.yml`), workflow Lighthouse, essai local | https://localhost | `infra/certificats/fullchain.pem` et `privkey.pem` |
+
+Essayer le mode production en local (certificat autosigné, jamais commité : `infra/certificats/` est ignoré
+par Git ; le navigateur affichera un avertissement) :
+
+```bash
+mkdir -p infra/certificats
+openssl req -x509 -newkey rsa:2048 -nodes -days 30 -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
+  -keyout infra/certificats/privkey.pem -out infra/certificats/fullchain.pem
+NGINX_MODE=https URL_SITE_DOCKER=https://localhost \
+  docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d --build
+# Site : https://localhost (http://localhost redirige)
+```
+
+Revenir en HTTP simple : relancer la même commande sans `NGINX_MODE` ni `URL_SITE_DOCKER`.
+Seuls les chemins du certificat changent selon l'environnement (`NGINX_DOSSIER_CERTIFICATS`,
+`NGINX_CERTIFICAT`, `NGINX_CLE_CERTIFICAT`) : Let's Encrypt en production (phase 9).
+
 ## Tests
 
 ```bash
@@ -74,16 +101,20 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 | Backend en dev | `PORT_BACKEND` (`.env`) | 8080 |
 | Frontend en dev | `npm start -- --port 4300` | 4200 |
 | nginx (docker-compose) | `NGINX_PORT_HOTE` + `URL_SITE_DOCKER` (shell), ex. 8088 et `http://localhost:8088` | 80 |
+| nginx en HTTPS (`NGINX_MODE=https`) | `NGINX_PORT_HTTPS_HOTE` (shell) | 443 |
 | Mailpit (mode dev) | `MAILPIT_PORT_WEB_HOTE`, `MAILPIT_PORT_SMTP_HOTE` (shell) | 8025, 1025 |
 
 ## À traiter avant la mise en production (phase 9)
 
-- **Images de démonstration** : `frontend/public/demo/images/` (SVG du profil `demo`) ne doit pas se
+- **Images de démonstration** : `frontend/public/demo/images/` (WebP du profil `demo`) ne doit pas se
   retrouver dans l'image Docker de production. Angular copie tout `public/` dans `dist/` : exclure le
   dossier à la compilation de production (par exemple `rm -rf dist/frontend/browser/demo` dans le
   Dockerfile, ou une configuration `assets` dédiée) et vérifier qu'aucune donnée en base ne pointe
   vers `/demo/images/`.
-- **Sécurité (relecture)** : clé de limitation par préfixe /64 pour IPv6, puis HSTS, CSP complète et
+- **HTTPS** : certificat Let's Encrypt et renouvellement automatique ; mesurer les performances sur de
+  vrais visiteurs (PageSpeed Insights, données de terrain) et ne réduire le nombre de fichiers JS du
+  démarrage que si ces mesures le justifient (ADR 0006).
+- **Sécurité (relecture)** : clé de limitation par préfixe /64 pour IPv6, puis CSP complète et
   `Cross-Origin-Opener-Policy: same-origin` dans nginx (ADR 0003, « À traiter dans les phases
   suivantes »). Brancher sur la supervision les journaux `ALERTE_REDIS_PLEIN`, `ALERTE_REDIS_INDISPONIBLE`
   et `ALERTE_CONNEXION_CIBLEE`. Tâche de nettoyage de Cloudinary (ADR 0005).
