@@ -129,6 +129,8 @@ class LecturesCatalogueTest extends CatalogueTestBase {
                 .andExpect(jsonPath("$.verification").isMap())
                 .andExpect(jsonPath("$.liensReseauxSociaux").isMap())
                 .andExpect(jsonPath("$.avisReservesAuxAcheteurs").value(true))
+                // Fiche produit (V14) : panier en bouton principal par défaut
+                .andExpect(jsonPath("$.boutonPrincipalFiche").value("PANIER"))
                 // Les identifiants internes de stockage des images ne sont pas exposés
                 .andExpect(jsonPath("$.logoIdPublic").doesNotExist());
         assertThat(requete.requetesSql()).isEqualTo(1);

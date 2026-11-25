@@ -3,6 +3,7 @@ package sn.boutique.contenu.dto;
 import java.util.List;
 import java.util.Map;
 
+import sn.boutique.contenu.modele.BoutonPrincipalFiche;
 import sn.boutique.contenu.modele.ElementConfiance;
 import sn.boutique.contenu.modele.ParametresSite;
 import sn.boutique.media.TransformationsImages;
@@ -25,7 +26,9 @@ public record ParametresPublicsReponse(
         List<ElementConfiance> elementsConfiance,
         Suivi suivi,
         Verification verification,
-        boolean avisReservesAuxAcheteurs) {
+        boolean avisReservesAuxAcheteurs,
+        BoutonPrincipalFiche boutonPrincipalFiche,
+        String delaiLivraison) {
 
     /**
      * Favicon décliné par Cloudinary à partir d'une seule image carrée (PNG) : onglet (32), écran d'accueil iOS
@@ -62,7 +65,8 @@ public record ParametresPublicsReponse(
                 new Suivi(p.getIdGoogleTagManager(), p.getIdGa4(), p.getIdGoogleAds(), p.getLibelleConversionAchat(),
                         p.getIdPixelMeta()),
                 new Verification(p.getCodeVerificationGoogle(), p.getCodeVerificationMeta()),
-                p.isAvisReservesAuxAcheteurs());
+                p.isAvisReservesAuxAcheteurs(), p.getBoutonPrincipalFiche(),
+                vide(p.getDelaiLivraison()) ? null : p.getDelaiLivraison().strip());
     }
 
     private static boolean vide(String texte) {

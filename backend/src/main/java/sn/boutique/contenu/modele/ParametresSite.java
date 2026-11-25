@@ -9,6 +9,8 @@ import java.util.Map;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -130,6 +132,18 @@ public class ParametresSite {
      */
     @Column(nullable = false)
     private boolean avisReservesAuxAcheteurs = true;
+
+    /** Bouton d'achat mis en avant sur la fiche produit (V14). */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private BoutonPrincipalFiche boutonPrincipalFiche = BoutonPrincipalFiche.PANIER;
+
+    /**
+     * Délai affiché près du bouton d'achat : « Livré à Dakar en 24 h, en régions en 2 à 4 jours ».
+     * Vide : rien n'est affiché. Jamais affiché pour une variante en rupture de stock.
+     */
+    @Column(length = 120)
+    private String delaiLivraison;
 
     @LastModifiedDate
     @Column(nullable = false)

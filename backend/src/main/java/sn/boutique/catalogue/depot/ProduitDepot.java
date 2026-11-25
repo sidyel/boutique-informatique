@@ -18,6 +18,10 @@ public interface ProduitDepot extends JpaRepository<Produit, Long> {
     @Query("select p from Produit p join fetch p.marque join fetch p.categorie where p.slug = :slug and p.actif")
     Optional<Produit> trouverPublieParSlug(String slug);
 
+    /** Identifiant d'un produit publié (avis de la fiche : sans charger le produit). */
+    @Query("select p.id from Produit p where p.slug = :slug and p.actif")
+    Optional<Long> trouverIdPublieParSlug(String slug);
+
     Optional<Produit> findBySlug(String slug);
 
     /** Verrou en écriture sur le produit : sérialise les ajouts de médias (limite du nombre d'images). */

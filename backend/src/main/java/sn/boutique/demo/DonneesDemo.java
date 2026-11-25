@@ -50,7 +50,7 @@ final class DonneesDemo {
 
     record ParametresDemo(String telephone, String whatsapp, String email, String adresse, String horaires,
                           Map<String, String> liensReseauxSociaux, String messageBarreSuperieure,
-                          List<ElementConfiance> elementsConfiance) {
+                          List<ElementConfiance> elementsConfiance, String delaiLivraison) {
     }
 
     record ZoneDemo(String nom, long tarif, int delaiJours, List<String> villesQuartiers) {

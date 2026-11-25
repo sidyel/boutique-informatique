@@ -301,6 +301,11 @@ public class ImportDonneesDemo {
             parametres.getElementsConfiance().addAll(site.parametres().elementsConfiance());
             compteurs.autres++;
         }
+        // Délai de la fiche produit (V14) : seulement s'il n'a pas été saisi
+        if (parametres.getDelaiLivraison() == null) {
+            parametres.setDelaiLivraison(site.parametres().delaiLivraison());
+            compteurs.autres++;
+        }
 
         for (ZoneDemo demo : site.zones()) {
             if (!zoneDepot.existsByNom(demo.nom())) {

@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import sn.boutique.noyau.audit.EntiteAuditee;
+import sn.boutique.noyau.html.NettoyeurHtml;
 
 /**
  * Produit du catalogue. Le prix et le stock sont portés par ses variantes.
@@ -50,7 +51,8 @@ public class Produit extends EntiteAuditee {
     @Column(length = 500)
     private String descriptionCourte;
 
-    /** HTML nettoyé à l'écriture (OWASP Java HTML Sanitizer, avec l'admin des produits en phase 6). */
+    /** HTML nettoyé à l'écriture par liste blanche ({@link NettoyeurHtml}). */
+    @Setter(AccessLevel.NONE)
     @Column(columnDefinition = "text")
     private String descriptionLongue;
 
@@ -161,5 +163,10 @@ public class Produit extends EntiteAuditee {
         ValeurCaracteristique valeur = new ValeurCaracteristique(this, definition);
         caracteristiques.add(valeur);
         return valeur;
+    }
+
+    /** Description longue nettoyée par liste blanche : aucun script ni attribut d'événement en base. */
+    public void setDescriptionLongue(String descriptionLongue) {
+        this.descriptionLongue = NettoyeurHtml.descriptionProduit(descriptionLongue);
     }
 }

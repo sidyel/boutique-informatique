@@ -36,6 +36,7 @@ import sn.boutique.catalogue.modele.VarianteProduit;
 import sn.boutique.media.LienYoutube;
 import sn.boutique.noyau.cache.CachesPublics;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
+import sn.boutique.noyau.html.NettoyeurHtml;
 
 /**
  * Fiche produit publique et produits similaires.
@@ -96,7 +97,7 @@ public class FicheProduitService {
         filAriane.add(categorie);
 
         return new FicheProduitReponse(produit.getId(), produit.getSlug(), produit.getNom(),
-                produit.getDescriptionCourte(), produit.getDescriptionLongue(), produit.getEtat(),
+                produit.getDescriptionCourte(), NettoyeurHtml.descriptionProduit(produit.getDescriptionLongue()), produit.getEtat(),
                 produit.getGarantieMois(), produit.getGtin(), produit.getMpn(), produit.getMetaTitre(),
                 produit.getMetaDescription(),
                 new FicheProduitReponse.Marque(produit.getMarque().getNom(), produit.getMarque().getSlug(),

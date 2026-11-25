@@ -11,6 +11,7 @@
       "tiktok": "https://www.tiktok.com/"
     },
     "messageBarreSuperieure": "Livraison à Dakar en 24 h",
+    "delaiLivraison": "Livré à Dakar en 24 h, en régions en 2 à 4 jours",
     "elementsConfiance": [
       {
         "icone": "LIVRAISON",
@@ -31,6 +32,11 @@
         "icone": "SAV",
         "titre": "SAV à Dakar",
         "texte": "Diagnostic sous 72 h"
+      },
+      {
+        "icone": "RETOUR",
+        "titre": "Retour sous 7 jours",
+        "texte": "Produit non utilisé, dans son emballage"
       }
     ]
   },
