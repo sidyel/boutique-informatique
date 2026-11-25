@@ -145,3 +145,38 @@ Dans la même transaction que la suppression du compte, pour chaque commande du 
 - Paramètre à `true` : client avec commande livrée → avis accepté, `achat_verifie = true` ; commande non
   livrée ou absente → 403.
 - Paramètre à `false` : avis accepté dans les deux cas, `achat_verifie` exact.
+
+## 6. Cartes produit et sections de l'accueil (phase 3a, migration V13)
+
+### Caractéristiques clés des cartes
+- `definition_caracteristique.ordre_carte` (1 à 4, unique par catégorie) choisit les caractéristiques
+  affichées sur la carte, `libelle_court` (« RAM » pour « Mémoire vive ») leur libellé. Contraintes en base :
+  jamais plus de 4 caractéristiques par carte, jamais deux au même rang.
+- `ProduitResumeReponse.caracteristiquesCles` : valeur de la **variante retenue** si elle en a une (RAM d'une
+  déclinaison), sinon celle du produit ; unité séparée par une espace insécable (« 16 Go »).
+- Lues dans la **même requête** que les cartes (`json_agg`) : une liste coûte toujours au plus 4 requêtes.
+
+### Filtre `promotion=true`
+Condition de variante (`prix_barre > prix`) : la variante retenue est la moins chère **parmi celles en
+promotion**, et la carte affiche bien un prix barré.
+
+### `GET /api/accueil` : aucun titre ne doit affirmer quelque chose de faux
+Une seule réponse (un aller-retour sur mobile), en cache, avec les sections dans l'ordre d'affichage ; une
+section vide est absente.
+
+| Section | Contenu | Condition |
+|---|---|---|
+| Nouveautés | produits créés depuis moins de `anciennete-nouveautes` (90 j) | au moins un produit |
+| Meilleures ventes | `nombre_ventes > 0`, tri popularité | au moins `seuil-meilleures-ventes` (8) produits vendus |
+| Sélection du moment | produits mis en avant | à la place de « Meilleures ventes » sous le seuil |
+| Promotions | variante retenue avec prix barré | au moins un produit |
+
+Le titre est choisi par le serveur : le frontend n'écrit jamais « Meilleures ventes » lui-même.
+Le compte à rebours des promotions ne vient que de la `dateFin` d'une bannière `ACCUEIL_PROMO` : les prix
+n'ont pas de date de fin, aucune échéance n'est inventée.
+
+### Promesses commerciales (`ParametresSite`)
+`messageBarreSuperieure` (barre de l'en-tête) et `elementsConfiance` (bandeau de l'accueil : icône parmi une
+liste fermée, titre, texte court ; 6 au plus) : saisis par l'équipe, jamais écrits en dur dans le site. Vides
+par défaut ; un élément sans titre est masqué. Formulaire d'édition : back-office (phase 6) ; la démo fournit
+des valeurs.

@@ -23,6 +23,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceClientConfigurat
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
+import sn.boutique.catalogue.dto.AccueilReponse;
 import sn.boutique.catalogue.dto.CategorieNoeudReponse;
 import sn.boutique.catalogue.dto.CategorieReponse;
 import sn.boutique.catalogue.dto.FicheProduitReponse;
@@ -95,6 +96,7 @@ public class CacheConfig implements CachingConfigurer {
         typesParCache.put(CachesPublics.LISTE_PRODUITS,
                 types.constructParametricType(PageReponse.class, ProduitResumeReponse.class));
         typesParCache.put(CachesPublics.FILTRES, types.constructType(FiltresReponse.class));
+        typesParCache.put(CachesPublics.ACCUEIL, types.constructType(AccueilReponse.class));
         if (!typesParCache.keySet().equals(new java.util.HashSet<>(CachesPublics.TOUS))) {
             throw new IllegalStateException("Chaque cache public doit avoir son type : " + CachesPublics.TOUS);
         }

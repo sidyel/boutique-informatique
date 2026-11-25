@@ -104,7 +104,9 @@
           "unite": null,
           "groupe": "Processeur",
           "filtrable": false,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "CPU"
         },
         {
           "cle": "ram_go",
@@ -113,7 +115,9 @@
           "unite": "Go",
           "groupe": "Mémoire",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "RAM"
         },
         {
           "cle": "stockage_go",
@@ -122,7 +126,9 @@
           "unite": "Go",
           "groupe": "Stockage",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Disque"
         },
         {
           "cle": "type_stockage",
@@ -158,7 +164,9 @@
           "unite": "pouces",
           "groupe": "Écran",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 4,
+          "libelleCourt": "Écran"
         },
         {
           "cle": "frequence_ecran_hz",
@@ -205,7 +213,9 @@
           "unite": null,
           "groupe": "Processeur",
           "filtrable": false,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "CPU"
         },
         {
           "cle": "ram_go",
@@ -214,7 +224,9 @@
           "unite": "Go",
           "groupe": "Mémoire",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "RAM"
         },
         {
           "cle": "stockage_go",
@@ -223,7 +235,9 @@
           "unite": "Go",
           "groupe": "Stockage",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 4,
+          "libelleCourt": "Disque"
         },
         {
           "cle": "type_stockage",
@@ -241,7 +255,9 @@
           "unite": null,
           "groupe": "Graphisme",
           "filtrable": false,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 2,
+          "libelleCourt": "GPU"
         },
         {
           "cle": "systeme",
@@ -306,7 +322,9 @@
           "unite": null,
           "groupe": "Processeur",
           "filtrable": false,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "CPU"
         },
         {
           "cle": "ram_go",
@@ -315,7 +333,9 @@
           "unite": "Go",
           "groupe": "Mémoire",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "RAM"
         },
         {
           "cle": "stockage_go",
@@ -324,7 +344,9 @@
           "unite": "Go",
           "groupe": "Stockage",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Disque"
         },
         {
           "cle": "type_stockage",
@@ -342,7 +364,9 @@
           "unite": null,
           "groupe": "Graphisme",
           "filtrable": false,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 4,
+          "libelleCourt": "GPU"
         },
         {
           "cle": "systeme",
@@ -381,7 +405,9 @@
           "unite": null,
           "groupe": "Compatibilité",
           "filtrable": true,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "Socket"
         },
         {
           "cle": "coeurs",
@@ -390,7 +416,9 @@
           "unite": null,
           "groupe": "Performances",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "Cœurs"
         },
         {
           "cle": "frequence_boost_ghz",
@@ -399,7 +427,9 @@
           "unite": "GHz",
           "groupe": "Performances",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Boost"
         },
         {
           "cle": "tdp_w",
@@ -408,7 +438,9 @@
           "unite": "W",
           "groupe": "Consommation",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 4,
+          "libelleCourt": "TDP"
         },
         {
           "cle": "graphique_integre",
@@ -437,7 +469,9 @@
           "unite": null,
           "groupe": "Performances",
           "filtrable": true,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "Puce"
         },
         {
           "cle": "memoire_video_go",
@@ -446,7 +480,9 @@
           "unite": "Go",
           "groupe": "Performances",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "VRAM"
         },
         {
           "cle": "alimentation_recommandee_w",
@@ -455,7 +491,9 @@
           "unite": "W",
           "groupe": "Consommation",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Alim."
         }
       ]
     },
@@ -475,7 +513,9 @@
           "unite": null,
           "groupe": "Compatibilité",
           "filtrable": true,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "Type"
         },
         {
           "cle": "format_memoire",
@@ -484,7 +524,9 @@
           "unite": null,
           "groupe": "Compatibilité",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 4,
+          "libelleCourt": "Format"
         },
         {
           "cle": "capacite_go",
@@ -493,7 +535,9 @@
           "unite": "Go",
           "groupe": "Capacité",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "Capacité"
         },
         {
           "cle": "frequence_mhz",
@@ -502,7 +546,9 @@
           "unite": "MHz",
           "groupe": "Performances",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Fréq."
         }
       ]
     },
@@ -522,7 +568,9 @@
           "unite": null,
           "groupe": "Compatibilité",
           "filtrable": true,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "Interface"
         },
         {
           "cle": "capacite_go",
@@ -531,7 +579,9 @@
           "unite": "Go",
           "groupe": "Capacité",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "Capacité"
         },
         {
           "cle": "lecture_mo_s",
@@ -540,7 +590,9 @@
           "unite": "Mo/s",
           "groupe": "Performances",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Lecture"
         }
       ]
     },
@@ -560,7 +612,9 @@
           "unite": "pouces",
           "groupe": "Écran",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 1,
+          "libelleCourt": "Taille"
         },
         {
           "cle": "resolution",
@@ -569,7 +623,9 @@
           "unite": null,
           "groupe": "Écran",
           "filtrable": true,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 2,
+          "libelleCourt": "Résol."
         },
         {
           "cle": "dalle",
@@ -578,7 +634,9 @@
           "unite": null,
           "groupe": "Écran",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Dalle"
         },
         {
           "cle": "frequence_hz",
@@ -587,7 +645,9 @@
           "unite": "Hz",
           "groupe": "Écran",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 4,
+          "libelleCourt": "Fréq."
         }
       ]
     },
@@ -617,7 +677,9 @@
           "unite": null,
           "groupe": "Connectivité",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 1,
+          "libelleCourt": "Connexion"
         },
         {
           "cle": "disposition",
@@ -626,7 +688,9 @@
           "unite": null,
           "groupe": "Clavier",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "Clavier"
         }
       ]
     },
@@ -646,7 +710,9 @@
           "unite": null,
           "groupe": "Connectivité",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 1,
+          "libelleCourt": "Connexion"
         },
         {
           "cle": "micro",
@@ -655,7 +721,9 @@
           "unite": null,
           "groupe": "Audio",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "Micro"
         }
       ]
     },
@@ -675,7 +743,9 @@
           "unite": null,
           "groupe": "Sans fil",
           "filtrable": true,
-          "cleRecherche": true
+          "cleRecherche": true,
+          "ordreCarte": 1,
+          "libelleCourt": "Wi-Fi"
         },
         {
           "cle": "debit_max_mbps",
@@ -684,7 +754,9 @@
           "unite": "Mbit/s",
           "groupe": "Sans fil",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "Débit"
         }
       ]
     },
@@ -704,7 +776,9 @@
           "unite": "VA",
           "groupe": "Alimentation",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 1,
+          "libelleCourt": "Puiss."
         },
         {
           "cle": "puissance_w",
@@ -713,7 +787,9 @@
           "unite": "W",
           "groupe": "Alimentation",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 2,
+          "libelleCourt": "Active"
         },
         {
           "cle": "prises",
@@ -722,7 +798,9 @@
           "unite": null,
           "groupe": "Connectique",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 3,
+          "libelleCourt": "Prises"
         },
         {
           "cle": "technologie",
@@ -731,7 +809,9 @@
           "unite": null,
           "groupe": "Alimentation",
           "filtrable": true,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 4,
+          "libelleCourt": "Techno."
         }
       ]
     },
@@ -751,7 +831,9 @@
           "unite": null,
           "groupe": "Compatibilité",
           "filtrable": false,
-          "cleRecherche": false
+          "cleRecherche": false,
+          "ordreCarte": 1,
+          "libelleCourt": "Compat."
         }
       ]
     }

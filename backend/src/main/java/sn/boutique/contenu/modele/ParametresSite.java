@@ -1,7 +1,9 @@
 package sn.boutique.contenu.modele;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import jakarta.persistence.Column;
@@ -91,6 +93,15 @@ public class ParametresSite {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)
     private Map<String, String> liensReseauxSociaux = new LinkedHashMap<>();
+
+    /** Barre supérieure de l'en-tête : « Livraison à Dakar en 24 h ». Vide : rien n'est affiché. */
+    @Column(length = 120)
+    private String messageBarreSuperieure;
+
+    /** Bandeau de confiance de l'accueil (6 au plus). Vide : bandeau masqué. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false)
+    private List<ElementConfiance> elementsConfiance = new ArrayList<>();
 
     @Column(length = 20)
     private String idGoogleTagManager;

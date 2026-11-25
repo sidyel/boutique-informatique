@@ -74,6 +74,9 @@ final class FiltresSql {
         if (criteres.disponible()) {
             conditionsVariante.add("v.stock > 0");
         }
+        if (criteres.promotion()) {
+            conditionsVariante.add("v.prix_barre > v.prix");
+        }
         int numero = 0;
         for (Map.Entry<String, Set<String>> filtre : criteres.caracteristiques().entrySet()) {
             String cle = "cle" + numero;

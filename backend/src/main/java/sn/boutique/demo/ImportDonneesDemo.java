@@ -180,10 +180,23 @@ public class ImportDonneesDemo {
                 definition.setFiltrable(demo.filtrable());
                 definition.setCleRecherche(demo.cleRecherche());
                 definition.setOrdre(ordre);
+                affecterCarte(definition, demo);
                 definitionDepot.save(definition);
+            } else {
+                // Base importée avant la V13 : complète la carte, sans écraser un réglage de l'admin
+                DefinitionCaracteristique existante = existantes.get(demo.cle());
+                if (existante.getOrdreCarte() == null && existante.getLibelleCourt() == null
+                        && demo.ordreCarte() != null) {
+                    affecterCarte(existante, demo);
+                }
             }
             ordre++;
         }
+    }
+
+    private static void affecterCarte(DefinitionCaracteristique definition, DefinitionDemo demo) {
+        definition.setOrdreCarte(demo.ordreCarte() == null ? null : demo.ordreCarte().shortValue());
+        definition.setLibelleCourt(demo.libelleCourt());
     }
 
     private Map<String, DefinitionCaracteristique> definitionsParCle(Categorie categorie) {
@@ -279,6 +292,12 @@ public class ImportDonneesDemo {
             parametres.setAdresse(demo.adresse());
             parametres.setHoraires(demo.horaires());
             parametres.getLiensReseauxSociaux().putAll(demo.liensReseauxSociaux());
+            compteurs.autres++;
+        }
+        // Promesses commerciales (V13) : seulement si l'équipe n'en a saisi aucune
+        if (parametres.getMessageBarreSuperieure() == null && parametres.getElementsConfiance().isEmpty()) {
+            parametres.setMessageBarreSuperieure(site.parametres().messageBarreSuperieure());
+            parametres.getElementsConfiance().addAll(site.parametres().elementsConfiance());
             compteurs.autres++;
         }
 

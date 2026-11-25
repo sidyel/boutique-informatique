@@ -1,5 +1,7 @@
 package sn.boutique.catalogue.dto;
 
+import java.util.List;
+
 import java.math.BigDecimal;
 
 import sn.boutique.catalogue.modele.EtatProduit;
@@ -14,6 +16,7 @@ import sn.boutique.catalogue.modele.EtatProduit;
  *
  * @param skuParDefaut SKU de la variante retenue : {@code item_id} des événements de suivi (= id des flux produits)
  * @param reduction    pourcentage de réduction arrondi, ou {@code null} sans prix barré
+ * @param caracteristiquesCles 4 au plus, dans l'ordre de la carte (définitions avec {@code ordreCarte})
  */
 public record ProduitResumeReponse(
         Long id,
@@ -31,5 +34,6 @@ public record ProduitResumeReponse(
         Disponibilite disponibilite,
         BigDecimal noteMoyenne,
         int nombreAvis,
-        int nombreVariantes) {
+        int nombreVariantes,
+        List<CaracteristiqueCarteReponse> caracteristiquesCles) {
 }

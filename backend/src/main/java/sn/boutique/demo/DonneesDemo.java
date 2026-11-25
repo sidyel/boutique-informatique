@@ -5,6 +5,7 @@ import java.util.Map;
 
 import sn.boutique.catalogue.modele.EtatProduit;
 import sn.boutique.catalogue.modele.TypeCaracteristique;
+import sn.boutique.contenu.modele.ElementConfiance;
 import sn.boutique.marketing.modele.EmplacementBanniere;
 import sn.boutique.marketing.modele.TypeCodePromo;
 
@@ -27,8 +28,9 @@ final class DonneesDemo {
                          String description, List<DefinitionDemo> caracteristiques) {
     }
 
+    /** {@code ordreCarte} (1 à 4) et {@code libelleCourt} : caractéristique affichée sur la carte produit. */
     record DefinitionDemo(String cle, String libelle, TypeCaracteristique type, String unite, String groupe,
-                          boolean filtrable, boolean cleRecherche) {
+                          boolean filtrable, boolean cleRecherche, Integer ordreCarte, String libelleCourt) {
     }
 
     /** {@code caracteristiques} : clé de la définition → valeur (texte, nombre ou booléen selon le type). */
@@ -47,7 +49,8 @@ final class DonneesDemo {
     }
 
     record ParametresDemo(String telephone, String whatsapp, String email, String adresse, String horaires,
-                          Map<String, String> liensReseauxSociaux) {
+                          Map<String, String> liensReseauxSociaux, String messageBarreSuperieure,
+                          List<ElementConfiance> elementsConfiance) {
     }
 
     record ZoneDemo(String nom, long tarif, int delaiJours, List<String> villesQuartiers) {

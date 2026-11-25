@@ -22,9 +22,11 @@ public final class CachesPublics {
     public static final String PRODUITS_SIMILAIRES = "produits-similaires";
     public static final String LISTE_PRODUITS = "liste-produits";
     public static final String FILTRES = "filtres";
+    /** Sections de produits de l'accueil (nouveautés, meilleures ventes ou sélection, promotions). */
+    public static final String ACCUEIL = "accueil";
 
     public static final List<String> TOUS = List.of(ARBRE_CATEGORIES, CATEGORIE, MARQUES, MARQUE, PARAMETRES,
-            BANNIERES, FICHE_PRODUIT, PRODUITS_SIMILAIRES, LISTE_PRODUITS, FILTRES);
+            BANNIERES, FICHE_PRODUIT, PRODUITS_SIMILAIRES, LISTE_PRODUITS, FILTRES, ACCUEIL);
 
     private CachesPublics() {
     }

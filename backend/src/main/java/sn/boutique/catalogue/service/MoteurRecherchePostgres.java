@@ -157,7 +157,7 @@ public class MoteurRecherchePostgres implements MoteurRecherche {
                 .filter(noeud -> noeud.nombreProduits() > 0)
                 .map(noeud -> new LienReponse(noeud.nom(), noeud.slug()))
                 .toList();
-        CriteresProduits recommandes = new CriteresProduits(null, Set.of(), Set.of(), null, null, true, Map.of(),
+        CriteresProduits recommandes = new CriteresProduits(null, Set.of(), Set.of(), null, null, true, false, Map.of(),
                 TriProduits.RECOMMANDE, 1, PRODUITS_SI_AUCUN_RESULTAT);
         return new RechercheReponse.Suggestions(categories, listeProduitsService.lister(recommandes).elements());
     }

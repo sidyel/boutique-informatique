@@ -56,6 +56,15 @@ public class DefinitionCaracteristique extends EntiteAuditee {
     @Column(nullable = false)
     private int ordre;
 
+    /**
+     * Position sur la carte produit (1 à 4, unique dans la catégorie) ; {@code null} : fiche produit seulement.
+     */
+    private Short ordreCarte;
+
+    /** Libellé de la carte, plus court que {@link #libelle} : « RAM » pour « Mémoire vive ». */
+    @Column(length = 20)
+    private String libelleCourt;
+
     public DefinitionCaracteristique(
             Categorie categorie, String cle, String libelle, TypeCaracteristique type, String groupe) {
         this.categorie = categorie;

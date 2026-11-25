@@ -9,7 +9,30 @@
       "facebook": "https://www.facebook.com/",
       "instagram": "https://www.instagram.com/",
       "tiktok": "https://www.tiktok.com/"
-    }
+    },
+    "messageBarreSuperieure": "Livraison à Dakar en 24 h",
+    "elementsConfiance": [
+      {
+        "icone": "LIVRAISON",
+        "titre": "Livraison à Dakar en 24 h",
+        "texte": "Régions : 2 à 4 jours"
+      },
+      {
+        "icone": "GARANTIE",
+        "titre": "Garantie 12 mois",
+        "texte": "Sur les produits neufs"
+      },
+      {
+        "icone": "PAIEMENT",
+        "titre": "Wave, Orange Money",
+        "texte": "Ou paiement à la livraison"
+      },
+      {
+        "icone": "SAV",
+        "titre": "SAV à Dakar",
+        "texte": "Diagnostic sous 72 h"
+      }
+    ]
   },
   "zones": [
     {

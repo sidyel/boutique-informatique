@@ -23,6 +23,7 @@ import sn.boutique.noyau.erreur.ParametreInvalideException;
  * virgules (une valeur texte peut en contenir). Les valeurs sont normalisées (triées, nombres sans zéros
  * inutiles) : deux requêtes équivalentes ont les mêmes critères, donc la même clé de cache.
  *
+ * @param promotion        seulement les produits dont la variante retenue a un prix barré ({@code promotion=true})
  * @param caracteristiques valeurs acceptées par clé de caractéristique (filtre {@code f.<cle>})
  * @param tri              {@code null} : tri par défaut (recommandé, ou pertinence avec une recherche)
  * @param page             numéro de page, à partir de 1
@@ -34,6 +35,7 @@ public record CriteresProduits(
         Long prixMin,
         Long prixMax,
         boolean disponible,
+        boolean promotion,
         Map<String, Set<String>> caracteristiques,
         TriProduits tri,
         int page,
@@ -52,7 +54,7 @@ public record CriteresProduits(
     public enum Famille { MARQUE, ETAT, PRIX, DISPONIBLE, CARACTERISTIQUE }
 
     public boolean aDesFiltresDeVariante() {
-        return prixMin != null || prixMax != null || disponible || !caracteristiques.isEmpty();
+        return prixMin != null || prixMax != null || disponible || promotion || !caracteristiques.isEmpty();
     }
 
     public long decalage() {
@@ -63,18 +65,18 @@ public record CriteresProduits(
     public CriteresProduits sans(Famille famille, String cle) {
         return switch (famille) {
             case MARQUE -> new CriteresProduits(categorie, Set.of(), etats, prixMin, prixMax, disponible,
-                    caracteristiques, tri, page, taille);
+                    promotion, caracteristiques, tri, page, taille);
             case ETAT -> new CriteresProduits(categorie, marques, Set.of(), prixMin, prixMax, disponible,
-                    caracteristiques, tri, page, taille);
+                    promotion, caracteristiques, tri, page, taille);
             case PRIX -> new CriteresProduits(categorie, marques, etats, null, null, disponible,
-                    caracteristiques, tri, page, taille);
+                    promotion, caracteristiques, tri, page, taille);
             case DISPONIBLE -> new CriteresProduits(categorie, marques, etats, prixMin, prixMax, false,
-                    caracteristiques, tri, page, taille);
+                    promotion, caracteristiques, tri, page, taille);
             case CARACTERISTIQUE -> {
                 Map<String, Set<String>> autres = new TreeMap<>(caracteristiques);
                 autres.remove(cle);
                 yield new CriteresProduits(categorie, marques, etats, prixMin, prixMax, disponible,
-                        Map.copyOf(autres), tri, page, taille);
+                        promotion, Map.copyOf(autres), tri, page, taille);
             }
         };
     }
@@ -93,6 +95,7 @@ public record CriteresProduits(
         ajouter(cle, "prixMin", prixMin);
         ajouter(cle, "prixMax", prixMax);
         ajouter(cle, "disponible", disponible ? "true" : null);
+        ajouter(cle, "promotion", promotion ? "true" : null);
         new TreeMap<>(caracteristiques).forEach((nom, valeurs) ->
                 valeurs.stream().sorted().forEach(valeur -> ajouter(cle, PREFIXE_CARACTERISTIQUE + nom, valeur)));
         if (avecPagination) {
@@ -111,8 +114,8 @@ public record CriteresProduits(
     }
 
     public CriteresProduits avecCategorie(String slug) {
-        return new CriteresProduits(slug, marques, etats, prixMin, prixMax, disponible, caracteristiques, tri,
-                page, taille);
+        return new CriteresProduits(slug, marques, etats, prixMin, prixMax, disponible, promotion, caracteristiques,
+                tri, page, taille);
     }
 
     /** Lecture et validation des paramètres ; toute valeur invalide donne une erreur 400 explicite. */
@@ -146,13 +149,17 @@ public record CriteresProduits(
         if (disponible != null && !disponible.equals("true") && !disponible.equals("false")) {
             throw new ParametreInvalideException("disponible", "« disponible » vaut true ou false.");
         }
+        String promotion = unique(parametres, "promotion");
+        if (promotion != null && !promotion.equals("true") && !promotion.equals("false")) {
+            throw new ParametreInvalideException("promotion", "« promotion » vaut true ou false.");
+        }
         String codeTri = unique(parametres, "tri");
         TriProduits tri = codeTri == null ? null : TriProduits.depuisCode(codeTri)
                 .orElseThrow(() -> new ParametreInvalideException("tri", "Tri inconnu : « %s ».".formatted(codeTri)));
         int page = entier(parametres, "page", 1, 1, PAGE_MAX);
         int taille = entier(parametres, "taille", TAILLE_PAR_DEFAUT, 1, TAILLE_MAX);
         return new CriteresProduits(categorie, Set.copyOf(marques), Set.copyOf(etats), prixMin, prixMax,
-                "true".equals(disponible), caracteristiques(parametres), tri, page, taille);
+                "true".equals(disponible), "true".equals(promotion), caracteristiques(parametres), tri, page, taille);
     }
 
     /** Valeur normalisée d'un filtre de caractéristique : un nombre perd ses zéros inutiles (« 16.0 » → « 16 »). */

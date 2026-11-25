@@ -113,6 +113,13 @@ springdoc:
 
 boutique:
   url-site: ${URL_SITE:http://localhost:4200}
+  # Sections de produits de l'accueil (GET /api/accueil)
+  accueil:
+    produits-par-section: 12
+    # « Meilleures ventes » n'apparaît qu'à partir de ce nombre de produits vendus ;
+    # en dessous, la section s'appelle « Sélection du moment » (produits mis en avant)
+    seuil-meilleures-ventes: 8
+    anciennete-nouveautes: 90d
   cors-origines: ${CORS_ORIGINES:http://localhost:4200}
   # E-mails transactionnels
   email:
