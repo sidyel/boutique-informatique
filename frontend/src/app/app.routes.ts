@@ -25,6 +25,15 @@ export const routes: Routes = [
           import('./fonctionnalites/categorie/page-categorie').then((m) => m.PageCategorie),
       },
       {
+        path: 'marque/:slug',
+        loadComponent: () => import('./fonctionnalites/marque/page-marque').then((m) => m.PageMarque),
+      },
+      {
+        path: 'recherche',
+        loadComponent: () =>
+          import('./fonctionnalites/recherche/page-recherche').then((m) => m.PageRecherche),
+      },
+      {
         path: 'guide-style',
         loadComponent: () =>
           import('./fonctionnalites/guide-style/guide-style').then((m) => m.GuideStyle),

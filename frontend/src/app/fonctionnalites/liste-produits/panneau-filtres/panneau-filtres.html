@@ -86,19 +86,21 @@
     <ng-container *ngTemplateOutlet="groupe; context: { $implicit: g }" />
   }
 
-  <fieldset class="groupe">
-    <legend class="groupe__titre">Disponibilité</legend>
-    <label class="option" [class.option--vide]="f.disponible.enStock === 0 && !c.disponible">
-      <input
-        type="checkbox"
-        [checked]="c.disponible"
-        [disabled]="f.disponible.enStock === 0 && !c.disponible"
-        (change)="basculerDisponible()"
-      />
-      <span class="option__libelle">En stock uniquement</span>
-      <span class="option__nombre">{{ f.disponible.enStock }}</span>
-    </label>
-  </fieldset>
+  @if (f.disponible; as d) {
+    <fieldset class="groupe">
+      <legend class="groupe__titre">Disponibilité</legend>
+      <label class="option" [class.option--vide]="d.enStock === 0 && !c.disponible">
+        <input
+          type="checkbox"
+          [checked]="c.disponible"
+          [disabled]="d.enStock === 0 && !c.disponible"
+          (change)="basculerDisponible()"
+        />
+        <span class="option__libelle">En stock uniquement</span>
+        <span class="option__nombre">{{ d.enStock }}</span>
+      </label>
+    </fieldset>
+  }
 
   @for (g of groupesEtat(); track g.id) {
     <ng-container *ngTemplateOutlet="groupe; context: { $implicit: g }" />

@@ -92,7 +92,7 @@ describe('BarreRecherche', () => {
     expect(champ.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('valide la recherche complète et la signale au suivi', () => {
+  it('valide la recherche complète (le suivi est fait par la page de résultats)', () => {
     const { fixture, saisir } = configurer();
     const naviguer = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const rechercher = vi.spyOn(TestBed.inject(SuiviService), 'rechercher');
@@ -100,7 +100,7 @@ describe('BarreRecherche', () => {
     saisir('  rtx 4060 ');
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
 
-    expect(rechercher).toHaveBeenCalledWith('rtx 4060');
+    expect(rechercher).not.toHaveBeenCalled();
     expect(naviguer).toHaveBeenCalledWith(['/recherche'], { queryParams: { q: 'rtx 4060' } });
   });
 });

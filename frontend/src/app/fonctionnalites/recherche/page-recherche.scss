@@ -1,0 +1,26 @@
+@use 'page-liste';
+
+.approche {
+  margin: 0;
+  padding: var(--espace-3) var(--espace-4);
+  border-inline-start: 3px solid var(--couleur-info);
+  background: var(--couleur-info-fond);
+  color: var(--couleur-texte);
+}
+
+.rien {
+  margin-block-end: var(--espace-6);
+
+  p {
+    margin: 0 0 var(--espace-3);
+    color: var(--couleur-texte-secondaire);
+  }
+
+  .rayons {
+    margin-block-start: var(--espace-4);
+  }
+}
+
+.suggestions {
+  margin-block-start: var(--espace-8);
+}

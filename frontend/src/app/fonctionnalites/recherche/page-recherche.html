@@ -1,0 +1,62 @@
+<div class="conteneur page">
+  <header class="entete">
+    @if (termeValide()) {
+      <h1 class="entete__titre">
+        {{ rienTrouve() ? 'Aucun résultat pour' : 'Résultats pour' }} «&nbsp;{{ terme() }}&nbsp;»
+      </h1>
+      @if (courant()?.approximatif) {
+        <p class="approche" role="status">
+          Aucun résultat exact. Voici les produits les plus proches, avec une orthographe approchée.
+        </p>
+      }
+    } @else {
+      <h1 class="entete__titre">Recherche</h1>
+      <p class="entete__description">
+        @if (terme().length) {
+          Saisissez entre 2 et 100 caractères pour lancer la recherche.
+        } @else {
+          Utilisez la barre de recherche en haut de la page : un modèle, une marque, une référence…
+        }
+      </p>
+    }
+  </header>
+
+  @if (termeValide()) {
+    @if (rienTrouve()) {
+      <section class="rien">
+        <p>Vérifiez l'orthographe, essayez un terme plus général (« portable », « écran 27 pouces ») ou parcourez nos rayons.</p>
+        @if (suggestions(); as s) {
+          @if (s.categories.length) {
+            <nav class="rayons" aria-label="Rayons de la boutique">
+              <ul role="list">
+                @for (c of s.categories; track c.slug) {
+                  <li><a class="rayon" [routerLink]="['/categorie', c.slug]">{{ c.nom }}</a></li>
+                }
+              </ul>
+            </nav>
+          }
+        }
+      </section>
+      <bi-demande-whatsapp [message]="messageWhatsApp()" origine="recherche-vide" />
+      @if (suggestions()?.produits?.length) {
+        <div class="suggestions">
+          <bi-rangee-produits
+            titre="Ces produits pourraient vous intéresser"
+            [produits]="suggestions()!.produits"
+            [liste]="listeSuggestions"
+          />
+        </div>
+      }
+    } @else {
+      <bi-liste-produits
+        [produits]="page()"
+        [filtres]="filtres()"
+        [criteres]="criteres()"
+        [chargement]="resultat.chargement()"
+        [invalide]="resultat.statutErreur() === 400"
+        [liste]="liste"
+        [source]="source"
+      />
+    }
+  }
+</div>

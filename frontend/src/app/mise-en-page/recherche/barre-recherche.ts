@@ -14,7 +14,6 @@ import { Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { Suggestions } from '../../noyau/api/modeles';
-import { SuiviService } from '../../noyau/suivi/suivi.service';
 import { Icone } from '../../partage/composants/icone/icone';
 import { PrixFcfaPipe } from '../../partage/pipes/prix-fcfa.pipe';
 
@@ -47,7 +46,6 @@ interface Option {
 export class BarreRecherche {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly suivi = inject(SuiviService);
   private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
 
   /** Identifiant unique : la barre existe en version ordinateur et mobile. */
@@ -158,15 +156,12 @@ export class BarreRecherche {
     if (q.length < LONGUEUR_MIN) {
       return;
     }
-    this.suivi.rechercher(q);
+    // Événement « search » envoyé par la page de résultats (une seule fois, quelle que soit l'arrivée)
     this.fermer();
     void this.router.navigate(['/recherche'], { queryParams: { q } });
   }
 
   protected ouvrirOption(option: Option): void {
-    if (option.id.endsWith('-tout')) {
-      this.suivi.rechercher(this.terme().trim());
-    }
     this.fermer();
     void this.router.navigate(option.lien, { queryParams: option.parametres });
   }

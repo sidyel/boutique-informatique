@@ -61,7 +61,7 @@
           <div class="vide__actions">
             @if (puces().length; as n) {
               <button type="button" class="vide__action" (click)="appliquer(puces()[n - 1].sans)">
-                Retirer « {{ puces()[n - 1].libelle }} »
+                Retirer «&nbsp;{{ puces()[n - 1].libelle }}&nbsp;»
               </button>
             }
             <a class="vide__action vide__action--secondaire" [routerLink]="[]" [queryParams]="parametresSansFiltres()" replaceUrl>

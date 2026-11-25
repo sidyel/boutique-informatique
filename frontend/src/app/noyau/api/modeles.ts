@@ -158,7 +158,8 @@ export interface Filtres {
   sousCategories: OptionFiltre[];
   marques: OptionFiltre[];
   etats: OptionFiltre[];
-  disponible: { enStock: number; selectionne: boolean };
+  /** `null` : non compté (page de recherche), le filtre n'est pas proposé. */
+  disponible: { enStock: number; selectionne: boolean } | null;
   caracteristiques: CaracteristiqueFiltre[];
 }
 
