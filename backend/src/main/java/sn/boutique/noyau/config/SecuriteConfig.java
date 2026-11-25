@@ -39,6 +39,10 @@ public class SecuriteConfig {
     };
 
     private static final String[] ROLES_ADMINISTRATION = {Role.ADMIN.name(), Role.SUPER_ADMIN.name()};
+    /** Photos et vidéos des produits : aussi la gestion du stock (elle reçoit la marchandise et la photographie). */
+    private static final String[] ROLES_MEDIAS = {
+            Role.GESTIONNAIRE_STOCK.name(), Role.ADMIN.name(), Role.SUPER_ADMIN.name()
+    };
     private static final String[] ROLES_INTERNES = {
             Role.SERVICE_CLIENT.name(), Role.GESTIONNAIRE_STOCK.name(), Role.ADMIN.name(), Role.SUPER_ADMIN.name()
     };
@@ -67,6 +71,8 @@ public class SecuriteConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Prix et publication des variantes : ni le service client ni la gestion du stock
                         .requestMatchers("/api/admin/variantes/**").hasAnyRole(ROLES_ADMINISTRATION)
+                        .requestMatchers("/api/admin/produits/*/medias/**", "/api/admin/medias/**")
+                        .hasAnyRole(ROLES_MEDIAS)
                         .requestMatchers("/api/admin/**").hasAnyRole(ROLES_INTERNES)
                         .requestMatchers("/api/compte/**").authenticated()
                         .requestMatchers("/api/**", "/error").permitAll()

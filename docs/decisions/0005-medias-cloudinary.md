@@ -16,8 +16,29 @@ clé `CLOUDINARY_URL` du `.env` local est vidée dans leur contexte : **aucun te
 - Un dossier par environnement : `boutique.medias.dossier-racine` = `dev/boutique` en développement,
   `boutique` en production. Une erreur en développement ne touche jamais les fichiers du site réel.
 - Les appels à Cloudinary sont faits **hors transaction** de base de données ; si l'écriture en base échoue
-  après un envoi, le fichier envoyé est supprimé (compensation). Une suppression en base est suivie de la
-  suppression sur Cloudinary **après** la validation.
+  après un envoi (ou si un envoi échoue au milieu d'un lot), les fichiers déjà envoyés sont supprimés
+  (compensation). Une suppression en base est suivie de la suppression sur Cloudinary **après** la validation,
+  en tâche de fond : une panne de Cloudinary ne fait pas attendre l'administrateur.
+- **Fichiers orphelins** : si la suppression échoue après 3 essais (`boutique.medias.suppression`), l'idPublic
+  est enregistré dans la table `media_orphelin` (type, origine, dernière erreur, nombre d'essais), pas
+  seulement dans les journaux. **Une tâche planifiée de nettoyage sera ajoutée en phase 9** : elle
+  retentera la suppression des orphelins et retirera de la table ceux qui sont supprimés.
+- Les médias sans idPublic (images de démonstration servies par le site) se réordonnent, deviennent
+  principaux et se suppriment sans aucun appel au stockage.
+
+## 1 bis. Règles des médias d'un produit
+
+- **15 images au plus** par produit (`boutique.medias.images.max-par-produit`) : au-delà, `422 TROP_D_IMAGES`,
+  vérifié avant l'envoi puis à nouveau sous verrou du produit (deux envois simultanés ne dépassent pas la
+  limite à eux deux).
+- **Texte alternatif obligatoire**, de 5 à 150 caractères, refusé s'il ressemble à un nom de fichier
+  (`IMG_1234.jpg`, `DSC0001`, `photo.png`, `PXL_…`, captures d'écran datées, identifiants techniques). Les
+  réponses du back-office proposent une suggestion « nom du produit – libellé de la variante » que le
+  formulaire préremplit (phase 6).
+- **Supprimer une variante ne supprime jamais ses photos** : `media_produit.variante_id` est en
+  `ON DELETE SET NULL` (migration V10) ; elles restent rattachées au produit et l'équipe décide de leur sort.
+- La dernière image d'un produit publié ne peut pas être supprimée (`409 DERNIERE_IMAGE`). Retirer l'image
+  principale promeut la suivante.
 
 ## 2. Contrôle des fichiers envoyés (`VerificationFichiers`)
 

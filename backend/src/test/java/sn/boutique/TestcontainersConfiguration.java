@@ -31,7 +31,11 @@ public class TestcontainersConfiguration {
      */
     @Bean
     DynamicPropertyRegistrar sansCleCloudinary() {
-        return registre -> registre.add("boutique.medias.cloudinary-url", () -> "");
+        return registre -> {
+            registre.add("boutique.medias.cloudinary-url", () -> "");
+            // Pas d'attente entre deux essais de suppression dans les tests
+            registre.add("boutique.medias.suppression.pause", () -> "0ms");
+        };
     }
 
     /** Compte les requêtes SQL (détection des N+1), dans tous les contextes de test. */

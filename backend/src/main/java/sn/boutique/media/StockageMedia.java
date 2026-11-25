@@ -12,6 +12,13 @@ public interface StockageMedia {
     /** Envoie une image déjà vérifiée ({@link VerificationFichiers}) sous l'idPublic donné. */
     MediaStocke envoyerImage(FichierVerifie fichier, String idPublic);
 
+    /**
+     * URL de diffusion d'une image : toujours <strong>transformée</strong> ({@code f_auto,q_auto}), jamais
+     * l'original, qui peut contenir des métadonnées EXIF (position GPS…) ; ADR 0005 §4. La version figure dans
+     * l'URL : un remplacement change l'adresse, le cache du CDN et des navigateurs n'a pas à être vidé.
+     */
+    String urlImage(MediaStocke media);
+
     /** Supprime un fichier ; sans effet s'il n'existe plus. */
     void supprimer(String idPublic, TypeRessource type);
 

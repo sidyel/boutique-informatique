@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class StockageCloudinary implements StockageMedia {
 
+    /** Réencodage au format le mieux adapté au navigateur, qualité automatique, métadonnées retirées. */
+    static final String TRANSFORMATION_DIFFUSION = "f_auto,q_auto";
+
     private final ProprietesMedias proprietes;
     private volatile Cloudinary client;
 
@@ -43,6 +46,16 @@ public class StockageCloudinary implements StockageMedia {
             throw new StockageIndisponibleException("Envoi de l'image impossible (" + idPublic + ") : "
                     + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public String urlImage(MediaStocke media) {
+        return urlImage(client().config.cloudName, media);
+    }
+
+    static String urlImage(String nomDuCloud, MediaStocke media) {
+        return "https://res.cloudinary.com/" + nomDuCloud + "/image/upload/" + TRANSFORMATION_DIFFUSION + "/v"
+                + media.version() + "/" + media.idPublic() + "." + media.format();
     }
 
     @Override

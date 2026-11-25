@@ -156,11 +156,16 @@ boutique:
         banniere: 600
         partage: 600
         logo: 16
+      max-par-produit: 15
     svg:
       taille-max: 512KB
     videos:
       taille-max: 100MB
       max-par-produit: 1
+    # Suppression sur Cloudinary : 3 essais, puis enregistrement dans media_orphelin
+    suppression:
+      essais: 3
+      pause: 500ms
   # Cache des lectures publiques, sur une instance Redis dédiée (maxmemory-policy allkeys-lru).
   # Panne du cache : erreur journalisée, lecture en base (le site continue de répondre).
   cache:

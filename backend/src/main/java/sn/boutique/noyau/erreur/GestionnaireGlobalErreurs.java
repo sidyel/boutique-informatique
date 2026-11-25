@@ -74,6 +74,11 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
         return probleme;
     }
 
+    @ExceptionHandler(ConflitException.class)
+    ProblemDetail gererConflit(ConflitException ex, HttpServletRequest requete) {
+        return construire(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), requete);
+    }
+
     @ExceptionHandler(RegleMetierException.class)
     ProblemDetail gererRegleMetier(RegleMetierException ex, HttpServletRequest requete) {
         return construire(HttpStatus.UNPROCESSABLE_CONTENT, ex.getCode(), ex.getMessage(), requete);

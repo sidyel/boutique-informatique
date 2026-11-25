@@ -28,7 +28,8 @@ public record ProprietesMedias(
         @NotNull Duration delai,
         @Valid @NotNull Images images,
         @Valid @NotNull Svg svg,
-        @Valid @NotNull Videos videos) {
+        @Valid @NotNull Videos videos,
+        @Valid @NotNull Suppression suppression) {
 
     /**
      * @param tailleMax poids maximal d'une image envoyée
@@ -36,8 +37,10 @@ public record ProprietesMedias(
      *                  décompression », fichiers légers qui occupent des gigaoctets une fois décodés)
      * @param coteMin   plus petit côté minimal par usage (photo produit : 800 px, pour un zoom net et les
      *                  minimums de Google Merchant)
+     * @param maxParProduit nombre maximal d'images d'un produit (au-delà : 422)
      */
-    public record Images(@NotNull DataSize tailleMax, @Min(1) int coteMax, @NotNull Map<UsageImage, Integer> coteMin) {
+    public record Images(@NotNull DataSize tailleMax, @Min(1) int coteMax, @NotNull Map<UsageImage, Integer> coteMin,
+                         @Min(1) int maxParProduit) {
 
         public int coteMinPour(UsageImage usage) {
             return coteMin.getOrDefault(usage, 1);
@@ -46,6 +49,13 @@ public record ProprietesMedias(
 
     /** SVG acceptés pour le logo et le favicon uniquement, après nettoyage. */
     public record Svg(@NotNull DataSize tailleMax) {
+    }
+
+    /**
+     * Suppression sur Cloudinary après la validation en base : {@code essais} tentatives espacées de
+     * {@code pause} ; en cas d'échec, l'idPublic est enregistré dans {@code media_orphelin}.
+     */
+    public record Suppression(@Min(1) int essais, @NotNull Duration pause) {
     }
 
     /** Vidéos envoyées directement à Cloudinary par le navigateur (envoi signé). */

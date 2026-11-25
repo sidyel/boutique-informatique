@@ -20,6 +20,7 @@ public class FauxStockageMedia implements StockageMedia {
     private final List<String> suppressions = new CopyOnWriteArrayList<>();
     private final AtomicLong version = new AtomicLong(1_700_000_000L);
     private volatile int echecsAProvoquer;
+    private volatile int reussitesAvantEchecs;
 
     @Override
     public MediaStocke envoyerImage(FichierVerifie fichier, String idPublic) {
@@ -32,6 +33,12 @@ public class FauxStockageMedia implements StockageMedia {
     }
 
     @Override
+    public String urlImage(MediaStocke media) {
+        return "https://res.cloudinary.test/faux/image/upload/f_auto,q_auto/v" + media.version() + "/"
+                + media.idPublic() + "." + media.format();
+    }
+
+    @Override
     public void supprimer(String idPublic, TypeRessource type) {
         echouerSiDemande();
         fichiers.remove(idPublic);
@@ -40,7 +47,13 @@ public class FauxStockageMedia implements StockageMedia {
 
     /** Les {@code nombre} prochains appels échouent comme un Cloudinary injoignable. */
     public void provoquerEchecs(int nombre) {
-        echecsAProvoquer = nombre;
+        provoquerEchecsApres(0, nombre);
+    }
+
+    /** Les {@code reussites} prochains appels réussissent, puis les {@code echecs} suivants échouent. */
+    public synchronized void provoquerEchecsApres(int reussites, int echecs) {
+        reussitesAvantEchecs = reussites;
+        echecsAProvoquer = echecs;
     }
 
     public boolean contient(String idPublic) {
@@ -59,9 +72,14 @@ public class FauxStockageMedia implements StockageMedia {
         fichiers.clear();
         suppressions.clear();
         echecsAProvoquer = 0;
+        reussitesAvantEchecs = 0;
     }
 
-    private void echouerSiDemande() {
+    private synchronized void echouerSiDemande() {
+        if (reussitesAvantEchecs > 0) {
+            reussitesAvantEchecs--;
+            return;
+        }
         if (echecsAProvoquer > 0) {
             echecsAProvoquer--;
             throw new StockageIndisponibleException("Échec simulé du stockage", null);

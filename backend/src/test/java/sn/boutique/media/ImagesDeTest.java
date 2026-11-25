@@ -16,13 +16,13 @@ import java.util.zip.DeflaterOutputStream;
 import javax.imageio.ImageIO;
 
 /** Fabrique d'images pour les tests : vraies images (ImageIO) et en-têtes fabriqués à la main. */
-final class ImagesDeTest {
+public final class ImagesDeTest {
 
     private ImagesDeTest() {
     }
 
     /** Vraie image encodée par ImageIO (« jpg » ou « png »). */
-    static byte[] image(String format, int largeur, int hauteur) {
+    public static byte[] image(String format, int largeur, int hauteur) {
         BufferedImage image = new BufferedImage(largeur, hauteur, BufferedImage.TYPE_INT_RGB);
         Graphics2D dessin = image.createGraphics();
         dessin.setColor(Color.ORANGE);
@@ -63,7 +63,7 @@ final class ImagesDeTest {
     }
 
     /** En-tête JPEG minimal (SOI, SOF0, EOI) annonçant les dimensions données. */
-    static byte[] enteteJpeg(int largeur, int hauteur) {
+    public static byte[] enteteJpeg(int largeur, int hauteur) {
         ByteBuffer jpeg = ByteBuffer.allocate(2 + 2 + 2 + 15 + 2);
         jpeg.put((byte) 0xFF).put((byte) 0xD8);                    // SOI
         jpeg.put((byte) 0xFF).put((byte) 0xC0).putShort((short) 17); // SOF0, longueur

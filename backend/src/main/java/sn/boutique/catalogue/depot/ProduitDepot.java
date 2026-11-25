@@ -3,7 +3,10 @@ package sn.boutique.catalogue.depot;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import sn.boutique.catalogue.modele.Produit;
 
@@ -16,6 +19,11 @@ public interface ProduitDepot extends JpaRepository<Produit, Long> {
     Optional<Produit> trouverPublieParSlug(String slug);
 
     Optional<Produit> findBySlug(String slug);
+
+    /** Verrou en écriture sur le produit : sérialise les ajouts de médias (limite du nombre d'images). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Produit p where p.id = :id")
+    Optional<Produit> verrouiller(Long id);
 
     boolean existsBySlug(String slug);
 

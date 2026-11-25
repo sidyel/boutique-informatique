@@ -140,8 +140,9 @@ class VerificationFichiersTest {
         return new ProprietesMedias("", "dev/boutique", Duration.ofSeconds(30),
                 new ProprietesMedias.Images(tailleMax, 8_000,
                         Map.of(UsageImage.PRODUIT, 800, UsageImage.BANNIERE, 600, UsageImage.PARTAGE, 600,
-                                UsageImage.LOGO, 16)),
+                                UsageImage.LOGO, 16), 15),
                 new ProprietesMedias.Svg(DataSize.ofKilobytes(512)),
-                new ProprietesMedias.Videos(DataSize.ofMegabytes(100), 1));
+                new ProprietesMedias.Videos(DataSize.ofMegabytes(100), 1),
+                new ProprietesMedias.Suppression(3, Duration.ZERO));
     }
 }
