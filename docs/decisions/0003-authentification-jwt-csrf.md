@@ -270,3 +270,40 @@ n'appelle d'ailleurs pas les routes d'authentification, que le navigateur appell
   jetons expirés (`supprimerExpiresAvant`) à brancher avec les tâches planifiées.
 - Le frontend doit garder le jeton d'accès en mémoire, appeler `/rafraichir` au démarrage et à
   l'expiration, avec `credentials: 'include'`, et sérialiser les rafraîchissements entre onglets.
+
+## À traiter dans les phases suivantes (relecture de sécurité)
+
+### Phase 6 : double authentification (TOTP) obligatoire pour les rôles internes
+
+Un compte administrateur ne doit pas reposer sur un simple mot de passe : un mot de passe volé (hameçonnage,
+réutilisé sur un autre site) donnerait les prix, les commandes et les données des clients.
+- Second facteur **TOTP** (RFC 6238 : application d'authentification, code à 6 chiffres sur 30 s),
+  **obligatoire** pour SERVICE_CLIENT, GESTIONNAIRE_STOCK, ADMIN et SUPER_ADMIN ; facultatif pour les clients.
+- Connexion d'un rôle interne en deux temps : mot de passe correct → jeton intermédiaire court (5 min, sans
+  aucun droit), puis code TOTP → session. Pas de jeton d'accès avant le second facteur.
+- Enrôlement imposé à la première connexion (QR code, vérification d'un premier code) ; secret TOTP chiffré
+  en base (clé hors de la base) ; codes de secours à usage unique (empreintes seulement).
+- Codes TOTP : limitation du débit et verrouillage comme pour le mot de passe (§8, §9) ; un code déjà
+  utilisé est refusé (rejeu).
+- Réinitialisation du second facteur par un SUPER_ADMIN seulement, journalisée, avec e-mail au titulaire.
+
+### Phase 9 : IPv6 (relecture M3)
+
+Aujourd'hui nginx n'écoute qu'en IPv4. Dès qu'IPv6 sera activé, un client disposera d'un préfixe /64 entier
+(2^64 adresses) et pourrait changer d'adresse à chaque essai. La clé de limitation par IP (Redis, secours
+local, `echec_connexion`, zones `limit_req` de nginx) devra alors être le **préfixe /64** pour une adresse
+IPv6 (l'adresse complète pour IPv4) : fonction de normalisation unique côté backend, `map` sur
+`$binary_remote_addr` côté nginx. Tests avec deux adresses du même /64.
+
+### Phase 9 : en-têtes de sécurité (relecture M6)
+
+Avec HTTPS, ajouter dans nginx (`always`, sur toutes les réponses) :
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains` (puis `preload` après vérification de
+  tous les sous-domaines) ;
+- `Content-Security-Policy` complète, construite pour le SSR Angular (nonces des scripts en ligne) et les
+  domaines réellement utilisés : Cloudinary (`res.cloudinary.com` pour les images et vidéos,
+  `api.cloudinary.com` pour l'envoi des vidéos du back-office), Google Tag Manager / GA4, pixel Meta,
+  `youtube-nocookie.com` (cadre chargé au clic). Démarrer en `Content-Security-Policy-Report-Only` ;
+- `Cross-Origin-Opener-Policy: same-origin` ;
+- garder `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` (ou `frame-ancestors 'self'` dans
+  la CSP) et `Permissions-Policy`.

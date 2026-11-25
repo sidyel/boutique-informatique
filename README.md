@@ -83,6 +83,10 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
   dossier à la compilation de production (par exemple `rm -rf dist/frontend/browser/demo` dans le
   Dockerfile, ou une configuration `assets` dédiée) et vérifier qu'aucune donnée en base ne pointe
   vers `/demo/images/`.
+- **Sécurité (relecture)** : clé de limitation par préfixe /64 pour IPv6, puis HSTS, CSP complète et
+  `Cross-Origin-Opener-Policy: same-origin` dans nginx (ADR 0003, « À traiter dans les phases
+  suivantes »). Brancher sur la supervision les journaux `ALERTE_REDIS_PLEIN`, `ALERTE_REDIS_INDISPONIBLE`
+  et `ALERTE_CONNEXION_CIBLEE`. Tâche de nettoyage de Cloudinary (ADR 0005).
 
 ## Redis : deux instances
 
