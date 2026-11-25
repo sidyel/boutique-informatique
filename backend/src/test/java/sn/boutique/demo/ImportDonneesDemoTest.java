@@ -129,7 +129,7 @@ class ImportDonneesDemoTest {
                 .forEach(requete -> urls.addAll(em.createNativeQuery(requete).getResultList()));
 
         assertThat(urls).isNotEmpty().allSatisfy(url -> {
-            assertThat(url).startsWith(ImportDonneesDemo.DOSSIER_IMAGES).endsWith(".svg");
+            assertThat(url).startsWith(ImportDonneesDemo.DOSSIER_IMAGES).endsWith(".webp");
             assertThat(IMAGES_FRONTEND.resolve(url.substring(1))).as(url).isRegularFile();
         });
     }

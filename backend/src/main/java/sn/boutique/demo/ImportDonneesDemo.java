@@ -71,7 +71,8 @@ import tools.jackson.databind.json.JsonMapper;
  * et n'est créé que s'il manque. Relancer l'application ne duplique rien et ne modifie pas ce que
  * l'équipe a changé depuis l'admin.
  * <p>
- * Les images sont des SVG neutres servis par le frontend ({@code /demo/images/…}) : aucune photo de fabricant.
+ * Les images sont des WebP neutres servis par le frontend ({@code /demo/images/…}) : aucune photo de fabricant
+ * (sources SVG dans {@code infra/demo/images-sources}, rendues en WebP comme les photos de production).
  */
 @Slf4j
 @Service
@@ -412,7 +413,7 @@ public class ImportDonneesDemo {
     }
 
     static String image(String nom) {
-        return DOSSIER_IMAGES + nom + ".svg";
+        return DOSSIER_IMAGES + nom + ".webp";
     }
 
     private <T> T lire(String chemin, Class<T> type) {
