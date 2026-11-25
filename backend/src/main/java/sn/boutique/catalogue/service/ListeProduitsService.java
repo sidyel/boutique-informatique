@@ -7,10 +7,12 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.catalogue.dto.PageReponse;
 import sn.boutique.catalogue.dto.ProduitResumeReponse;
+import sn.boutique.noyau.cache.CachesPublics;
 import sn.boutique.noyau.erreur.ParametreInvalideException;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 
@@ -30,6 +32,7 @@ public class ListeProduitsService {
     private final CaracteristiquesFiltrables caracteristiquesFiltrables;
     private final ResumesProduits resumesProduits;
 
+    @Cacheable(cacheNames = CachesPublics.LISTE_PRODUITS, key = "#criteres.cleCache(true)")
     public PageReponse<ProduitResumeReponse> lister(CriteresProduits criteres) {
         if (criteres.tri() == TriProduits.PERTINENCE) {
             throw new ParametreInvalideException("tri", "Le tri par pertinence n'existe qu'avec une recherche.");

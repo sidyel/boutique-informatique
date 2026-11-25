@@ -3,6 +3,7 @@ package sn.boutique.noyau.limitation;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -16,7 +17,7 @@ import sn.boutique.noyau.limitation.ProprietesLimitation.Regle;
  * Le script Lua est atomique : incrément, pose de l'expiration à la première requête de la fenêtre et
  * lecture du temps restant en un seul aller-retour, sans course entre requêtes simultanées.
  * <p>
- * Si Redis est indisponible, la requête est <strong>laissée passer</strong> (erreur journalisée) :
+ * Si Redis est indisponible ou plein (instance principale en {@code noeviction} : écritures refusées), la requête est <strong>laissée passer</strong> (erreur journalisée) :
  * une panne de Redis ne doit pas empêcher les clients de se connecter. Le verrouillage par compte
  * (en base) continue de protéger contre la force brute.
  */
@@ -60,7 +61,9 @@ public class LimiteurDebit {
             resultat = redis.execute(SCRIPT, List.of(PREFIXE + nom + ":" + cle),
                     String.valueOf(regle.fenetre().toMillis()));
         } catch (DataAccessException e) {
-            log.error("Limitation du débit indisponible (Redis) : requête laissée passer. {}", e.getMessage());
+            // Cause la plus précise : « OOM command not allowed… » (instance pleine) plutôt que « Error in execution »
+            log.error("Limitation du débit indisponible (Redis) : requête laissée passer. {}",
+                    NestedExceptionUtils.getMostSpecificCause(e).getMessage());
             return;
         }
         long nombre = ((Number) resultat.get(0)).longValue();

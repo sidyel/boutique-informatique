@@ -35,8 +35,8 @@ cp .env.exemple .env          # une seule fois, puis adapter (JWT_SECRET : opens
 ### Mode 1 — backend et frontend lancés à la main (rechargement à chaud)
 
 ```bash
-# Services : PostgreSQL, Redis, Mailpit (e-mails : http://localhost:8025)
-docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d postgres redis mailpit
+# Services : PostgreSQL, Redis (principal + cache), Mailpit (e-mails : http://localhost:8025)
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d postgres redis redis-cache mailpit
 
 # Backend (profil dev) → http://localhost:8080/swagger-ui.html
 cd backend && ./mvnw spring-boot:run
@@ -70,6 +70,7 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 |---|---|---|
 | PostgreSQL exposé par docker-compose | `POSTGRES_PORT_HOTE` (shell) + `BASE_DONNEES_PORT` (`.env`) | 5432 |
 | Redis exposé par docker-compose | `REDIS_PORT_HOTE` (shell) + `REDIS_PORT` (`.env`) | 6379 |
+| Redis du cache exposé par docker-compose | `REDIS_CACHE_PORT_HOTE` (shell) + `REDIS_CACHE_PORT` (`.env`) | 6380 |
 | Backend en dev | `PORT_BACKEND` (`.env`) | 8080 |
 | Frontend en dev | `npm start -- --port 4300` | 4200 |
 | nginx (docker-compose) | `NGINX_PORT_HOTE` + `URL_SITE_DOCKER` (shell), ex. 8088 et `http://localhost:8088` | 80 |
@@ -82,3 +83,13 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
   dossier à la compilation de production (par exemple `rm -rf dist/frontend/browser/demo` dans le
   Dockerfile, ou une configuration `assets` dédiée) et vérifier qu'aucune donnée en base ne pointe
   vers `/demo/images/`.
+
+## Redis : deux instances
+
+- **`redis`** (principale) : compteurs de limitation du débit. `maxmemory 64mb`, `noeviction` : un compteur
+  n'est jamais évincé avant la fin de sa fenêtre. Pleine, elle refuse les écritures ; le limiteur laisse alors
+  passer la requête et journalise l'erreur (testé dans `LimiteurRedisPleinTest`).
+- **`redis-cache`** : cache des lectures publiques (10 min, vidé après chaque modification du catalogue).
+  `maxmemory 256mb`, `allkeys-lru`, sans persistance. Une seule instance ne suffirait pas : `maxmemory` et la
+  politique d'éviction valent pour toute l'instance, toutes bases confondues. Si le cache tombe, le site lit
+  la base (erreur journalisée, testé dans `CacheCatalogueTest`).

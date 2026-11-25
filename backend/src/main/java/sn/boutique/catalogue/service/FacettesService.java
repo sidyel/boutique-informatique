@@ -12,6 +12,7 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.catalogue.dto.FiltresReponse;
@@ -19,6 +20,7 @@ import sn.boutique.catalogue.dto.FiltresReponse.Option;
 import sn.boutique.catalogue.modele.EtatProduit;
 import sn.boutique.catalogue.modele.TypeCaracteristique;
 import sn.boutique.catalogue.service.CriteresProduits.Famille;
+import sn.boutique.noyau.cache.CachesPublics;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 
 /**
@@ -45,6 +47,7 @@ public class FacettesService {
     private final CategorieService categorieService;
     private final CaracteristiquesFiltrables caracteristiquesFiltrables;
 
+    @Cacheable(cacheNames = CachesPublics.FILTRES, key = "#slugCategorie + '?' + #demandes.cleCache(false)")
     public FiltresReponse filtres(String slugCategorie, CriteresProduits demandes) {
         CriteresProduits criteres = demandes.avecCategorie(slugCategorie);
         ArbreCategories.Noeud noeud = categorieService.chargerArbre().trouver(slugCategorie)

@@ -79,6 +79,37 @@ public record CriteresProduits(
         };
     }
 
+    /**
+     * Clé de cache non ambiguë : chaque valeur est encodée comme dans une URL et les ensembles sont triés,
+     * deux critères équivalents donnent la même clé et deux critères différents des clés différentes.
+     *
+     * @param avecPagination {@code false} pour les facettes, qui ne dépendent ni du tri ni de la page
+     */
+    public String cleCache(boolean avecPagination) {
+        StringBuilder cle = new StringBuilder();
+        ajouter(cle, "categorie", categorie);
+        marques.stream().sorted().forEach(marque -> ajouter(cle, "marque", marque));
+        etats.stream().map(Enum::name).sorted().forEach(etat -> ajouter(cle, "etat", etat));
+        ajouter(cle, "prixMin", prixMin);
+        ajouter(cle, "prixMax", prixMax);
+        ajouter(cle, "disponible", disponible ? "true" : null);
+        new TreeMap<>(caracteristiques).forEach((nom, valeurs) ->
+                valeurs.stream().sorted().forEach(valeur -> ajouter(cle, PREFIXE_CARACTERISTIQUE + nom, valeur)));
+        if (avecPagination) {
+            ajouter(cle, "tri", tri == null ? null : tri.name());
+            ajouter(cle, "page", page);
+            ajouter(cle, "taille", taille);
+        }
+        return cle.toString();
+    }
+
+    private static void ajouter(StringBuilder cle, String nom, Object valeur) {
+        if (valeur != null) {
+            cle.append(cle.isEmpty() ? "" : "&").append(nom).append('=')
+                    .append(java.net.URLEncoder.encode(valeur.toString(), java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
+
     public CriteresProduits avecCategorie(String slug) {
         return new CriteresProduits(slug, marques, etats, prixMin, prixMax, disponible, caracteristiques, tri,
                 page, taille);

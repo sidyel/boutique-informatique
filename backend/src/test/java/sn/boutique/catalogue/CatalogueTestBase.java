@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -25,6 +26,7 @@ import sn.boutique.catalogue.modele.Marque;
 import sn.boutique.catalogue.modele.Produit;
 import sn.boutique.catalogue.modele.TypeCaracteristique;
 import sn.boutique.catalogue.modele.ValeurCaracteristique;
+import sn.boutique.noyau.cache.CachesPublics;
 import sn.boutique.support.CompteurRequetesSql;
 import sn.boutique.support.HorlogeReglable;
 import tools.jackson.databind.JsonNode;
@@ -53,10 +55,21 @@ abstract class CatalogueTestBase {
     EntityManager em;
     @Autowired
     TransactionTemplate transaction;
+    @Autowired
+    CacheManager cacheManager;
 
     @BeforeEach
     void remettreLHorlogeALHeure() {
         horloge.reinitialiser();
+        viderLesCaches();
+    }
+
+    /**
+     * Les jeux de données sont écrits directement en base, sans événement {@code CatalogueModifie} : les
+     * caches sont vidés avant chaque test et après chaque écriture pour ne jamais lire une réponse périmée.
+     */
+    void viderLesCaches() {
+        CachesPublics.TOUS.forEach(nom -> cacheManager.getCache(nom).invalidate());
     }
 
     static String unique(String prefixe) {
@@ -64,7 +77,9 @@ abstract class CatalogueTestBase {
     }
 
     <T> T enTransaction(Function<EntityManager, T> action) {
-        return transaction.execute(statut -> action.apply(em));
+        T resultat = transaction.execute(statut -> action.apply(em));
+        viderLesCaches();
+        return resultat;
     }
 
     Categorie categorie(String nom, Categorie parent, int position, boolean actif) {

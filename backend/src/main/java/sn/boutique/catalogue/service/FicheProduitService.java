@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.catalogue.depot.MediaProduitDepot;
@@ -33,6 +34,7 @@ import sn.boutique.catalogue.modele.TypeMedia;
 import sn.boutique.catalogue.modele.ValeurCaracteristique;
 import sn.boutique.catalogue.modele.VarianteProduit;
 import sn.boutique.media.LienYoutube;
+import sn.boutique.noyau.cache.CachesPublics;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 
 /**
@@ -58,6 +60,7 @@ public class FicheProduitService {
     private final ResumesProduits resumesProduits;
     private final JdbcClient jdbc;
 
+    @Cacheable(cacheNames = CachesPublics.FICHE_PRODUIT, key = "#slug")
     public FicheProduitReponse trouverParSlug(String slug) {
         Produit produit = produitDepot.trouverPublieParSlug(slug)
                 .orElseThrow(() -> new RessourceIntrouvableException("Produit", slug));
@@ -107,6 +110,7 @@ public class FicheProduitService {
      * Produits de la même catégorie : ceux en stock d'abord, puis les prix les plus proches.
      * La carte montre la variante active la moins chère de chaque produit.
      */
+    @Cacheable(cacheNames = CachesPublics.PRODUITS_SIMILAIRES, key = "#slug")
     public List<ProduitResumeReponse> similaires(String slug) {
         Long produitId = jdbc.sql("select id from produit where slug = :slug and actif")
                 .param("slug", slug).query(Long.class).optional()

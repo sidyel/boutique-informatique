@@ -4,12 +4,14 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.catalogue.depot.CategorieDepot;
 import sn.boutique.catalogue.dto.CategorieNoeudReponse;
 import sn.boutique.catalogue.dto.CategorieReponse;
 import sn.boutique.catalogue.modele.Categorie;
+import sn.boutique.noyau.cache.CachesPublics;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 
 /** Lectures publiques des catégories. */
@@ -37,10 +39,12 @@ public class CategorieService {
                 .list());
     }
 
+    @Cacheable(cacheNames = CachesPublics.ARBRE_CATEGORIES, key = "'arbre'")
     public List<CategorieNoeudReponse> arbre() {
         return chargerArbre().versReponse();
     }
 
+    @Cacheable(cacheNames = CachesPublics.CATEGORIE, key = "#slug")
     public CategorieReponse trouverParSlug(String slug) {
         ArbreCategories.Noeud noeud = chargerArbre().trouver(slug)
                 .orElseThrow(() -> new RessourceIntrouvableException("Catégorie", slug));

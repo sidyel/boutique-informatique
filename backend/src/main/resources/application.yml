@@ -34,14 +34,13 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  # Instance Redis principale : compteurs de limitation du débit (maxmemory-policy noeviction).
+  # Le cache a sa propre instance : boutique.cache.redis.
   data:
     redis:
       host: ${REDIS_HOTE:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_MOT_DE_PASSE:}
-
-  cache:
-    type: redis
 
   jackson:
     time-zone: Africa/Dakar
@@ -139,6 +138,15 @@ boutique:
       nom: jeton_rafraichissement
       chemin: /api/auth
       secure: true
+  # Cache des lectures publiques, sur une instance Redis dédiée (maxmemory-policy allkeys-lru).
+  # Panne du cache : erreur journalisée, lecture en base (le site continue de répondre).
+  cache:
+    duree: 10m
+    redis:
+      hote: ${REDIS_CACHE_HOTE:localhost}
+      port: ${REDIS_CACHE_PORT:6380}
+      mot-de-passe: ${REDIS_CACHE_MOT_DE_PASSE:${REDIS_MOT_DE_PASSE:}}
+      delai: 500ms
   # Limitation du débit (Redis, fenêtre fixe), ADR 0003 §9. Valeurs larges par IP (CGNAT des opérateurs
   # mobiles : beaucoup d'abonnés derrière une même IP), plus strictes par e-mail.
   limitation:

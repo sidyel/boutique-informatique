@@ -49,4 +49,23 @@ public class TestcontainersConfiguration {
     GenericContainer<?> conteneurRedis() {
         return new GenericContainer<>(DockerImageName.parse("redis:8-alpine")).withExposedPorts(6379);
     }
+
+    /** Instance Redis du cache, distincte de l'instance principale comme en production. */
+    @Bean
+    GenericContainer<?> conteneurRedisCache() {
+        return new GenericContainer<>(DockerImageName.parse("redis:8-alpine"))
+                .withCommand("redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru")
+                .withExposedPorts(6379);
+    }
+
+    @Bean
+    DynamicPropertyRegistrar proprietesRedisCache(GenericContainer<?> conteneurRedisCache) {
+        return registre -> {
+            registre.add("boutique.cache.redis.hote", conteneurRedisCache::getHost);
+            registre.add("boutique.cache.redis.port", () -> conteneurRedisCache.getMappedPort(6379));
+            registre.add("boutique.cache.redis.mot-de-passe", () -> "");
+            // Court : le test du cache arrêté attend ce délai à chaque opération
+            registre.add("boutique.cache.redis.delai", () -> "300ms");
+        };
+    }
 }

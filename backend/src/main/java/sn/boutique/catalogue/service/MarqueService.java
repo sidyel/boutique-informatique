@@ -4,10 +4,12 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.catalogue.dto.MarqueReponse;
 import sn.boutique.catalogue.dto.MarqueResumeReponse;
+import sn.boutique.noyau.cache.CachesPublics;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 
 /** Lectures publiques des marques. */
@@ -19,6 +21,7 @@ public class MarqueService {
     private final JdbcClient jdbc;
 
     /** Marques ayant au moins un produit actif, par ordre alphabétique. */
+    @Cacheable(cacheNames = CachesPublics.MARQUES, key = "'toutes'")
     public List<MarqueResumeReponse> lister() {
         return jdbc.sql("""
                         select m.nom, m.slug, m.logo_url, count(p.id) as nombre
@@ -33,6 +36,7 @@ public class MarqueService {
     }
 
     /** Une marque existante, même sans produit actif pour l'instant (la page affichera une liste vide). */
+    @Cacheable(cacheNames = CachesPublics.MARQUE, key = "#slug")
     public MarqueReponse trouverParSlug(String slug) {
         return jdbc.sql("""
                         select m.nom, m.slug, m.logo_url, m.description, m.meta_titre, m.meta_description,

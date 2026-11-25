@@ -11,12 +11,14 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.catalogue.depot.CategorieDepot;
+import sn.boutique.catalogue.evenement.CatalogueModifie;
 import sn.boutique.catalogue.depot.DefinitionCaracteristiqueDepot;
 import sn.boutique.catalogue.depot.MarqueDepot;
 import sn.boutique.catalogue.depot.ProduitDepot;
@@ -100,6 +102,7 @@ public class ImportDonneesDemo {
     private final CollectionDepot collectionDepot;
     private final ParametresSiteDepot parametresDepot;
     private final UtilisateurDepot utilisateurDepot;
+    private final ApplicationEventPublisher evenements;
 
     /** Résumé de ce qui a été créé lors d'un chargement. */
     public record Bilan(int marques, int categories, int produits, int variantes, int autres, boolean admin) {
@@ -124,6 +127,10 @@ public class ImportDonneesDemo {
         Bilan bilan = new Bilan(compteurs.marques, compteurs.categories, compteurs.produits, compteurs.variantes,
                 compteurs.autres, admin);
         log.info("Données de démonstration : {}", bilan.rienCree() ? "déjà présentes, rien à créer" : bilan);
+        if (!bilan.rienCree()) {
+            // Caches publics vidés après la validation : une liste vide mise en cache avant l'import disparaît
+            evenements.publishEvent(new CatalogueModifie("import des données de démonstration"));
+        }
         return bilan;
     }
 
