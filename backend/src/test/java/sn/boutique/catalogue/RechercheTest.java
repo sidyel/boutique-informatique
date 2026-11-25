@@ -114,6 +114,11 @@ class RechercheTest extends CatalogueTestBase {
         assertThat(resultat.get("approximatif").asBoolean()).isTrue();
         assertThat(slugs(resultat)).containsExactly(kaltronBook.getSlug());
         assertThat(resultat.get("suggestions").isNull()).isTrue();
+
+        // Lettre manquante au milieu du mot (similarité 0,5, sous le seuil par défaut de pg_trgm)
+        JsonNode lettreManquante = corps(lire("/api/recherche?q={q}", "kalron"));
+        assertThat(lettreManquante.get("approximatif").asBoolean()).isTrue();
+        assertThat(slugs(lettreManquante)).containsExactly(kaltronBook.getSlug());
     }
 
     @Test

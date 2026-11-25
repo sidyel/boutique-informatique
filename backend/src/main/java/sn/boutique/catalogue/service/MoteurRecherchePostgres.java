@@ -49,6 +49,13 @@ public class MoteurRecherchePostgres implements MoteurRecherche {
                          and (sans_accents(lower(mr.nom)) ~ ('^' || :motif)
                               or sans_accents(lower(:texte)) <% sans_accents(lower(mr.nom))))
              or sans_accents(lower(:texte)) <% sans_accents(lower(p.nom)))""";
+    /**
+     * Seuil des opérateurs {@code <%} (0,6 par défaut dans pg_trgm). Mesuré sur des fautes courantes :
+     * « lenvo » / Lenovo 0,50, « samsng » / Samsung 0,57, « lenvo ideapad » / IdeaPad 0,57, alors que des mots
+     * sans rapport restent sous 0,2 (« asus » / Acer). Fixé pour la seule transaction en cours, et pour la
+     * recherche approchante seulement (pas pour l'autocomplétion).
+     */
+    private static final String SEUIL_APPROCHANT = "0.45";
     private static final int SUGGESTIONS_PRODUITS = 6;
     private static final int SUGGESTIONS_AUTRES = 3;
     private static final int PRODUITS_SI_AUCUN_RESULTAT = 8;
@@ -70,6 +77,7 @@ public class MoteurRecherchePostgres implements MoteurRecherche {
                 new FiltresSql(criteres, categories, PLEIN_TEXTE, parametres), ordre(criteres, PERTINENCE), criteres);
         String condition = PLEIN_TEXTE;
         if (page.totalElements() == 0) {
+            appliquerSeuilApprochant();
             approximatif = true;
             condition = APPROCHANT;
             page = listeProduitsService.paginer(
@@ -94,6 +102,8 @@ public class MoteurRecherchePostgres implements MoteurRecherche {
 
     @Override
     public SuggestionsReponse suggerer(String saisie) {
+        // Seuil par défaut de pg_trgm (0,6) : pendant la frappe, le début de mot suffit et un seuil bas
+        // proposerait des produits voisins sans rapport (« quillvue » → « Quillbook »)
         String texte = nettoyer(saisie);
         List<ResumesProduits.Selection> selections = jdbc.sql("""
                         select p.id as produit_id, v.id as variante_id
@@ -120,6 +130,12 @@ public class MoteurRecherchePostgres implements MoteurRecherche {
                 .toList();
         return new SuggestionsReponse(resumesProduits.lire(selections),
                 categories.stream().limit(SUGGESTIONS_AUTRES).toList(), marques);
+    }
+
+    private void appliquerSeuilApprochant() {
+        // set_config(..., true) : équivalent de SET LOCAL, annulé à la fin de la transaction
+        jdbc.sql("select set_config('pg_trgm.word_similarity_threshold', :seuil, true)")
+                .param("seuil", SEUIL_APPROCHANT).query(String.class).single();
     }
 
     /** Nombre de produits trouvés par catégorie ou par marque (facette de la page de résultats). */
