@@ -50,7 +50,7 @@ public class Produit extends EntiteAuditee {
     @Column(length = 500)
     private String descriptionCourte;
 
-    /** HTML nettoyé (OWASP Java HTML Sanitizer, phase 2). */
+    /** HTML nettoyé à l'écriture (OWASP Java HTML Sanitizer, avec l'admin des produits en phase 6). */
     @Column(columnDefinition = "text")
     private String descriptionLongue;
 
@@ -86,6 +86,10 @@ public class Produit extends EntiteAuditee {
 
     @Column(nullable = false)
     private int nombreAvis;
+
+    /** Unités vendues (tri « popularité »), incrémenté à la confirmation du paiement (phase 4). */
+    @Column(nullable = false)
+    private int nombreVentes;
 
     /*
      * ATTENTION — valeurs périmées dans la transaction (prixMinimum, stockTotal).

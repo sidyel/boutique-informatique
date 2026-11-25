@@ -7,6 +7,7 @@ import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import sn.boutique.support.CompteurRequetesSql;
 
 /**
  * Conteneurs PostgreSQL, Redis et Mailpit partagés par les tests d'intégration.
@@ -14,6 +15,12 @@ import org.testcontainers.utility.DockerImageName;
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
+
+    /** Compte les requêtes SQL (détection des N+1), dans tous les contextes de test. */
+    @Bean
+    static CompteurRequetesSql compteurRequetesSql() {
+        return new CompteurRequetesSql();
+    }
 
     @Bean
     @ServiceConnection

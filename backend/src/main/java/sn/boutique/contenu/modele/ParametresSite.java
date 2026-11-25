@@ -54,6 +54,19 @@ public class ParametresSite {
     @Column(length = 500)
     private String imagePartageUrl;
 
+    /* Identifiants des fichiers sur le stockage de médias : pour supprimer l'ancien fichier remplacé. */
+    @Column(length = 255)
+    private String logoIdPublic;
+
+    @Column(length = 255)
+    private String logoSombreIdPublic;
+
+    @Column(length = 255)
+    private String faviconIdPublic;
+
+    @Column(length = 255)
+    private String imagePartageIdPublic;
+
     /** Format E.164. */
     @Setter(AccessLevel.NONE)
     @Column(length = 13)

@@ -41,6 +41,13 @@ public class Banniere extends EntiteAuditee {
     @Column(nullable = false, length = 500)
     private String imageMobileUrl;
 
+    /** Identifiants des fichiers sur le stockage de médias (suppression au remplacement). */
+    @Column(length = 255)
+    private String imageOrdinateurIdPublic;
+
+    @Column(length = 255)
+    private String imageMobileIdPublic;
+
     /** Texte alternatif de l'image (accessibilité, SEO des images). */
     @Column(nullable = false, length = 255)
     private String texteAlternatif;
