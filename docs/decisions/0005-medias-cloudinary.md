@@ -138,6 +138,11 @@ modèle, date). **Aucune URL d'original ne sort du site** : pages, JSON-LD, Open
 réencodé sans métadonnées. La base garde l'idPublic et l'URL de diffusion déjà transformée, avec sa version
 (`…/image/upload/f_auto,q_auto/v<version>/<idPublic>.<format>`).
 
+**Exception : les SVG** (logo, logo sombre) ne passent jamais par `f_auto`, qui les convertit en image
+matricielle à leur taille d'origine (constaté lors de l'essai réel : logo livré en WebP de 120 × 40 px, flou).
+Ils sont servis en vectoriel avec `fl_sanitize` (second nettoyage par Cloudinary à la diffusion) ; un SVG n'a
+pas de métadonnées EXIF à retirer.
+
 **Pour la phase 3 (chargeur `NgOptimizedImage`)** : les URL en base contiennent **déjà** `f_auto,q_auto`. Le
 chargeur Angular doit **compléter** cette transformation avec la largeur demandée (`f_auto,q_auto,w_640`), sans
 la dupliquer (jamais `f_auto,q_auto/f_auto,q_auto,w_640` ni deux `w_`). Les images de démonstration

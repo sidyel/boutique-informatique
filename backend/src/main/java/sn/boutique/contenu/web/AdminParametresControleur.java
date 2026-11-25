@@ -28,7 +28,7 @@ public class AdminParametresControleur {
      */
     @PostMapping(path = "/{image}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ParametresPublicsReponse remplacerImage(@PathVariable String image,
-                                                   @RequestParam(name = "fichier", required = false) MultipartFile fichier) {
+                                                   @RequestParam(required = false) MultipartFile fichier) {
         ImageParametre cible = ImageParametre.depuisChemin(image)
                 .orElseThrow(() -> new RessourceIntrouvableException("Image des paramètres", image));
         return parametresAdminService.remplacerImage(cible, fichier);

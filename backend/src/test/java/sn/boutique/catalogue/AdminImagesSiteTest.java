@@ -104,7 +104,9 @@ class AdminImagesSiteTest extends CatalogueTestBase {
     @Test
     void leLogoPeutEtreUnSvgNettoye() throws Exception {
         envoyer("logo-sombre", svg()).andExpect(status().isOk())
-                .andExpect(jsonPath("$.logoSombreUrl").value(org.hamcrest.Matchers.endsWith(".svg")));
+                .andExpect(jsonPath("$.logoSombreUrl").value(org.hamcrest.Matchers.endsWith(".svg")))
+                // Jamais f_auto sur un SVG : il serait converti en image matricielle
+                .andExpect(jsonPath("$.logoSombreUrl").value(org.hamcrest.Matchers.containsString("/image/upload/fl_sanitize/v")));
 
         String contenu = new String(stockage.fichier(idPublic("logo_sombre")).contenu(), StandardCharsets.UTF_8);
         assertThat(contenu).doesNotContain("script").contains("<rect");

@@ -24,6 +24,12 @@ public class StockageCloudinary implements StockageMedia {
 
     /** Réencodage au format le mieux adapté au navigateur, qualité automatique, métadonnées retirées. */
     static final String TRANSFORMATION_DIFFUSION = "f_auto,q_auto";
+    /**
+     * SVG : jamais f_auto, qui le convertirait en image matricielle à sa taille d'origine (logo flou, constaté
+     * lors de l'essai réel). Servi en vectoriel, nettoyé une seconde fois par Cloudinary à la diffusion ; un SVG
+     * n'a pas de métadonnées EXIF à retirer (ADR 0005 §4).
+     */
+    static final String TRANSFORMATION_SVG = "fl_sanitize";
     /** Aperçu d'une vidéo : image choisie automatiquement par Cloudinary, puis même transformation. */
     static final String TRANSFORMATION_MINIATURE = "so_auto," + TRANSFORMATION_DIFFUSION;
 
@@ -66,7 +72,8 @@ public class StockageCloudinary implements StockageMedia {
     }
 
     static String urlImage(String nomDuCloud, MediaStocke media) {
-        return "https://res.cloudinary.com/" + nomDuCloud + "/image/upload/" + TRANSFORMATION_DIFFUSION + "/v"
+        String transformation = "svg".equals(media.format()) ? TRANSFORMATION_SVG : TRANSFORMATION_DIFFUSION;
+        return "https://res.cloudinary.com/" + nomDuCloud + "/image/upload/" + transformation + "/v"
                 + media.version() + "/" + media.idPublic() + "." + media.format();
     }
 

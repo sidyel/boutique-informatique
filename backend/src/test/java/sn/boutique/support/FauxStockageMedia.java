@@ -47,7 +47,8 @@ public class FauxStockageMedia implements StockageMedia {
 
     @Override
     public String urlImage(MediaStocke media) {
-        return "https://res.cloudinary.test/faux/image/upload/f_auto,q_auto/v" + media.version() + "/"
+        String transformation = "svg".equals(media.format()) ? "fl_sanitize" : "f_auto,q_auto";
+        return "https://res.cloudinary.test/faux/image/upload/" + transformation + "/v" + media.version() + "/"
                 + media.idPublic() + "." + media.format();
     }
 

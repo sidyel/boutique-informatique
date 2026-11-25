@@ -22,7 +22,7 @@ public class AdminBanniereImageControleur {
     /** Multipart : {@code fichier} et {@code format} ({@code ORDINATEUR} ou {@code MOBILE}). */
     @PostMapping(path = "/api/admin/bannieres/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public ImageBanniereReponse envoyer(@RequestParam(name = "fichier", required = false) MultipartFile fichier,
+    public ImageBanniereReponse envoyer(@RequestParam(required = false) MultipartFile fichier,
                                         @RequestParam FormatBanniere format) {
         return imagesBannieresService.envoyer(fichier, format);
     }

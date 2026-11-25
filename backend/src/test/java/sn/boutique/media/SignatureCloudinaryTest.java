@@ -60,6 +60,16 @@ class SignatureCloudinaryTest {
                 + "so_auto,f_auto,q_auto/v1732520000/dev/boutique/produits/42/videos/vivobook-15-k3f9q2mz.jpg");
     }
 
+    @Test
+    void unSvgEstServiEnVectorielNettoyeEtJamaisConvertiParFAuto() {
+        assertThat(StockageCloudinary.urlImage("nuage-test", new StockageMedia.MediaStocke(
+                "dev/boutique/site/logo-k3f9q2mz", 12L, "svg", null, null, 300L)))
+                .isEqualTo("https://res.cloudinary.com/nuage-test/image/upload/fl_sanitize/v12/dev/boutique/site/logo-k3f9q2mz.svg");
+        assertThat(StockageCloudinary.urlImage("nuage-test", new StockageMedia.MediaStocke(
+                "dev/boutique/produits/pc-k3f9q2mz", 12L, "png", 1000, 1000, 300L)))
+                .contains("/image/upload/f_auto,q_auto/v12/");
+    }
+
     private static ProprietesMedias avecCle(String url) {
         ProprietesMedias base = VerificationFichiersTest.proprietes(DataSize.ofMegabytes(5));
         return new ProprietesMedias(url, base.dossierRacine(), base.delai(), base.images(), base.svg(), base.videos(),
