@@ -11,15 +11,8 @@ $plage-latin-ext: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02F
   U+2C60-2C7F, U+A720-A7FF;
 
 @mixin police($famille, $fichier, $graisses) {
-  @font-face {
-    font-family: $famille;
-    font-style: normal;
-    font-display: swap;
-    font-weight: $graisses;
-    src: url('/polices/#{$fichier}-latin-wght-normal.woff2') format('woff2');
-    unicode-range: $plage-latin;
-  }
-
+  // latin-ext AVANT latin : les plages se recouvrent (œ, Œ…) et le navigateur essaie d'abord la
+  // dernière police déclarée. Dans l'autre ordre, « Cœurs » faisait télécharger latin-ext (83 Ko).
   @font-face {
     font-family: $famille;
     font-style: normal;
@@ -27,6 +20,15 @@ $plage-latin-ext: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02F
     font-weight: $graisses;
     src: url('/polices/#{$fichier}-latin-ext-wght-normal.woff2') format('woff2');
     unicode-range: $plage-latin-ext;
+  }
+
+  @font-face {
+    font-family: $famille;
+    font-style: normal;
+    font-display: swap;
+    font-weight: $graisses;
+    src: url('/polices/#{$fichier}-latin-wght-normal.woff2') format('woff2');
+    unicode-range: $plage-latin;
   }
 }
 
