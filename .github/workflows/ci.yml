@@ -19,6 +19,7 @@ jobs:
     outputs:
       backend: ${{ steps.filtre.outputs.backend }}
       frontend: ${{ steps.filtre.outputs.frontend }}
+      infra: ${{ steps.filtre.outputs.infra }}
     steps:
       - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v4
@@ -30,6 +31,10 @@ jobs:
               - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'
+              - '.github/workflows/ci.yml'
+            infra:
+              - 'infra/**'
+              - '.env.exemple'
               - '.github/workflows/ci.yml'
 
   backend:
@@ -85,3 +90,18 @@ jobs:
 
       - name: Build de production (navigateur + SSR)
         run: npm run build
+
+  infra:
+    name: Infra (contrôles de sécurité de docker-compose)
+    needs: changements
+    if: needs.changements.outputs.infra == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # docker compose exige le fichier .env : valeurs factices de l'exemple
+      - name: Fichier .env factice
+        run: cp .env.exemple .env
+
+      - name: Le frontend SSR ne reçoit aucun secret
+        run: python3 infra/scripts/verifier_env_frontend.py

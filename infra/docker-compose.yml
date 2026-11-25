@@ -88,13 +88,18 @@ services:
       start_period: 60s
       retries: 6
 
+  # Pas d'env_file : le serveur SSR ne reçoit QUE les variables ci-dessous, jamais les secrets du .env
+  # (clé JWT, Cloudinary, mots de passe). Une faille dans une dépendance Node qui lirait process.env ne
+  # doit rien révéler d'utile. Contrôlé dans la CI par infra/scripts/verifier_env_frontend.py.
   frontend:
     build: ../frontend
     restart: unless-stopped
-    env_file: ../.env
     environment:
       PORT: 4000
       API_URL_SERVEUR: http://backend:8080
+      # Noms d'hôte acceptés par le SSR (protection SSRF). En production, définir NG_ALLOWED_HOSTS dans le
+      # shell (ou lancer avec « --env-file ../.env », qui ne sert qu'à l'interpolation et n'injecte rien).
+      NG_ALLOWED_HOSTS: ${NG_ALLOWED_HOSTS:-localhost}
       # nginx est le seul point d'entrée et réécrit ces en-têtes : on peut s'y fier.
       # Sans cette liste, Angular ignore X-Forwarded-For et repasse en rendu côté navigateur.
       NG_TRUST_PROXY_HEADERS: x-forwarded-for,x-forwarded-host,x-forwarded-proto
