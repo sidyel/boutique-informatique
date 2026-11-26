@@ -72,7 +72,11 @@ export class PageCategorie {
     !this.categorie.chargement() && this.categorie.statutErreur() === 404 ? `/categorie/${this.slug()}` : null,
   );
   protected readonly introuvable = computed(
-    () => this.definitive.introuvable() || (!this.categorie.statutErreur() && this.produits.statutErreur() === 404),
+    () =>
+      this.definitive.introuvable() ||
+      // Seulement une fois la page lue sans erreur : sinon la 404 de cette liste, arrivée la première,
+      // afficherait la page introuvable (statut 404) avant la réponse définitive (301, 410)
+      (!this.categorie.chargement() && !this.categorie.statutErreur() && this.produits.statutErreur() === 404),
   );
   protected readonly retrait = this.definitive.retrait;
   protected readonly invalide = computed(

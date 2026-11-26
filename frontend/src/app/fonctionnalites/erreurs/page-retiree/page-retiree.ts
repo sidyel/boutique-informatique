@@ -28,9 +28,11 @@ const PRODUITS_PROPOSES = 8;
           Cette catégorie n'existe plus
         }
       </h1>
-      <p class="nom">« {{ retrait().nom }} » a été retiré définitivement de notre catalogue.</p>
+      @if (retrait(); as r) {
+        <p class="nom">« {{ r.nom }} » a été retiré définitivement de notre catalogue.</p>
+      }
       <p class="liens">
-        @if (retrait().categorie; as rayon) {
+        @if (retrait()?.categorie; as rayon) {
           <a class="lien" [routerLink]="['/categorie', rayon.slug]">Voir le rayon {{ rayon.nom }}</a>
         }
         <a class="lien lien--secondaire" routerLink="/">Revenir à l'accueil</a>
@@ -79,16 +81,17 @@ const PRODUITS_PROPOSES = 8;
   `,
 })
 export class PageRetiree {
-  readonly retrait = input.required<NonNullable<RedirectionReponse['retrait']>>();
+  // Pas input.required : le chargement des produits proposés lit l'entrée dès la construction (avant les entrées)
+  readonly retrait = input<RedirectionReponse['retrait']>(null);
   readonly type = input<'produit' | 'categorie'>('produit');
 
   private readonly produits = chargementMemorise<Page<ProduitResume>>(() => {
-    const rayon = this.retrait().categorie;
+    const rayon = this.retrait()?.categorie;
     return rayon ? `/api/produits?categorie=${rayon.slug}&taille=${PRODUITS_PROPOSES}` : null;
   });
   protected readonly proposes = computed(() => this.produits.valeur()?.elements ?? []);
   protected readonly liste = computed(() => ({
-    id: `retire-${this.retrait().categorie?.slug ?? 'accueil'}`,
+    id: `retire-${this.retrait()?.categorie?.slug ?? 'accueil'}`,
     nom: 'Produits similaires (produit retiré)',
   }));
 

@@ -120,7 +120,11 @@ export class PageMarque {
     !this.marque.chargement() && this.marque.statutErreur() === 404 ? `/marque/${this.slug()}` : null,
   );
   protected readonly introuvable = computed(
-    () => this.definitive.introuvable() || (!this.marque.statutErreur() && this.filtres.statutErreur() === 404),
+    () =>
+      this.definitive.introuvable() ||
+      // Seulement une fois la page lue sans erreur : sinon la 404 de cette liste, arrivée la première,
+      // afficherait la page introuvable (statut 404) avant la réponse définitive (301, 410)
+      (!this.marque.chargement() && !this.marque.statutErreur() && this.filtres.statutErreur() === 404),
   );
   protected readonly invalide = computed(
     () => this.produits.statutErreur() === 400 || this.filtres.statutErreur() === 400,
