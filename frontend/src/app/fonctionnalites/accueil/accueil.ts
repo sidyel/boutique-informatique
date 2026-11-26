@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { Accueil as AccueilReponse, Banniere } from '../../noyau/api/modeles';
 import { CatalogueService } from '../../noyau/donnees/catalogue.service';
 import { ParametresSiteService } from '../../noyau/donnees/parametres-site.service';
+import { siteWeb } from '../../noyau/seo/donnees-structurees';
 import { SeoService } from '../../noyau/seo/seo.service';
 import { Icone } from '../../partage/composants/icone/icone';
 import { ICONES_CONFIANCE } from '../../partage/composants/icone/icones-confiance';
@@ -62,6 +63,8 @@ export class Accueil {
   constructor() {
     inject(SeoService).definirPage({
       titre: 'Matériel informatique au Sénégal',
+      canonique: '/',
+      donneesStructurees: (url) => [siteWeb(this.site.nomSite(), url)],
       description:
         'PC portables, PC de bureau, composants, écrans, périphériques et réseau au Sénégal. ' +
         'Prix en FCFA, paiement Wave, Orange Money ou à la livraison.',

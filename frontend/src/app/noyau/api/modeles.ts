@@ -124,6 +124,38 @@ export interface ParametresPublics {
   boutonPrincipalFiche?: BoutonPrincipalFiche | null;
   /** « Livré à Dakar en 24 h, en régions en 2 à 4 jours » ; null : rien n'est affiché. */
   delaiLivraison?: string | null;
+  /** Politique de retour (JSON-LD MerchantReturnPolicy). */
+  politiqueRetour?: PolitiqueRetour | null;
+  /** Adresse structurée ; null tant que rue, ville et région ne sont pas toutes saisies. */
+  adresseStructuree?: AdresseStructuree | null;
+  /** Boutique ouverte au public (JSON-LD Store) ; null : pas de boutique physique. */
+  boutiquePhysique?: BoutiquePhysique | null;
+  /** Adresse publique et autorisation d'indexer (configuration du serveur : URL_SITE, INDEXATION_AUTORISEE). */
+  site?: { url: string; indexationAutorisee: boolean } | null;
+}
+
+export interface PolitiqueRetour {
+  acceptes: boolean;
+  /** Null si les retours sont refusés. */
+  delaiJours: number | null;
+  frais: 'GRATUIT' | 'A_LA_CHARGE_DU_CLIENT';
+  enBoutique: boolean;
+  parLivreur: boolean;
+}
+
+export interface AdresseStructuree {
+  rue: string;
+  ville: string;
+  region: string;
+  codePostal: string | null;
+}
+
+export type JourSemaine = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
+export interface BoutiquePhysique {
+  latitude: number | null;
+  longitude: number | null;
+  horaires: { jours: JourSemaine[]; ouverture: string; fermeture: string }[];
 }
 
 export type BoutonPrincipalFiche = 'PANIER' | 'WHATSAPP';

@@ -167,6 +167,13 @@ export function mediasPour(medias: readonly MediaFiche[], varianteId: number | u
   return [...propres, ...communs];
 }
 
+/** URL des photos d'une variante (propres puis communes), pour les données structurées. */
+export function imagesVariante(fiche: FicheProduit, varianteId: number): string[] {
+  return mediasPour(fiche.medias, varianteId)
+    .filter((m) => m.type === 'IMAGE')
+    .map((m) => m.url);
+}
+
 /** Image d'aperçu d'un média (miniature de la vidéo, ou l'image elle-même). */
 export function apercu(media: MediaFiche): string {
   return media.type === 'IMAGE' ? media.url : (media.urlMiniature ?? media.url);

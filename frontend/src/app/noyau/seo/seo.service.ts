@@ -1,23 +1,43 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, effect, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
 import { ParametresSiteService } from '../donnees/parametres-site.service';
+import { ObjetLd, boutique, graphe, organisation, serialiserLd } from './donnees-structurees';
+
+const ID_SCRIPT_LD = 'donnees-structurees';
 
 export interface InformationsPage {
   /** Titre sans le nom du site : « PC portables au meilleur prix au Sénégal ». Vide : nom du site seul. */
   titre: string;
   description?: string;
-  /** Pages privées, de test ou d'erreur : `noindex`. */
+  /** Pages privées, de test, d'erreur, de recherche ou filtrées : `noindex`. */
   indexable?: boolean;
+  /**
+   * Chemin canonique, relatif au site : « /produit/x », « /categorie/y?page=2 ». Rendu en URL absolue
+   * (`URL_SITE`). Absent : aucune balise canonique (pages d'erreur).
+   */
+  canonique?: string;
+  /** Image de partage propre à la page ; absente : image de partage par défaut du site. */
+  image?: string | null;
+  /** `og:type` : `product` sur la fiche produit. */
+  type?: 'website' | 'product';
+  /** Prix affiché (`product:price:amount`, en FCFA) : fiche produit uniquement. */
+  prix?: number | null;
+  /**
+   * Blocs JSON-LD propres à la page (produit, fil d'Ariane, liste…), construits avec l'URL du site
+   * (`SeoService.urlSite()`). L'organisation (et la boutique physique) sont ajoutées sur toutes les pages.
+   */
+  donneesStructurees?: (urlSite: string) => (ObjetLd | null)[];
 }
 
 /**
  * Service SEO central. Fonctionne pendant le rendu serveur : les balises sont dans le HTML envoyé.
- * - Page : titre « {titre} | {nom du site} », meta description, robots.
- * - Identité (depuis /api/parametres) : favicons, image Open Graph par défaut, nom du site, codes de
- *   vérification Google et Meta.
- * La phase 3d ajoutera la canonique, Open Graph par page, Twitter Card et le JSON-LD.
+ * - Page : titre « {titre} | {nom du site} », meta description, robots, canonique absolue, Open Graph,
+ *   Twitter Card.
+ * - Indexation : `noindex` sur toutes les pages tant que le serveur ne l'autorise pas
+ *   (`INDEXATION_AUTORISEE`, production uniquement ; ADR 0007).
+ * - Identité (depuis /api/parametres) : favicons, nom du site, codes de vérification Google et Meta.
  */
 @Injectable({ providedIn: 'root' })
 export class SeoService {
@@ -28,24 +48,73 @@ export class SeoService {
 
   private readonly page = signal<InformationsPage>({ titre: '' });
 
+  /** URL publique du site, sans barre finale (configuration du serveur). */
+  readonly urlSite = computed(() => this.site.parametres()?.site?.url?.replace(/\/+$/, '') ?? '');
+  /** Faux tant que les paramètres ne sont pas arrivés : jamais d'indexation par défaut. */
+  private readonly indexationAutorisee = computed(() => this.site.parametres()?.site?.indexationAutorisee === true);
+
   constructor() {
-    // Le nom du site arrive avec les paramètres : le titre est recalculé à ce moment-là
+    // Le nom du site et l'URL publique arrivent avec les paramètres : tout est recalculé à ce moment-là
     effect(() => {
-      const { titre, description, indexable = true } = this.page();
+      const { titre, description, indexable = true, canonique, image, type = 'website', prix } = this.page();
       const nom = this.site.nomSite();
       this.title.setTitle(titre ? `${titre} | ${nom}` : nom);
-      if (description) {
-        this.meta.updateTag({ name: 'description', content: description });
-      } else {
-        this.meta.removeTag('name="description"');
-      }
-      this.meta.updateTag({ name: 'robots', content: indexable ? 'index,follow' : 'noindex,follow' });
+      this.metaFacultative({ name: 'description' }, description);
+      const indexer = indexable && this.indexationAutorisee();
+      this.meta.updateTag({ name: 'robots', content: indexer ? 'index,follow' : 'noindex,follow' });
+
+      const url = canonique ? this.urlAbsolue(canonique) : null;
+      this.lienCanonique(url);
+      this.metaFacultative({ property: 'og:url' }, url);
+      this.meta.updateTag({ property: 'og:title', content: titre || nom });
+      this.metaFacultative({ property: 'og:description' }, description);
+      this.meta.updateTag({ property: 'og:type', content: type });
+      this.metaFacultative(
+        { property: 'og:image' },
+        this.urlAbsolue(image || this.site.parametres()?.imagePartageUrl || ''),
+      );
+      this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+      const prixProduit = type === 'product' && prix ? String(prix) : null;
+      this.metaFacultative({ property: 'product:price:amount' }, prixProduit);
+      this.metaFacultative({ property: 'product:price:currency' }, prixProduit ? 'XOF' : null);
     });
     effect(() => this.appliquerIdentite());
+    effect(() => this.appliquerDonneesStructurees());
   }
 
   definirPage(informations: InformationsPage): void {
     this.page.set(informations);
+  }
+
+  /** « /demo/images/a.webp » → « https://boutique.sn/demo/images/a.webp » ; une URL absolue est gardée. */
+  urlAbsolue(chemin: string): string {
+    if (!chemin || /^https?:\/\//i.test(chemin)) return chemin;
+    return `${this.urlSite()}${chemin.startsWith('/') ? '' : '/'}${chemin}`;
+  }
+
+  /** Un seul script JSON-LD par page (`@graph`), remplacé à chaque navigation. */
+  private appliquerDonneesStructurees(): void {
+    const parametres = this.site.parametres();
+    const urlSite = this.urlSite();
+    const { donneesStructurees } = this.page();
+    let script = this.document.getElementById(ID_SCRIPT_LD);
+    if (!parametres || !urlSite) {
+      script?.remove();
+      return;
+    }
+    const nom = this.site.nomSite();
+    const blocs = [
+      organisation(parametres, nom, urlSite),
+      boutique(parametres, nom, urlSite),
+      ...(donneesStructurees?.(urlSite) ?? []),
+    ];
+    if (!script) {
+      script = this.document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      script.id = ID_SCRIPT_LD;
+      this.document.head.appendChild(script);
+    }
+    script.textContent = serialiserLd(graphe(blocs));
   }
 
   private appliquerIdentite(): void {
@@ -55,7 +124,6 @@ export class SeoService {
     if (!parametres) {
       return;
     }
-    this.metaFacultative({ property: 'og:image' }, parametres.imagePartageUrl);
     this.metaFacultative({ name: 'google-site-verification' }, parametres.verification?.google);
     this.metaFacultative({ name: 'facebook-domain-verification' }, parametres.verification?.meta);
     const favicons = parametres.favicons;
@@ -73,6 +141,15 @@ export class SeoService {
     } else {
       this.meta.removeTag(attribut);
     }
+  }
+
+  private lienCanonique(url: string | null): void {
+    const existant = this.document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!url) {
+      existant?.remove();
+      return;
+    }
+    this.lien('canonical', url, {});
   }
 
   /** Crée ou met à jour `<link rel="…" sizes="…">` dans le head (aucun doublon). */

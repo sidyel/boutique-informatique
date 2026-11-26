@@ -18,6 +18,7 @@ const PARAMETRES: Partial<ParametresPublics> = {
     manifeste512: 'https://cdn/f512.png',
   },
   verification: { google: 'code-google', meta: null },
+  site: { url: 'https://boutique.sn', indexationAutorisee: true },
 };
 
 /** Laisse httpResource émettre sa requête, puis applique la réponse et les effets. */
@@ -65,5 +66,52 @@ describe('SeoService', () => {
     TestBed.inject(SeoService).definirPage({ titre: 'Autre' });
     await stabiliser();
     expect(head.querySelectorAll('link[rel="icon"][sizes="32x32"]')).toHaveLength(1);
+  });
+
+  it('canonique absolue, Open Graph et Twitter Card de la page', async () => {
+    const { seo, http } = configurer();
+    seo.definirPage({
+      titre: 'MacBook Air',
+      description: 'Puce M2.',
+      canonique: '/produit/macbook-air',
+      type: 'product',
+      image: '/demo/images/macbook.webp',
+      prix: 689000,
+    });
+    TestBed.tick();
+    http.expectOne('/api/parametres').flush(PARAMETRES);
+    await stabiliser();
+
+    const head = TestBed.inject(DOCUMENT).head;
+    const meta = TestBed.inject(Meta);
+    expect(head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://boutique.sn/produit/macbook-air');
+    expect(meta.getTag('property="og:url"')?.content).toBe('https://boutique.sn/produit/macbook-air');
+    expect(meta.getTag('property="og:type"')?.content).toBe('product');
+    expect(meta.getTag('property="og:image"')?.content).toBe('https://boutique.sn/demo/images/macbook.webp');
+    expect(meta.getTag('property="product:price:amount"')?.content).toBe('689000');
+    expect(meta.getTag('property="product:price:currency"')?.content).toBe('XOF');
+    expect(meta.getTag('name="twitter:card"')?.content).toBe('summary_large_image');
+
+    // Page d'erreur : plus de canonique ni de prix
+    seo.definirPage({ titre: 'Page introuvable', indexable: false });
+    await stabiliser();
+    expect(head.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(meta.getTag('property="product:price:amount"')).toBeNull();
+    expect(meta.getTag('name="robots"')?.content).toBe('noindex,follow');
+  });
+
+  it('noindex sur toutes les pages tant que le serveur n’autorise pas l’indexation', async () => {
+    const { seo, http } = configurer();
+    seo.definirPage({ titre: 'Accueil', canonique: '/' });
+    TestBed.tick();
+    // Avant l'arrivée des paramètres : jamais d'indexation par défaut
+    expect(TestBed.inject(Meta).getTag('name="robots"')?.content).toBe('noindex,follow');
+
+    http.expectOne('/api/parametres').flush({ ...PARAMETRES, site: { url: 'https://preprod.boutique.sn', indexationAutorisee: false } });
+    await stabiliser();
+    expect(TestBed.inject(Meta).getTag('name="robots"')?.content).toBe('noindex,follow');
+    expect(TestBed.inject(DOCUMENT).head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://preprod.boutique.sn/',
+    );
   });
 });

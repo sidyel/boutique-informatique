@@ -119,6 +119,7 @@ export class PageRecherche {
       seo.definirPage({
         titre: this.termeValide() ? `Recherche : ${this.terme()}` : 'Recherche',
         indexable: false,
+        canonique: this.termeValide() ? `/recherche?q=${encodeURIComponent(this.terme())}` : '/recherche',
       });
     });
   }
