@@ -106,6 +106,8 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 
 ## À traiter avant la mise en production (phase 9)
 
+- **Fiche produit** : retirer le message « La commande en ligne ouvre très bientôt… » affiché au clic
+  sur « Ajouter au panier » (`BlocAchat.ajouterAuPanier`) dès que le panier de la phase 4 fonctionne.
 - **Images de démonstration** : `frontend/public/demo/images/` (WebP du profil `demo`) ne doit pas se
   retrouver dans l'image Docker de production. Angular copie tout `public/` dans `dist/` : exclure le
   dossier à la compilation de production (par exemple `rm -rf dist/frontend/browser/demo` dans le
