@@ -1,0 +1,342 @@
+@use 'points-rupture' as pr;
+
+.commande {
+  padding-block: var(--espace-6) var(--espace-12);
+  // Place pour la barre d'action fixée en bas sur mobile
+  padding-block-end: calc(var(--hauteur-barre-mobile) + var(--espace-8));
+
+  @media (min-width: pr.$ordinateur) {
+    padding-block-end: var(--espace-16);
+  }
+}
+
+.commande__titre {
+  margin: 0 0 var(--espace-4);
+}
+
+.commande__grille {
+  display: grid;
+  gap: var(--espace-6);
+
+  // Récapitulatif au-dessus des étapes sur mobile, à droite sur ordinateur
+  @media (max-width: 63.99rem) {
+    .recap {
+      order: -1;
+    }
+  }
+
+  @media (min-width: pr.$ordinateur) {
+    grid-template-columns: minmax(0, 1fr) 24rem;
+    align-items: start;
+    gap: var(--espace-8);
+  }
+}
+
+.commande__etapes {
+  display: grid;
+  gap: var(--espace-3);
+}
+
+// --- Étapes repliables ----------------------------------------------------------------------
+
+.etape {
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+}
+
+.etape--ouverte {
+  border-color: var(--couleur-bordure-forte);
+}
+
+.etape--attente .etape__entete {
+  color: var(--couleur-texte-desactive);
+}
+
+.etape__entete {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-3);
+  margin: 0;
+  padding: var(--espace-3) var(--espace-4);
+  min-height: var(--cible-tactile);
+  font-size: var(--taille-base);
+}
+
+.etape__numero {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-family: var(--police-mono);
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte);
+  border: var(--epaisseur-bordure) solid currentcolor;
+  border-radius: var(--rayon-rond);
+}
+
+.etape--ouverte .etape__numero {
+  color: var(--couleur-texte-inverse);
+  background: var(--couleur-accent);
+  border-color: var(--couleur-accent);
+}
+
+.etape__numero--faite {
+  color: var(--couleur-succes);
+}
+
+.etape__nom {
+  flex: 1;
+}
+
+.etape__modifier {
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-2);
+  font: inherit;
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-accent);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--anneau-focus);
+  }
+}
+
+.etape__corps {
+  display: grid;
+  gap: var(--espace-4);
+  padding: 0 var(--espace-4) var(--espace-4);
+}
+
+.etape__resume,
+.etape__note {
+  margin: 0;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+  overflow-wrap: anywhere;
+}
+
+.etape__resume {
+  padding: 0 var(--espace-4) var(--espace-4) calc(var(--espace-4) + 1.75rem + var(--espace-3));
+  margin-block-start: calc(-1 * var(--espace-2));
+}
+
+// Sur mobile, la barre fixe en bas porte l'action principale
+.etape__suite {
+  display: none;
+
+  @media (min-width: pr.$ordinateur) {
+    display: inline-flex;
+    justify-self: start;
+  }
+}
+
+// --- Champs natifs (liste de zones) ----------------------------------------------------------
+
+// --- Choix (livraison, paiement) -------------------------------------------------------------
+
+.choix {
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choix__option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espace-3);
+  min-height: var(--cible-tactile);
+  padding: var(--espace-3);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-champ);
+  border-radius: var(--rayon-2);
+  cursor: pointer;
+
+  input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-block-start: var(--espace-px);
+    accent-color: var(--couleur-accent);
+  }
+
+  &:has(input:focus-visible) {
+    box-shadow: var(--anneau-focus);
+  }
+}
+
+.choix__option--active {
+  background: var(--couleur-accent-leger);
+  border-color: var(--couleur-accent);
+}
+
+.choix__option--desactive {
+  cursor: not-allowed;
+  color: var(--couleur-texte-secondaire);
+  background: var(--couleur-surface-alt);
+}
+
+.choix__texte {
+  display: grid;
+  gap: var(--espace-1);
+  min-width: 0;
+  font-size: var(--taille-sm);
+
+  strong {
+    font-size: var(--taille-base);
+  }
+}
+
+.choix__detail {
+  color: var(--couleur-texte-secondaire);
+}
+
+// --- Récapitulatif --------------------------------------------------------------------------
+
+.recap {
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+
+  @media (min-width: pr.$ordinateur) {
+    position: sticky;
+    inset-block-start: var(--espace-4);
+  }
+}
+
+.recap__details {
+  padding: var(--espace-3) var(--espace-4);
+}
+
+.recap__resume {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  min-height: var(--cible-tactile);
+  align-items: center;
+  font-weight: var(--graisse-semi-gras);
+  cursor: pointer;
+}
+
+.recap__montant {
+  font-family: var(--police-prix);
+  white-space: nowrap;
+}
+
+.recap__lignes {
+  display: grid;
+  gap: var(--espace-3);
+  margin: var(--espace-3) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recap__ligne {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  font-size: var(--taille-sm);
+  overflow-wrap: anywhere;
+}
+
+.recap__variante {
+  display: block;
+  color: var(--couleur-texte-secondaire);
+}
+
+.recap__prix {
+  font-family: var(--police-prix);
+  white-space: nowrap;
+}
+
+.recap__totaux {
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0;
+  padding-block-start: var(--espace-3);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--espace-3);
+  }
+
+  dt {
+    color: var(--couleur-texte-secondaire);
+  }
+
+  dd {
+    margin: 0;
+    font-family: var(--police-prix);
+    font-weight: var(--graisse-semi-gras);
+    white-space: nowrap;
+  }
+}
+
+.recap__remise dd {
+  color: var(--couleur-succes);
+}
+
+.recap__total {
+  padding-block-start: var(--espace-2);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  dt {
+    color: var(--couleur-texte);
+    font-weight: var(--graisse-semi-gras);
+  }
+
+  dd {
+    font-size: var(--taille-lg);
+    font-weight: var(--graisse-gras);
+  }
+}
+
+.recap__note {
+  font-family: var(--police-texte);
+  font-weight: var(--graisse-normale);
+  color: var(--couleur-texte-secondaire);
+}
+
+.recap__lien {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible-tactile);
+  margin-block-start: var(--espace-2);
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+}
+
+// --- Erreurs, états vides, barre mobile -------------------------------------------------------
+
+.echec {
+  display: flex;
+  gap: var(--espace-3);
+  margin-block-end: var(--espace-4);
+  padding: var(--espace-3) var(--espace-4);
+  background: var(--couleur-alerte-fond);
+  border-inline-start: var(--espace-1) solid var(--couleur-danger);
+  border-radius: var(--rayon-1);
+
+  p {
+    margin: 0;
+  }
+
+  bi-icone {
+    flex: none;
+    color: var(--couleur-danger);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: var(--anneau-focus);
+  }
+}

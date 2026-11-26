@@ -60,6 +60,16 @@ export const routes: Routes = [
           import('./fonctionnalites/panier/page-panier/page-panier').then((m) => m.PagePanier),
       },
       {
+        path: 'commande',
+        loadComponent: () =>
+          import('./fonctionnalites/commande/page-commande/page-commande').then((m) => m.PageCommande),
+      },
+      {
+        path: 'suivi/:jeton',
+        loadComponent: () =>
+          import('./fonctionnalites/commande/page-suivi/page-suivi').then((m) => m.PageSuivi),
+      },
+      {
         path: '**',
         loadComponent: () =>
           import('./fonctionnalites/erreurs/page-introuvable/page-introuvable').then(

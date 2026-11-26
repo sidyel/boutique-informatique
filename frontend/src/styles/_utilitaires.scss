@@ -1,3 +1,5 @@
+@use 'points-rupture' as pr;
+
 // Classes utilitaires globales (volontairement peu nombreuses).
 
 // Conteneur centré à largeur maximale
@@ -50,4 +52,126 @@
   body:has(.barre-mobile) .whatsapp {
     inset-block-end: calc(var(--hauteur-barre-mobile) + var(--espace-3) + env(safe-area-inset-bottom));
   }
+}
+
+// Barre d'action fixée en bas de l'écran sur mobile (panier, commande) : total et bouton principal à portée du pouce.
+.barre-mobile {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-collant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  min-height: var(--hauteur-barre-mobile);
+  padding: var(--espace-2) var(--marge-page) calc(var(--espace-2) + env(safe-area-inset-bottom));
+  background: var(--couleur-surface);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  box-shadow: var(--ombre-2);
+
+  @media (min-width: pr.$ordinateur) {
+    display: none;
+  }
+}
+
+.barre-mobile__total {
+  display: grid;
+  line-height: var(--interligne-serre);
+}
+
+.barre-mobile__libelle {
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.barre-mobile__montant {
+  font-family: var(--police-prix);
+  font-size: var(--taille-lg);
+  font-weight: var(--graisse-gras);
+  white-space: nowrap;
+}
+
+// État vide ou erreur d'une page (panier vide, lien de suivi introuvable…)
+.vide {
+  display: grid;
+  justify-items: center;
+  gap: var(--espace-3);
+  padding-block: var(--espace-12);
+  text-align: center;
+  color: var(--couleur-texte-secondaire);
+
+  p {
+    margin: 0;
+  }
+}
+
+.vide__titre {
+  font-size: var(--taille-lg);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+}
+
+// Liste déroulante native et messages de champ (zone de livraison, code promo) : même rendu que bi-champ, 16 px et 44 px.
+.champ-natif {
+  display: grid;
+  gap: var(--espace-1);
+}
+
+.champ-natif__libelle {
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+}
+
+.requis {
+  margin-inline-start: var(--espace-1);
+  color: var(--couleur-promo-fonce);
+}
+
+.champ-natif__saisie {
+  width: 100%;
+  min-height: var(--hauteur-controle-md);
+  padding-inline: var(--espace-3);
+  font-size: var(--taille-base); // 16 px : évite le zoom automatique sur iPhone
+  color: var(--couleur-texte);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-champ);
+  border-radius: var(--rayon-2);
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--couleur-focus);
+    box-shadow: var(--anneau-focus);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--couleur-danger);
+  }
+}
+
+.champ-natif__aide {
+  color: var(--couleur-texte-secondaire);
+}
+
+.champ-natif__erreur {
+  margin: 0;
+  font-size: var(--taille-sm);
+}
+
+.lien-bouton {
+  min-height: var(--cible-tactile);
+  padding: 0;
+  font: inherit;
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-accent);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.champ-natif__aide,
+.champ-natif__erreur {
+  color: var(--couleur-promo-fonce);
+  font-weight: var(--graisse-moyenne);
 }

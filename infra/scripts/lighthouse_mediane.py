@@ -11,7 +11,10 @@ passage médian (score de performance), puis applique les seuils du projet (CLAU
 Usage :
   python3 infra/scripts/lighthouse_mediane.py --base https://localhost --page accueil=/ \\
       [--page categorie=/categorie/pc-portables] [--passages 7] [--sortie rapports-lighthouse] \\
-      [--certificat-autosigne]
+      [--certificat-autosigne] [--variante-demo apple-macbook-air-13-m2 --page-panier panier=/panier]
+
+--page-panier nom=/chemin : page personnelle mesurée AVEC un panier de démonstration (panier, commande). Le script
+crée un panier invité (1 exemplaire du produit --variante-demo) et le présente à Lighthouse par l'en-tête Cookie.
 
 --certificat-autosigne : le site est servi en HTTPS avec un certificat autosigné (workflow Lighthouse, voir
 ADR 0006) ; Chrome et la requête de chauffe acceptent alors ce certificat. Jamais pour un vrai site.
@@ -42,7 +45,7 @@ SEUIL_PERFORMANCE = 90
 CATEGORIES = "performance,accessibility,best-practices,seo"
 
 
-def lancer_lighthouse(url: str, destination: Path, certificat_autosigne: bool) -> dict:
+def lancer_lighthouse(url: str, destination: Path, certificat_autosigne: bool, entetes: dict | None = None) -> dict:
     commande = shlex.split(os.environ.get("LIGHTHOUSE_CMD", "lighthouse"))
     commande += [
         url,
@@ -55,6 +58,9 @@ def lancer_lighthouse(url: str, destination: Path, certificat_autosigne: bool) -
         "--chrome-flags=--headless=new --no-sandbox"
         + (" --ignore-certificate-errors" if certificat_autosigne else ""),
     ]
+    if entetes:
+        # Envoyés avec toutes les requêtes de la page, y compris les appels à l'API faits par Angular
+        commande.append("--extra-headers=" + json.dumps(entetes))
     subprocess.run(commande, check=True)
     with open(f"{destination}.report.json", encoding="utf-8") as fichier:
         return json.load(fichier)
@@ -76,7 +82,28 @@ def metriques(rapport: dict) -> dict:
     }
 
 
-def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, certificat_autosigne: bool) -> dict:
+def creer_panier_demo(base: str, produit: str, certificat_autosigne: bool) -> dict:
+    """Panier invité d'un exemplaire de `produit` ; renvoie l'en-tête Cookie à présenter à Lighthouse."""
+    contexte = ssl._create_unverified_context() if certificat_autosigne else None
+    racine = base.rstrip("/")
+    with urllib.request.urlopen(f"{racine}/api/produits/{produit}", timeout=60, context=contexte) as reponse:
+        variante = json.load(reponse)["variantes"][0]["id"]
+    requete = urllib.request.Request(
+        f"{racine}/api/panier/lignes",
+        data=json.dumps({"varianteId": variante, "quantite": 1}).encode(),
+        headers={"Content-Type": "application/json", "Origin": racine},
+        method="POST",
+    )
+    with urllib.request.urlopen(requete, timeout=60, context=contexte) as reponse:
+        cookie = reponse.headers.get("Set-Cookie", "")
+    jeton = cookie.split(";", 1)[0]
+    if not jeton.startswith("panier_invite="):
+        raise SystemExit(f"Panier de démonstration non créé (en-tête Set-Cookie : « {cookie[:40]} »)")
+    return {"Cookie": jeton}
+
+
+def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, certificat_autosigne: bool,
+                 entetes: dict | None = None) -> dict:
     url = base.rstrip("/") + chemin
     # Chauffe : le premier rendu SSR (compilation à la volée de Node) ne doit pas fausser le 1er passage
     contexte = ssl._create_unverified_context() if certificat_autosigne else None
@@ -86,7 +113,7 @@ def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, 
     for numero in range(1, passages + 1):
         destination = sortie / f"{nom}-{numero}"
         print(f"[{nom}] passage {numero}/{passages} : {url}", flush=True)
-        resultats.append(metriques(lancer_lighthouse(url, destination, certificat_autosigne)))
+        resultats.append(metriques(lancer_lighthouse(url, destination, certificat_autosigne, entetes)))
 
     mediane = {cle: statistics.median(r[cle] for r in resultats) for cle in resultats[0]}
     # Rapport HTML conservé : celui du passage dont le score de performance est le plus proche de la médiane
@@ -136,6 +163,9 @@ def main() -> int:
     analyseur = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     analyseur.add_argument("--base", default="https://localhost")
     analyseur.add_argument("--page", action="append", required=True, help="nom=/chemin (répétable)")
+    analyseur.add_argument("--page-panier", action="append", default=[],
+                           help="nom=/chemin mesuré avec un panier de démonstration (répétable)")
+    analyseur.add_argument("--variante-demo", help="slug du produit mis dans le panier de démonstration")
     analyseur.add_argument("--passages", type=int, default=7)
     analyseur.add_argument("--sortie", default="rapports-lighthouse")
     analyseur.add_argument(
@@ -154,6 +184,15 @@ def main() -> int:
         if not nom or not chemin.startswith("/"):
             analyseur.error(f"page invalide : « {definition} » (attendu : nom=/chemin)")
         pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie, args.certificat_autosigne))
+    if args.page_panier:
+        if not args.variante_demo:
+            analyseur.error("--page-panier exige --variante-demo")
+        entetes = creer_panier_demo(args.base, args.variante_demo, args.certificat_autosigne)
+        for definition in args.page_panier:
+            nom, _, chemin = definition.partition("=")
+            if not nom or not chemin.startswith("/"):
+                analyseur.error(f"page invalide : « {definition} » (attendu : nom=/chemin)")
+            pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie, args.certificat_autosigne, entetes))
 
     resume = tableau(pages, args.passages)
     print(resume)

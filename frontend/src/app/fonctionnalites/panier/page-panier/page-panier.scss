@@ -79,44 +79,11 @@
   color: var(--couleur-texte-secondaire);
 }
 
-// Champs : 16 px au moins (sinon l'iPhone zoome), 44 px de haut
-.champ-texte {
-  width: 100%;
-  min-width: 0;
-  min-height: var(--cible-tactile);
-  padding-inline: var(--espace-3);
-  font-size: var(--taille-base);
-  color: var(--couleur-texte);
-  background: var(--couleur-surface);
-  border: var(--epaisseur-bordure) solid var(--couleur-bordure-champ);
-  border-radius: var(--rayon-2);
-
-  &:focus-visible {
-    outline: none;
-    border-color: var(--couleur-focus);
-    box-shadow: var(--anneau-focus);
-  }
-
-  &[aria-invalid='true'] {
-    border-color: var(--couleur-danger);
-  }
-}
-
-input.champ-texte {
-  text-transform: uppercase;
-  font-family: var(--police-mono);
-
-  &::placeholder {
-    text-transform: none;
-    font-family: var(--police-texte);
-  }
-}
-
 .code-form {
   display: flex;
   gap: var(--espace-2);
 
-  .champ-texte {
+  .champ-natif__saisie {
     flex: 1;
   }
 }
@@ -155,23 +122,6 @@ input.champ-texte {
   overflow-wrap: anywhere;
 }
 
-.lien-bouton {
-  flex: none;
-  min-height: var(--cible-tactile);
-  padding-inline: var(--espace-2);
-  font-size: var(--taille-sm);
-  font-weight: var(--graisse-semi-gras);
-  color: var(--couleur-accent);
-  background: none;
-  border: 0;
-  text-decoration: underline;
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-}
-
 .page-panier__commander {
   margin-block-start: var(--espace-4);
 }
@@ -198,62 +148,6 @@ input.champ-texte {
   border-inline-start: var(--espace-1) solid var(--couleur-danger);
 }
 
-.barre-mobile {
-  position: fixed;
-  inset-inline: 0;
-  inset-block-end: 0;
-  z-index: var(--z-collant);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-3);
-  min-height: var(--hauteur-barre-mobile);
-  padding: var(--espace-2) var(--marge-page) calc(var(--espace-2) + env(safe-area-inset-bottom));
-  background: var(--couleur-surface);
-  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
-  box-shadow: var(--ombre-2);
-
-  @media (min-width: pr.$ordinateur) {
-    display: none;
-  }
-}
-
-.barre-mobile__total {
-  display: grid;
-  line-height: var(--interligne-serre);
-}
-
-.barre-mobile__libelle {
-  font-size: var(--taille-xs);
-  color: var(--couleur-texte-secondaire);
-}
-
-.barre-mobile__montant {
-  font-family: var(--police-prix);
-  font-size: var(--taille-lg);
-  font-weight: var(--graisse-gras);
-  white-space: nowrap;
-}
-
-.vide {
-  display: grid;
-  justify-items: center;
-  gap: var(--espace-3);
-  padding-block: var(--espace-12);
-  text-align: center;
-  color: var(--couleur-texte-secondaire);
-
-  p {
-    margin: 0;
-  }
-}
-
-.vide__titre {
-  font-size: var(--taille-lg);
-  font-weight: var(--graisse-semi-gras);
-  color: var(--couleur-texte);
-}
-
 .squelette-ligne {
   display: grid;
   grid-template-columns: 4.5rem 1fr;
@@ -264,5 +158,15 @@ input.champ-texte {
     display: grid;
     gap: var(--espace-2);
     align-content: start;
+  }
+}
+
+.code-form .champ-natif__saisie {
+  font-family: var(--police-mono);
+  text-transform: uppercase;
+
+  &::placeholder {
+    font-family: var(--police-texte);
+    text-transform: none;
   }
 }

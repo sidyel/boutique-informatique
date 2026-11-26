@@ -1,0 +1,166 @@
+<div class="conteneur suivi">
+  @if (introuvable()) {
+    <div class="vide" role="alert">
+      <bi-icone nom="alerte" taille="3rem" />
+      <h1 class="vide__titre">Lien de suivi introuvable</h1>
+      <p>Ce lien est incomplet ou n’existe pas. Utilisez le lien reçu par e-mail ou par message, tel quel.</p>
+      <a biBouton variante="principal" routerLink="/">Retour à l’accueil</a>
+    </div>
+  } @else if (commande(); as c) {
+    <header class="suivi__entete">
+      @if (nouvelle() && c.statut !== 'ANNULEE') {
+        <p class="suivi__merci" role="status">
+          <bi-icone nom="coche" taille="1.25rem" />
+          Merci{{ c.prenomClient ? ' ' + c.prenomClient : '' }}, votre commande est enregistrée.
+        </p>
+      }
+      <h1 class="suivi__titre">Commande <span class="suivi__numero">{{ c.numero }}</span></h1>
+      <p class="suivi__statut suivi__statut--{{ c.statut }}">{{ libelles[c.statut] }}</p>
+    </header>
+
+    <!-- Ce qui se passe maintenant -->
+    @switch (c.statut) {
+      @case ('EN_ATTENTE_PAIEMENT') {
+        @if (verification()) {
+          <section class="message message--info" role="status" aria-live="polite">
+            <p><strong>Nous vérifions votre paiement…</strong></p>
+            <p>L’opérateur nous confirme le paiement : cela prend quelques secondes. Ne fermez pas cette page.</p>
+          </section>
+        } @else if (c.peutReprendrePaiement) {
+          <section class="message message--alerte">
+            <p><strong>
+              @if (retour() === 'annule') { Paiement annulé. } @else if (retour() === 'reprise') { Le paiement n’a pas pu démarrer. } @else { Paiement en attente. }
+            </strong></p>
+            <p>Votre commande est réservée@if (echeance(); as e) { jusqu’à <time [attr.datetime]="e">{{ e | date: 'HH:mm' }}</time>}.
+               Passé ce délai, elle est annulée et les articles sont remis en vente.</p>
+            @if (erreurReprise(); as erreur) { <p class="message__erreur" role="alert">{{ erreur }}</p> }
+            <button biBouton variante="principal" taille="lg" type="button" [chargement]="reprise()"
+              [disabled]="reprise()" (click)="reprendrePaiement()">
+              Reprendre le paiement
+            </button>
+          </section>
+        } @else {
+          <section class="message message--alerte">
+            <p><strong>Paiement non reçu.</strong></p>
+            <p>Le délai de paiement est dépassé ou le paiement en ligne n’est pas disponible. Si vous avez payé,
+               contactez-nous avec votre numéro de commande.</p>
+          </section>
+        }
+      }
+      @case ('EN_ATTENTE_CONFIRMATION') {
+        <section class="message message--alerte">
+          <p><strong>Nous allons vous appeler pour confirmer votre commande.</strong></p>
+          <p>Nous appelons le <span class="mono">{{ c.telephoneMasque }}</span>. Merci de décrocher : sans confirmation
+             @if (echeance(); as e) { avant le <time [attr.datetime]="e">{{ e | date: 'd MMMM à HH:mm' }}</time>, }
+             la commande est annulée.</p>
+        </section>
+      }
+      @case ('CONFIRMEE') {
+        <section class="message message--succes">
+          <p><strong>Commande confirmée.</strong></p>
+          <p>Vous payez {{ retrait() ? 'au retrait' : 'à la livraison' }}. Nous préparons votre commande.</p>
+        </section>
+      }
+      @case ('PAYEE') {
+        <section class="message message--succes">
+          <p><strong>Paiement reçu, merci !</strong></p>
+          <p>Nous préparons votre commande.</p>
+        </section>
+      }
+      @case ('ANNULEE') {
+        <section class="message message--danger">
+          <p><strong>Cette commande est annulée.</strong></p>
+          <p>Les articles ont été remis en vente. Vous pouvez repasser commande à tout moment.</p>
+          <a biBouton variante="contour" routerLink="/">Voir les produits</a>
+        </section>
+      }
+      @case ('REMBOURSEE') {
+        <section class="message message--info">
+          <p><strong>Cette commande a été remboursée.</strong></p>
+        </section>
+      }
+    }
+
+    @if (etapes().length) {
+      <ol class="parcours" aria-label="Avancement de la commande">
+        @for (etape of etapes(); track etape.statut) {
+          <li class="parcours__etape parcours__etape--{{ etape.etat }}" [attr.aria-current]="etape.etat === 'courante' ? 'step' : null">
+            <span class="parcours__point" aria-hidden="true">
+              @if (etape.etat === 'faite') { <bi-icone nom="coche" taille="0.875rem" /> }
+            </span>
+            <span class="parcours__libelle">{{ etape.libelle }}</span>
+          </li>
+        }
+      </ol>
+    }
+
+    @if (nouvelle()) {
+      <section class="bloc lien">
+        <h2 class="bloc__titre">Gardez ce lien</h2>
+        <p>C’est votre lien personnel pour suivre cette commande, même sans compte. Il est aussi envoyé par e-mail si
+           vous en avez donné un. Ne le partagez pas.</p>
+        <p class="lien__adresse mono">{{ lienSuivi() }}</p>
+        <button type="button" class="lien__copier" (click)="copierLien()">
+          {{ lienCopie() ? 'Lien copié ✓' : 'Copier le lien' }}
+        </button>
+      </section>
+    }
+
+    <section class="bloc">
+      <h2 class="bloc__titre">Articles</h2>
+      <ul class="articles">
+        @for (ligne of c.lignes; track ligne.sku) {
+          <li class="article">
+            <span>{{ ligne.nomProduit }}
+              <span class="article__variante">{{ ligne.libelleVariante }} × {{ ligne.quantite }}</span></span>
+            <span class="article__prix">{{ ligne.totalLigne | prixFcfa }}</span>
+          </li>
+        }
+      </ul>
+      <dl class="totaux">
+        <div><dt>Sous-total</dt><dd>{{ c.sousTotal | prixFcfa }}</dd></div>
+        @if (c.remise > 0) {
+          <div class="totaux__remise"><dt>Remise {{ c.codePromo }}</dt><dd>−{{ c.remise | prixFcfa }}</dd></div>
+        }
+        <div><dt>Livraison</dt><dd>{{ c.fraisLivraison === 0 ? (retrait() ? 'Retrait gratuit' : 'Offerte') : (c.fraisLivraison | prixFcfa) }}</dd></div>
+        <div class="totaux__total"><dt>Total</dt><dd>{{ c.total | prixFcfa }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="bloc">
+      <h2 class="bloc__titre">Livraison et contact</h2>
+      <dl class="infos">
+        <div>
+          <dt>Mode</dt>
+          <dd>{{ retrait() ? 'Retrait en boutique' : 'Livraison à domicile' + (c.zoneLivraison ? ' · ' + c.zoneLivraison : '') }}</dd>
+        </div>
+        @if (c.adresseMasquee) { <div><dt>Adresse</dt><dd>{{ c.adresseMasquee }}</dd></div> }
+        <div><dt>Téléphone</dt><dd class="mono">{{ c.telephoneMasque }}</dd></div>
+        <div><dt>Paiement</dt>
+          <dd>{{ c.modePaiement === 'A_LA_LIVRAISON' ? (retrait() ? 'Au retrait' : 'À la livraison') : 'Mobile money' }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    @if (lienWhatsApp(); as lien) {
+      <p class="aide">
+        Une question sur votre commande ?
+        <a [href]="lien" target="_blank" rel="noopener noreferrer">Écrivez-nous sur WhatsApp</a>
+        en rappelant le numéro <strong class="mono">{{ c.numero }}</strong>.
+      </p>
+    }
+  } @else if (erreurReseau()) {
+    <div class="vide" role="alert">
+      <bi-icone nom="alerte" taille="3rem" />
+      <h1 class="vide__titre">Impossible de charger la commande</h1>
+      <p>Vérifiez votre connexion. Votre commande n’est pas perdue.</p>
+      <button biBouton variante="principal" type="button" (click)="recharger()">Réessayer</button>
+    </div>
+  } @else {
+    <div aria-busy="true">
+      <bi-squelette forme="ligne" largeur="60%" hauteur="2rem" />
+      <bi-squelette forme="bloc" hauteur="6rem" />
+      <bi-squelette forme="bloc" hauteur="12rem" />
+    </div>
+  }
+</div>

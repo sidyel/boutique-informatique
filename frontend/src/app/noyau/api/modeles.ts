@@ -391,3 +391,103 @@ export interface Panier {
   /** Messages de la dernière action (quantité ramenée au stock, panier fusionné…). */
   avertissements: string[];
 }
+
+/** Ce que le tunnel de commande peut proposer (`/api/commandes/options`). */
+export interface OptionsCommande {
+  paiementEnLigne: boolean;
+  paiementLivraison: boolean;
+  /** Montant maximal (FCFA) d'une commande payée à la livraison. */
+  paiementLivraisonMax: number;
+  retraitMagasin: boolean;
+  boutiqueAdresse: string | null;
+  delaiPaiementMinutes: number;
+}
+
+export type ModeLivraison = 'DOMICILE' | 'RETRAIT_MAGASIN';
+export type ModePaiement = 'MOBILE_MONEY' | 'CARTE_BANCAIRE' | 'A_LA_LIVRAISON';
+
+export type StatutCommande =
+  | 'EN_ATTENTE_PAIEMENT'
+  | 'EN_ATTENTE_CONFIRMATION'
+  | 'CONFIRMEE'
+  | 'PAYEE'
+  | 'EN_PREPARATION'
+  | 'EXPEDIEE'
+  | 'LIVREE'
+  | 'ANNULEE'
+  | 'REMBOURSEE';
+
+/** Corps de `POST /api/commandes` : jamais de prix, le serveur relit le panier. */
+export interface CreationCommande {
+  nomComplet: string;
+  telephone: string;
+  email: string | null;
+  modeLivraison: ModeLivraison;
+  zoneId: number | null;
+  ville: string | null;
+  quartier: string | null;
+  adresse: string | null;
+  pointDeRepere: string | null;
+  telephoneLivraison: string | null;
+  modePaiement: ModePaiement;
+  /** Total affiché au client : refusé (409) s'il a changé entre-temps. */
+  totalAttendu: number;
+  attribution: AttributionCommande | null;
+}
+
+export interface AttributionCommande {
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampagne: string | null;
+  utmContenu: string | null;
+  utmTerme: string | null;
+  pageArrivee: string | null;
+  referent: string | null;
+  premiereSource: string | null;
+  premierMedium: string | null;
+  premiereCampagne: string | null;
+  premierePageArrivee: string | null;
+}
+
+export interface CommandeCreee {
+  numero: string;
+  jetonSuivi: string;
+  statut: StatutCommande;
+  modePaiement: ModePaiement;
+  total: number;
+  expireLe: string | null;
+  urlPaiement: string | null;
+  /** Le paiement en ligne n'a pas pu démarrer : la commande existe, le client le reprend depuis le suivi. */
+  paiementAReprendre: boolean;
+  rejouee: boolean;
+}
+
+export interface SuiviCommande {
+  numero: string;
+  statut: StatutCommande;
+  dateCreation: string;
+  expireLe: string | null;
+  prenomClient: string | null;
+  telephoneMasque: string | null;
+  modeLivraison: ModeLivraison;
+  zoneLivraison: string | null;
+  adresseMasquee: string | null;
+  modePaiement: ModePaiement;
+  lignes: {
+    sku: string;
+    nomProduit: string;
+    libelleVariante: string;
+    imageUrl: string | null;
+    prixUnitaire: number;
+    quantite: number;
+    totalLigne: number;
+  }[];
+  sousTotal: number;
+  fraisLivraison: number;
+  remise: number;
+  total: number;
+  codePromo: string | null;
+  etapes: { statut: StatutCommande; date: string }[];
+  peutReprendrePaiement: boolean;
+  achatASuivre: boolean;
+}

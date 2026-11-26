@@ -79,7 +79,8 @@ jobs:
           done
           echo "::error::Le catalogue de démonstration n'est pas disponible"; exit 1
 
-      # Pages ajoutées au fil des parties : fiche produit en 3c.
+      # Pages ajoutées au fil des parties : fiche produit en 3c, panier et commande en 4b (mesurés avec un panier
+      # de démonstration : le script crée un panier invité et le présente par l'en-tête Cookie).
       # --certificat-autosigne (Chrome --ignore-certificate-errors) : uniquement dans ce job.
       - name: Lighthouse mobile
         env:
@@ -93,6 +94,9 @@ jobs:
           --page accueil=/
           --page categorie=/categorie/pc-portables
           --page fiche=/produit/apple-macbook-air-13-m2
+          --variante-demo apple-macbook-air-13-m2
+          --page-panier panier=/panier
+          --page-panier commande=/commande
 
       - name: Rapports Lighthouse
         if: always()

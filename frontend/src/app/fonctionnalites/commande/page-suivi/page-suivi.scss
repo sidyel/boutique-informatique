@@ -1,0 +1,315 @@
+@use 'points-rupture' as pr;
+
+.suivi {
+  display: grid;
+  gap: var(--espace-4);
+  max-width: 44rem;
+  padding-block: var(--espace-6) var(--espace-12);
+}
+
+.mono {
+  font-family: var(--police-mono);
+  overflow-wrap: anywhere;
+}
+
+.suivi__entete {
+  display: grid;
+  gap: var(--espace-2);
+}
+
+.suivi__merci {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: var(--espace-3) var(--espace-4);
+  font-weight: var(--graisse-semi-gras);
+  background: var(--couleur-succes-fond);
+  border-radius: var(--rayon-1);
+
+  bi-icone {
+    color: var(--couleur-succes);
+  }
+}
+
+.suivi__titre {
+  margin: 0;
+  font-size: var(--taille-xl);
+}
+
+.suivi__numero {
+  display: block;
+  font-family: var(--police-mono);
+  font-size: var(--taille-lg);
+  font-weight: var(--graisse-semi-gras);
+  overflow-wrap: anywhere;
+}
+
+.suivi__statut {
+  justify-self: start;
+  margin: 0;
+  padding: var(--espace-1) var(--espace-3);
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+  background: var(--couleur-surface-alt);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-1);
+}
+
+.suivi__statut--PAYEE,
+.suivi__statut--CONFIRMEE,
+.suivi__statut--LIVREE {
+  color: var(--couleur-succes);
+  background: var(--couleur-succes-fond);
+  border-color: var(--couleur-succes);
+}
+
+.suivi__statut--ANNULEE {
+  color: var(--couleur-danger);
+  background: var(--couleur-alerte-fond);
+  border-color: var(--couleur-danger);
+}
+
+// --- Messages d'état -----------------------------------------------------------------------
+
+.message {
+  display: grid;
+  gap: var(--espace-2);
+  justify-items: start;
+  padding: var(--espace-4);
+  border-inline-start: var(--espace-1) solid var(--couleur-info);
+  background: var(--couleur-info-fond);
+  border-radius: var(--rayon-1);
+
+  p {
+    margin: 0;
+  }
+}
+
+.message--alerte {
+  border-inline-color: var(--couleur-alerte);
+  background: var(--couleur-alerte-fond);
+}
+
+.message--succes {
+  border-inline-color: var(--couleur-succes);
+  background: var(--couleur-succes-fond);
+}
+
+.message--danger {
+  border-inline-color: var(--couleur-danger);
+  background: var(--couleur-alerte-fond);
+}
+
+.message__erreur {
+  color: var(--couleur-promo-fonce);
+  font-weight: var(--graisse-moyenne);
+}
+
+// --- Parcours ------------------------------------------------------------------------------
+
+.parcours {
+  display: grid;
+  gap: var(--espace-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: pr.$tablette) {
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: var(--espace-2);
+  }
+}
+
+.parcours__etape {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-3);
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+
+  @media (min-width: pr.$tablette) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espace-2);
+    padding-block-start: var(--espace-2);
+    border-block-start: var(--espace-1) solid var(--couleur-bordure);
+  }
+}
+
+.parcours__point {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--couleur-texte-inverse);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-forte);
+  border-radius: var(--rayon-rond);
+
+  @media (min-width: pr.$tablette) {
+    display: none;
+  }
+}
+
+.parcours__etape--faite {
+  color: var(--couleur-texte);
+
+  .parcours__point {
+    background: var(--couleur-succes);
+    border-color: var(--couleur-succes);
+  }
+
+  @media (min-width: pr.$tablette) {
+    border-block-start-color: var(--couleur-succes);
+  }
+}
+
+.parcours__etape--courante {
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+
+  .parcours__point {
+    border-color: var(--couleur-accent);
+    background: var(--couleur-accent-leger);
+  }
+
+  @media (min-width: pr.$tablette) {
+    border-block-start-color: var(--couleur-accent);
+  }
+}
+
+// --- Blocs --------------------------------------------------------------------------------
+
+.bloc {
+  padding: var(--espace-4);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+
+  p {
+    margin: 0 0 var(--espace-3);
+  }
+}
+
+.bloc__titre {
+  margin: 0 0 var(--espace-3);
+  font-size: var(--taille-base);
+}
+
+.lien__adresse {
+  padding: var(--espace-3);
+  font-size: var(--taille-sm);
+  background: var(--couleur-surface-alt);
+  border-radius: var(--rayon-1);
+  user-select: all;
+}
+
+.lien__copier {
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-4);
+  font: inherit;
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-forte);
+  border-radius: var(--rayon-2);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--anneau-focus);
+  }
+}
+
+.articles {
+  display: grid;
+  gap: var(--espace-3);
+  margin: 0 0 var(--espace-3);
+  padding: 0;
+  list-style: none;
+}
+
+.article {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  font-size: var(--taille-sm);
+  overflow-wrap: anywhere;
+}
+
+.article__variante {
+  display: block;
+  color: var(--couleur-texte-secondaire);
+}
+
+.article__prix {
+  font-family: var(--police-prix);
+  white-space: nowrap;
+}
+
+.totaux,
+.infos {
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--espace-4);
+  }
+
+  dt {
+    color: var(--couleur-texte-secondaire);
+  }
+
+  dd {
+    margin: 0;
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+}
+
+.totaux {
+  padding-block-start: var(--espace-3);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  dd {
+    font-family: var(--police-prix);
+    font-weight: var(--graisse-semi-gras);
+    white-space: nowrap;
+  }
+}
+
+.totaux__remise dd {
+  color: var(--couleur-succes);
+}
+
+.totaux__total {
+  padding-block-start: var(--espace-2);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+
+  dt {
+    color: var(--couleur-texte);
+    font-weight: var(--graisse-semi-gras);
+  }
+
+  dd {
+    font-size: var(--taille-lg);
+    font-weight: var(--graisse-gras);
+  }
+}
+
+.aide {
+  margin: 0;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--cible-tactile);
+  }
+}

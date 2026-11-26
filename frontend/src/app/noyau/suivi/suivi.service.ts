@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { ProduitResume } from '../api/modeles';
+import { ModeLivraison, ModePaiement, ProduitResume } from '../api/modeles';
 
 /** Liste de produits vue : `item_list_id` GA4 (« accueil-nouveautes », « categorie-pc-portables »…). */
 export interface ListeSuivie {
@@ -57,6 +57,22 @@ export class SuiviService {
    * recalculés par le serveur ; `valeur` = sous-total moins la remise (hors livraison).
    */
   voirPanier(_lignes: readonly ArticleSuivi[], _valeur: number): void {}
+
+  /** Tunnel de commande ouvert (begin_checkout / InitiateCheckout). Une fois par visite du tunnel. */
+  commencerCommande(_lignes: readonly ArticleSuivi[], _valeur: number): void {}
+
+  /** Mode de livraison validé (add_shipping_info) ; `frais` en FCFA, 0 si offerts ou retrait. */
+  choisirLivraison(_lignes: readonly ArticleSuivi[], _valeur: number, _mode: ModeLivraison, _frais: number): void {}
+
+  /** Mode de paiement validé (add_payment_info / AddPaymentInfo). */
+  choisirPaiement(_lignes: readonly ArticleSuivi[], _valeur: number, _mode: ModePaiement): void {}
+
+  /**
+   * Achat (purchase / Purchase) : appelé une seule fois par commande, quand le serveur a confirmé la vente
+   * (commande payée ou confirmée par téléphone), jamais sur la seule foi du retour du navigateur.
+   * `idEvenement` (« achat-CMD-… ») est partagé avec l'API Conversions pour le dédoublonnage.
+   */
+  achat(_numero: string, _lignes: readonly ArticleSuivi[], _valeur: number, _idEvenement: string): void {}
 
   /** Bannière promotionnelle vue ou cliquée (view_promotion / select_promotion). */
   voirPromotion(_idBanniere: number, _titre: string | null): void {}

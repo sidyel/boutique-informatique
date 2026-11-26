@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, afterNextRender, inject } from '@an
 import { RouterOutlet } from '@angular/router';
 
 import { TiroirPanier } from '../fonctionnalites/panier/tiroir-panier/tiroir-panier';
+import { AttributionService } from '../noyau/attribution/attribution.service';
 import { PanierService } from '../noyau/panier/panier.service';
 import { BoutonWhatsapp } from './bouton-whatsapp/bouton-whatsapp';
 import { Entete } from './entete/entete';
@@ -57,9 +58,14 @@ import { PiedDePage } from './pied-de-page/pied-de-page';
 })
 export class MiseEnPagePublique {
   protected readonly panier = inject(PanierService);
+  private readonly attribution = inject(AttributionService);
 
   constructor() {
-    // Compteur de l'en-tête : panier chargé dans le navigateur seulement, s'il en existe un
-    afterNextRender(() => this.panier.initialiser());
+    afterNextRender(() => {
+      // Origine de la visite (UTM, référent) pour savoir quelle publicité a vendu : cookie premier-partie, 90 jours
+      this.attribution.capturer();
+      // Compteur de l'en-tête : panier chargé dans le navigateur seulement, s'il en existe un
+      this.panier.initialiser();
+    });
   }
 }

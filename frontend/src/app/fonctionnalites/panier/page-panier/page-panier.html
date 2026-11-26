@@ -44,7 +44,7 @@
                 <label class="visuellement-masque" for="code-promo">Code promo</label>
                 <input
                   id="code-promo"
-                  class="champ-texte"
+                  class="champ-natif__saisie"
                   type="text"
                   name="code"
                   autocomplete="off"
@@ -74,7 +74,7 @@
               <bi-icone nom="livraison" taille="1rem" />
               <label for="zone-livraison">Estimer la livraison</label>
             </h2>
-            <select id="zone-livraison" class="champ-texte" autocomplete="off"
+            <select id="zone-livraison" class="champ-natif__saisie" autocomplete="off"
               (change)="choisirZone($any($event.target).value)">
               <option value="" [selected]="panier.zoneId() === null">Choisir une zone</option>
               @for (zone of zones(); track zone.id) {

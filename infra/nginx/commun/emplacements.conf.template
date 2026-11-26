@@ -90,6 +90,18 @@ location /actuator/ {
     return 404;
 }
 
+# --- Suivi d'une commande par son lien -------------------------------
+# Le jeton de suivi est dans l'URL : la page ne doit le transmettre dans aucun en-tête Referer (liens sortants,
+# WhatsApp, réseaux). Un add_header dans un location remplace ceux du niveau supérieur : ils sont répétés ici.
+location /suivi/ {
+    limit_req zone=pages burst=${NGINX_RAFALE_PAGES} nodelay;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    proxy_pass http://$frontend;
+}
+
 # --- Pages rendues côté serveur (SSR) et fichiers statiques -------------
 # Le serveur SSR (Express) pose lui-même Cache-Control : un an, immuable,
 # pour les fichiers JS/CSS à empreinte et les polices.
