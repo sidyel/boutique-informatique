@@ -2,6 +2,7 @@ package sn.boutique.authentification.securite;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,18 +17,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Protection CSRF des routes qui utilisent le cookie du jeton de rafraîchissement
- * ({@code /api/auth/rafraichir} et {@code /api/auth/deconnexion}), en complément de SameSite=Strict.
+ * Protection CSRF des routes qui reposent sur un cookie : jeton de rafraîchissement ({@code /api/auth/rafraichir},
+ * {@code /api/auth/deconnexion}, SameSite=Strict), panier invité et commande ({@code /api/panier/**},
+ * {@code /api/commandes/**}, SameSite=Lax).
  * <p>
- * L'en-tête {@code Origin} est <strong>obligatoire</strong> et doit appartenir aux origines du site.
- * Les navigateurs l'envoient sur tout POST (même de même origine) et une page ne peut pas le falsifier.
- * Une requête sans Origin est refusée. Aucun jeton CSRF n'est donc nécessaire (voir ADR 0003).
+ * Sur ces routes, toute requête qui modifie un état (POST, PUT, PATCH, DELETE) doit porter un en-tête
+ * {@code Origin} appartenant aux origines du site. Les navigateurs l'envoient sur ces méthodes (même de même
+ * origine) et une page ne peut pas le falsifier. Une requête sans Origin est refusée. Aucun jeton CSRF n'est
+ * donc nécessaire (voir ADR 0003). Les lectures (GET, HEAD) ne modifient rien et ne sont pas filtrées.
+ * <p>
+ * Un chemin protégé est exact ({@code /api/panier}) ou un préfixe terminé par {@code /**}
+ * ({@code /api/panier/**} couvre {@code /api/panier/lignes/12}, mais pas {@code /api/paniers}).
  */
 @Slf4j
 public class VerificationOrigineFiltre extends OncePerRequestFilter {
 
     private final Set<String> originesAutorisees;
+    private static final Set<String> METHODES_SURES = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
+
     private final Set<String> cheminsProteges;
+    private final List<String> prefixesProteges;
     private final ReponsesSecurite reponses;
 
     public VerificationOrigineFiltre(Collection<String> originesAutorisees, Collection<String> cheminsProteges,
@@ -35,13 +44,21 @@ public class VerificationOrigineFiltre extends OncePerRequestFilter {
         this.originesAutorisees = originesAutorisees.stream()
                 .map(VerificationOrigineFiltre::normaliser)
                 .collect(Collectors.toUnmodifiableSet());
-        this.cheminsProteges = Set.copyOf(cheminsProteges);
+        this.cheminsProteges = cheminsProteges.stream().filter(chemin -> !chemin.endsWith("/**"))
+                .collect(Collectors.toUnmodifiableSet());
+        this.prefixesProteges = cheminsProteges.stream().filter(chemin -> chemin.endsWith("/**"))
+                .map(chemin -> chemin.substring(0, chemin.length() - 2))
+                .toList();
         this.reponses = reponses;
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest requete) {
-        return !"POST".equals(requete.getMethod()) || !cheminsProteges.contains(requete.getRequestURI());
+        return METHODES_SURES.contains(requete.getMethod()) || !estProtege(requete.getRequestURI());
+    }
+
+    private boolean estProtege(String chemin) {
+        return cheminsProteges.contains(chemin) || prefixesProteges.stream().anyMatch(chemin::startsWith);
     }
 
     @Override

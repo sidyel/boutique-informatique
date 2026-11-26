@@ -114,7 +114,7 @@ class AvisEtLivraisonPublicsTest extends CatalogueTestBase {
         assertThat(banlieue.get("tarif").asLong()).isEqualTo(3_500);
         assertThat(banlieue.get("delaiJours").asInt()).isEqualTo(1);
         assertThat(banlieue.get("villesQuartiers").get(1).asString()).isEqualTo("Guédiawaye");
-        assertThat(banlieue.has("id")).isFalse();
+        assertThat(banlieue.get("id").isNumber()).isTrue(); // choix de la zone dans le panier (phase 4)
     }
 
     // --- Outils -------------------------------------------------------------------------------------

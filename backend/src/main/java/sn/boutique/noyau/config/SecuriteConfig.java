@@ -32,7 +32,9 @@ import sn.boutique.compte.modele.Role;
 @EnableWebSecurity
 public class SecuriteConfig {
 
-    public static final List<String> ROUTES_AVEC_COOKIE = List.of("/api/auth/rafraichir", "/api/auth/deconnexion");
+    /** Routes qui reposent sur un cookie : Origin obligatoire sur toute requête qui modifie un état (CSRF). */
+    public static final List<String> ROUTES_AVEC_COOKIE = List.of("/api/auth/rafraichir", "/api/auth/deconnexion",
+            "/api/panier", "/api/panier/**", "/api/commandes", "/api/commandes/**");
 
     private static final String[] ROUTES_DOCUMENTATION = {
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"

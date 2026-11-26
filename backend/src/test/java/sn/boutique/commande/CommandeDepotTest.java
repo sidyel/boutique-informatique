@@ -213,7 +213,8 @@ class CommandeDepotTest {
     @Test
     void ajouterDeuxFoisLaMemeVarianteAugmenteLaQuantite() {
         VarianteProduit variante = variante(25_000, 10);
-        Panier panier = Panier.pourInvite(unique("invite"));
+        // Empreinte SHA-256 du jeton du cookie : 64 caractères hexadécimaux (V16)
+        Panier panier = Panier.pourInvite("%064x".formatted(System.nanoTime()));
         panier.ajouter(variante, 1);
         panier.ajouter(variante, 2);
         panierDepot.saveAndFlush(panier);
@@ -230,7 +231,7 @@ class CommandeDepotTest {
         panierDepot.saveAndFlush(panier);
         em.clear();
 
-        assertThatThrownBy(() -> em.createNativeQuery("update panier set jeton_invite = 'x' where id = :id")
+        assertThatThrownBy(() -> em.createNativeQuery("update panier set jeton_invite = repeat('a', 64) where id = :id")
                 .setParameter("id", panier.getId()).executeUpdate())
                 .satisfies(e -> assertThat(contrainteViolee(e)).isEqualTo("ck_panier_proprietaire"));
     }

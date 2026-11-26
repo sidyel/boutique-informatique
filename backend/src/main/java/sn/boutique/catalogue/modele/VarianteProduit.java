@@ -58,6 +58,9 @@ public class VarianteProduit extends EntiteAuditee {
 
     private Integer poidsGrammes;
 
+    /** Quantité maximale par commande pour cette variante (V16) ; absente : réglage du site. */
+    private Integer quantiteMax;
+
     @Column(nullable = false)
     private boolean actif = true;
 

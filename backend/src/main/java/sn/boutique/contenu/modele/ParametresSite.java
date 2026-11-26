@@ -134,6 +134,10 @@ public class ParametresSite {
     @Column(nullable = false)
     private boolean avisReservesAuxAcheteurs = true;
 
+    /** Quantité maximale d'une ligne de panier, sauf exception sur la variante (V16). */
+    @Column(nullable = false)
+    private int quantiteMaxParLigne = 5;
+
     /** Bouton d'achat mis en avant sur la fiche produit (V14). */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)

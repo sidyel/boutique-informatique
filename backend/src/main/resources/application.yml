@@ -154,6 +154,18 @@ boutique:
       chemin: /api/auth
       secure: true
   # Médias : Cloudinary (CLOUDINARY_URL, jamais dans Git) et contrôles des fichiers envoyés (ADR 0005)
+  # Panier (phase 4a) : cookie du panier invité (jeton aléatoire, seule son empreinte est en base),
+  # purge des paniers invités abandonnés, limite des essais de codes promo (anti-énumération ; par IP,
+  # valeur large à cause du CGNAT des opérateurs mobiles).
+  panier:
+    cookie:
+      nom: panier_invite
+      chemin: /api
+      secure: true
+      duree: 30d
+    conservation-invite: 30d
+    purge-cron: "0 45 3 * * *"
+    code-promo-ip: { limite: 30, fenetre: 10m }
   medias:
     cloudinary-url: ${CLOUDINARY_URL:}
     # Dossier propre à l'environnement : dev/boutique ici, boutique en production

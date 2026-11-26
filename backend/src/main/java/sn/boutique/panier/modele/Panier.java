@@ -15,6 +15,7 @@ import jakarta.persistence.OrderBy;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sn.boutique.catalogue.modele.VarianteProduit;
 import sn.boutique.compte.modele.Utilisateur;
 import sn.boutique.noyau.audit.EntiteAuditee;
@@ -32,8 +33,14 @@ public class Panier extends EntiteAuditee {
     @JoinColumn(name = "utilisateur_id", unique = true)
     private Utilisateur utilisateur;
 
+    /** Empreinte SHA-256 (hex) du jeton du cookie invité, jamais le jeton lui-même (V16). */
     @Column(unique = true, length = 64)
     private String jetonInvite;
+
+    /** Code promo saisi, revalidé à chaque lecture et à la commande. */
+    @Setter
+    @Column(length = 40)
+    private String codePromo;
 
     @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("dateCreation ASC")
@@ -45,9 +52,9 @@ public class Panier extends EntiteAuditee {
         return panier;
     }
 
-    public static Panier pourInvite(String jetonInvite) {
+    public static Panier pourInvite(String empreinteJeton) {
         Panier panier = new Panier();
-        panier.jetonInvite = jetonInvite;
+        panier.jetonInvite = empreinteJeton;
         return panier;
     }
 
@@ -55,11 +62,15 @@ public class Panier extends EntiteAuditee {
         return lignes.stream().filter(ligne -> ligne.getVariante().equals(variante)).findFirst();
     }
 
-    /** Ajoute la quantité à la ligne existante ou crée une ligne. Le contrôle du stock est fait par le service. */
+    /**
+     * Ajoute la quantité à la ligne existante ou crée une ligne. Le contrôle du stock est fait par le service.
+     * Le client vient de voir le prix actuel (fiche produit) : il devient le prix vu de la ligne.
+     */
     public LignePanier ajouter(VarianteProduit variante, int quantite) {
         return ligne(variante)
                 .map(existante -> {
                     existante.setQuantite(existante.getQuantite() + quantite);
+                    existante.accepterPrixActuel();
                     return existante;
                 })
                 .orElseGet(() -> {

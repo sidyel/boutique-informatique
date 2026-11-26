@@ -28,6 +28,9 @@ boutique:
     # HTTP en local (test depuis un téléphone du réseau local, curl) : cookie sans l'attribut Secure
     cookie:
       secure: false
+  panier:
+    cookie:
+      secure: false
 
 management:
   health:

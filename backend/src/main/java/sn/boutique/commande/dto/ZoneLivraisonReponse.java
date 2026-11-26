@@ -10,10 +10,10 @@ import sn.boutique.commande.modele.ZoneLivraison;
  * @param tarif      frais de livraison en FCFA
  * @param delaiJours délai indicatif en jours
  */
-public record ZoneLivraisonReponse(String nom, List<String> villesQuartiers, long tarif, int delaiJours) {
+public record ZoneLivraisonReponse(long id, String nom, List<String> villesQuartiers, long tarif, int delaiJours) {
 
     public static ZoneLivraisonReponse depuis(ZoneLivraison zone) {
-        return new ZoneLivraisonReponse(zone.getNom(), List.copyOf(zone.getVillesQuartiers()), zone.getTarif(),
+        return new ZoneLivraisonReponse(zone.getId(), zone.getNom(), List.copyOf(zone.getVillesQuartiers()), zone.getTarif(),
                 zone.getDelaiJours());
     }
 }
