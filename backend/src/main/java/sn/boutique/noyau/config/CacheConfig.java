@@ -81,23 +81,9 @@ public class CacheConfig implements CachingConfigurer {
     CacheManager cacheManager(ConnexionCache connexion, ProprietesCache proprietes, JsonMapper jsonMapper) {
         RedisCacheConfiguration base = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(proprietes.duree())
-                .prefixCacheNameWith("boutique:")
+                .prefixCacheNameWith(CachesPublics.PREFIXE)
                 .disableCachingNullValues();
-        TypeFactory types = jsonMapper.getTypeFactory();
-        Map<String, JavaType> typesParCache = new HashMap<>();
-        typesParCache.put(CachesPublics.ARBRE_CATEGORIES, liste(types, CategorieNoeudReponse.class));
-        typesParCache.put(CachesPublics.CATEGORIE, types.constructType(CategorieReponse.class));
-        typesParCache.put(CachesPublics.MARQUES, liste(types, MarqueResumeReponse.class));
-        typesParCache.put(CachesPublics.MARQUE, types.constructType(MarqueReponse.class));
-        typesParCache.put(CachesPublics.PARAMETRES, types.constructType(ParametresPublicsReponse.class));
-        typesParCache.put(CachesPublics.BANNIERES, liste(types, BanniereProgrammee.class));
-        typesParCache.put(CachesPublics.FICHE_PRODUIT, types.constructType(FicheProduitReponse.class));
-        typesParCache.put(CachesPublics.PRODUITS_SIMILAIRES, liste(types, ProduitResumeReponse.class));
-        typesParCache.put(CachesPublics.LISTE_PRODUITS,
-                types.constructParametricType(PageReponse.class, ProduitResumeReponse.class));
-        typesParCache.put(CachesPublics.FILTRES, types.constructType(FiltresReponse.class));
-        typesParCache.put(CachesPublics.ACCUEIL, types.constructType(AccueilReponse.class));
-        typesParCache.put(CachesPublics.SITEMAP, types.constructType(String.class));
+        Map<String, JavaType> typesParCache = typesParCache(jsonMapper.getTypeFactory());
         if (!typesParCache.keySet().equals(new java.util.HashSet<>(CachesPublics.TOUS))) {
             throw new IllegalStateException("Chaque cache public doit avoir son type : " + CachesPublics.TOUS);
         }
@@ -120,6 +106,28 @@ public class CacheConfig implements CachingConfigurer {
     @Override
     public CacheErrorHandler errorHandler() {
         return new JournalErreursCache();
+    }
+
+    /**
+     * Type de la valeur de chaque cache public. Leur forme est couverte par {@code FormatCachesTest} : tout
+     * changement oblige à incrémenter {@link CachesPublics#VERSION_FORMAT}.
+     */
+    public static Map<String, JavaType> typesParCache(TypeFactory types) {
+        Map<String, JavaType> typesParCache = new HashMap<>();
+        typesParCache.put(CachesPublics.ARBRE_CATEGORIES, liste(types, CategorieNoeudReponse.class));
+        typesParCache.put(CachesPublics.CATEGORIE, types.constructType(CategorieReponse.class));
+        typesParCache.put(CachesPublics.MARQUES, liste(types, MarqueResumeReponse.class));
+        typesParCache.put(CachesPublics.MARQUE, types.constructType(MarqueReponse.class));
+        typesParCache.put(CachesPublics.PARAMETRES, types.constructType(ParametresPublicsReponse.class));
+        typesParCache.put(CachesPublics.BANNIERES, liste(types, BanniereProgrammee.class));
+        typesParCache.put(CachesPublics.FICHE_PRODUIT, types.constructType(FicheProduitReponse.class));
+        typesParCache.put(CachesPublics.PRODUITS_SIMILAIRES, liste(types, ProduitResumeReponse.class));
+        typesParCache.put(CachesPublics.LISTE_PRODUITS,
+                types.constructParametricType(PageReponse.class, ProduitResumeReponse.class));
+        typesParCache.put(CachesPublics.FILTRES, types.constructType(FiltresReponse.class));
+        typesParCache.put(CachesPublics.ACCUEIL, types.constructType(AccueilReponse.class));
+        typesParCache.put(CachesPublics.SITEMAP, types.constructType(String.class));
+        return typesParCache;
     }
 
     private static JavaType liste(TypeFactory types, Class<?> element) {

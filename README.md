@@ -137,6 +137,12 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
   politique d'éviction valent pour toute l'instance, toutes bases confondues. Si le cache tombe, le site lit
   la base (erreur journalisée, testé dans `CacheCatalogueTest`).
 
+  **Format des valeurs en cache** : les clés commencent par `boutique:v{N}:`, où `N` est
+  `CachesPublics.VERSION_FORMAT`. Dès qu'un DTO mis en cache change de forme, `FormatCachesTest` échoue :
+  incrémenter `VERSION_FORMAT` et y ajouter la nouvelle empreinte. Pendant un déploiement, l'ancienne et la
+  nouvelle version du backend partagent Redis sans jamais lire les entrées de l'autre ; les entrées de
+  l'ancien format expirent seules (10 min). Les caches publics sont aussi vidés à chaque démarrage.
+
 ## Médias (Cloudinary)
 
 Règles complètes : [ADR 0005](docs/decisions/0005-medias-cloudinary.md).

@@ -11,6 +11,16 @@ import java.util.List;
  */
 public final class CachesPublics {
 
+    /**
+     * Version du format des valeurs en cache, incluse dans le préfixe des clés. À incrémenter dès qu'un DTO
+     * mis en cache change de forme ({@code FormatCachesTest} échoue sinon) : pendant un déploiement, l'ancienne
+     * et la nouvelle version du backend partagent Redis sans jamais lire les entrées de l'autre. Les entrées
+     * de l'ancien format expirent d'elles-mêmes (durée de vie du cache).
+     */
+    public static final int VERSION_FORMAT = 1;
+    /** Préfixe des clés Redis : « boutique:v1:fiche-produit::… ». */
+    public static final String PREFIXE = "boutique:v" + VERSION_FORMAT + ":";
+
     public static final String ARBRE_CATEGORIES = "arbre-categories";
     public static final String CATEGORIE = "categorie";
     public static final String MARQUES = "marques";
