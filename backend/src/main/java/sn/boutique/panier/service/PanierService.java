@@ -181,6 +181,26 @@ public class PanierService {
         return repondre(courant, zoneId);
     }
 
+    /**
+     * Panier du demandeur (fusionné si besoin) verrouillé jusqu'à la fin de la transaction de la commande :
+     * une modification du panier et la création de la commande ne s'exécutent jamais en même temps.
+     */
+    @Transactional
+    public Optional<Panier> panierPourCommande(Demandeur demandeur) {
+        Courant courant = resoudre(demandeur, false);
+        if (courant.panier() == null) {
+            return Optional.empty();
+        }
+        panierDepot.flush();
+        return panierDepot.findByIdPourMiseAJour(courant.panier().getId());
+    }
+
+    /** Vide le panier une fois la commande créée (lignes et code promo). */
+    public void vider(Panier panier) {
+        panier.getLignes().clear();
+        panier.setCodePromo(null);
+    }
+
     // ------------------------------------------------------------------ résolution et fusion
 
     private Courant resoudre(Demandeur demandeur, boolean creer) {
@@ -267,7 +287,8 @@ public class PanierService {
                 courant.effacerCookie());
     }
 
-    private PanierReponse calculer(Panier panier, ZoneLivraison zone) {
+    /** Montants du panier tels que la commande les reprendra (même calcul que l'affichage du panier). */
+    public PanierReponse calculer(Panier panier, ZoneLivraison zone) {
         List<LignePanierReponse> lignes = new ArrayList<>();
         List<EvaluationCodePromo.Ligne> lignesCalculees = new ArrayList<>();
         int nombreArticles = 0;

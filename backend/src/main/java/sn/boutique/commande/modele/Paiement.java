@@ -44,6 +44,10 @@ public class Paiement extends EntiteAuditee {
     @Column(nullable = false, length = 20)
     private StatutPaiement statut = StatutPaiement.EN_ATTENTE;
 
+    /** Page de paiement du prestataire (redirection du client) ; absente pour le paiement à la livraison. */
+    @Column(length = 500)
+    private String urlPaiement;
+
     /** Corps JSON brut du dernier webhook reçu (audit). */
     @JdbcTypeCode(SqlTypes.JSON)
     private String donneesBrutes;

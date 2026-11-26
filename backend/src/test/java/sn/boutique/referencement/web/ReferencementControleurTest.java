@@ -25,6 +25,7 @@ class ReferencementControleurTest {
                 Disallow: /compte
                 Disallow: /panier
                 Disallow: /commande
+                Disallow: /suivi
                 Disallow: /api/
                 Disallow: /recherche
 

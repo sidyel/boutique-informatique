@@ -1,0 +1,28 @@
+package sn.boutique.commande.service;
+
+import java.time.Duration;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+import sn.boutique.noyau.limitation.ProprietesLimitation.Regle;
+
+/**
+ * Réglages techniques de la commande (préfixe {@code boutique.commande}). Les réglages commerciaux (plafond du
+ * paiement à la livraison, délais d'annulation…) sont dans {@code ParametresSite}.
+ *
+ * @param limiteIp           créations de commande par IP : valeur large, car de nombreux abonnés mobiles partagent
+ *                           la même adresse publique (CGNAT)
+ * @param limiteTelephone    créations de commande par numéro de téléphone (le même client ne spamme pas)
+ * @param limiteSuiviIp      lectures de pages de suivi par IP
+ * @param dureeCleIdempotence durée de vie d'une clé {@code Idempotency-Key}
+ */
+@Validated
+@ConfigurationProperties(prefix = "boutique.commande")
+public record ProprietesCommande(
+        @Valid @NotNull Regle limiteIp,
+        @Valid @NotNull Regle limiteTelephone,
+        @Valid @NotNull Regle limiteSuiviIp,
+        @NotNull Duration dureeCleIdempotence) {
+}

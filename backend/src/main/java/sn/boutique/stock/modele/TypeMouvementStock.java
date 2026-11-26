@@ -7,5 +7,7 @@ public enum TypeMouvementStock {
     ENTREE,
     SORTIE_VENTE,
     AJUSTEMENT,
-    RETOUR
+    RETOUR,
+    /** Libération du stock réservé par une commande annulée ou expirée. */
+    ANNULATION
 }

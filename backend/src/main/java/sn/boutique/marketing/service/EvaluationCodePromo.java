@@ -95,16 +95,7 @@ public final class EvaluationCodePromo {
         };
     }
 
-    /** 50000 → « 50 000 FCFA » (espace fine insécable, comme sur le site). */
     static String fcfa(long montant) {
-        String chiffres = Long.toString(montant);
-        StringBuilder resultat = new StringBuilder();
-        for (int i = 0; i < chiffres.length(); i++) {
-            if (i > 0 && (chiffres.length() - i) % 3 == 0) {
-                resultat.append(' ');
-            }
-            resultat.append(chiffres.charAt(i));
-        }
-        return resultat.append(" FCFA").toString();
+        return sn.boutique.noyau.format.FormatFcfa.formater(montant);
     }
 }

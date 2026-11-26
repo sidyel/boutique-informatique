@@ -138,6 +138,26 @@ public class ParametresSite {
     @Column(nullable = false)
     private int quantiteMaxParLigne = 5;
 
+    /** Paiement à la livraison proposé (V17). Réglages éditables en phase 6. */
+    @Column(nullable = false)
+    private boolean paiementLivraisonActif = true;
+
+    /** Montant maximal (FCFA) d'une commande payée à la livraison. */
+    @Column(nullable = false)
+    private long paiementLivraisonMontantMax = 500_000;
+
+    /** Commandes à la livraison non encore confirmées par téléphone, au plus, pour un même numéro. */
+    @Column(nullable = false)
+    private int paiementLivraisonMaxNonConfirmees = 2;
+
+    /** Une commande à la livraison non confirmée est annulée (stock libéré) après ce délai. */
+    @Column(nullable = false)
+    private int paiementLivraisonDelaiAnnulationHeures = 24;
+
+    /** Un paiement mobile money non réglé annule la commande (stock libéré) après ce délai. */
+    @Column(nullable = false)
+    private int delaiPaiementMobileMinutes = 30;
+
     /** Bouton d'achat mis en avant sur la fiche produit (V14). */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)

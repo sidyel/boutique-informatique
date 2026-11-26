@@ -9,6 +9,8 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import sn.boutique.support.CompteurRequetesSql;
+import sn.boutique.support.FauxFournisseurPaiement;
+import sn.boutique.support.FauxNotificationClient;
 import sn.boutique.support.FauxStockageMedia;
 import sn.boutique.support.FauxVerificationYoutube;
 
@@ -24,6 +26,19 @@ public class TestcontainersConfiguration {
     @Primary
     FauxStockageMedia fauxStockageMedia() {
         return new FauxStockageMedia();
+    }
+
+    /** Remplace PayDunya : aucun test n'appelle le vrai prestataire de paiement. */
+    @Bean
+    FauxFournisseurPaiement fauxFournisseurPaiement() {
+        return new FauxFournisseurPaiement();
+    }
+
+    /** Remplace l'envoi WhatsApp/SMS : les messages sont enregistrés pour les vérifier. */
+    @Bean
+    @Primary
+    FauxNotificationClient fauxNotificationClient() {
+        return new FauxNotificationClient();
     }
 
     /** Remplace l'appel oEmbed à YouTube (l'implémentation réelle est testée contre un faux serveur HTTP). */

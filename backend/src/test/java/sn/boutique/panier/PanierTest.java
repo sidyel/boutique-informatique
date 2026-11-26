@@ -393,6 +393,9 @@ class PanierTest {
         assertThat(ligne(panier, inviteSeule).path("prixPrecedent").asLong()).isEqualTo(20_000);
         assertThat(panier.path("lignes").size()).isEqualTo(2);
         assertThat(panier.path("codePromo").path("code").asString()).isEqualTo(code);
+        // Le code de l'invité est repris et s'applique encore : remise de 5 % sur les lignes fusionnées
+        assertThat(panier.path("codePromo").path("valide").asBoolean()).isTrue();
+        assertThat(panier.path("remise").asLong()).isEqualTo(panier.path("sousTotal").asLong() * 5 / 100);
         assertThat(panier.path("avertissements").toString()).contains("stock disponible", "n'est plus disponible");
 
         // Le panier invité n'existe plus ; le cookie ne sert plus à rien

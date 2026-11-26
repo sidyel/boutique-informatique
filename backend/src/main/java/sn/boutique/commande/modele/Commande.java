@@ -1,5 +1,6 @@
 package sn.boutique.commande.modele;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,8 +44,13 @@ public class Commande extends EntiteAuditee {
     @JoinColumn(name = "utilisateur_id")
     private Utilisateur utilisateur;
 
-    @Column(nullable = false, length = 254)
+    /** Facultatif pour un invité (le téléphone est obligatoire). */
+    @Column(length = 254)
     private String emailClient;
+
+    /** Nom de la personne qui commande (et qui retire la commande en boutique). */
+    @Column(length = 120)
+    private String nomClient;
 
     /** Format E.164 : +221XXXXXXXXX. */
     @Setter(AccessLevel.NONE)
@@ -89,6 +95,17 @@ public class Commande extends EntiteAuditee {
     @Embedded
     private AttributionMarketing attribution = new AttributionMarketing();
 
+    /** Fin de la réservation du stock tant que la commande attend un paiement ou une confirmation. */
+    private Instant expireLe;
+
+    /** Jeton du lien de suivi sans compte ({@code /suivi/{jeton}}). */
+    @Setter(AccessLevel.NONE)
+    @Column(length = 43)
+    private String jetonSuivi;
+
+    /** Événement « achat » des régies publicitaires déjà émis. */
+    private Instant achatSuiviLe;
+
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private List<LigneCommande> lignes = new ArrayList<>();
@@ -128,6 +145,21 @@ public class Commande extends EntiteAuditee {
     public void recalculerTotaux() {
         this.sousTotal = lignes.stream().mapToLong(LigneCommande::getTotalLigne).sum();
         this.total = Math.max(0, sousTotal + fraisLivraison - remise);
+    }
+
+    /** Statut de départ à la création : première entrée de l'historique (sans ancien statut). */
+    public void initialiserStatut(StatutCommande statutInitial, String auteur, String commentaire) {
+        this.statut = statutInitial;
+        historique.add(new HistoriqueStatutCommande(this, null, statutInitial, auteur, commentaire));
+    }
+
+    public void definirJetonSuivi(String jeton) {
+        this.jetonSuivi = jeton;
+    }
+
+    /** Vrai tant que la commande réserve du stock sans être réglée ni confirmée. */
+    public boolean enAttente() {
+        return statut == StatutCommande.EN_ATTENTE_PAIEMENT || statut == StatutCommande.EN_ATTENTE_CONFIRMATION;
     }
 
     /** Change le statut et garde la trace du changement. */

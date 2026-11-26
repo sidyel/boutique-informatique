@@ -50,6 +50,19 @@ public class AttributionMarketing {
     @Column(length = 500)
     private String pageArrivee;
 
+    /** Premier contact (premier clic) : les colonnes utm_* ci-dessus gardent le dernier. */
+    @Column(length = 100)
+    private String premiereSource;
+
+    @Column(length = 100)
+    private String premierMedium;
+
+    @Column(length = 150)
+    private String premiereCampagne;
+
+    @Column(length = 500)
+    private String premierePageArrivee;
+
     @Column(length = 500)
     private String referent;
 

@@ -21,6 +21,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import sn.boutique.commande.paiement.PaiementIndisponibleException;
 import sn.boutique.media.StockageIndisponibleException;
 import sn.boutique.media.YoutubeIndisponibleException;
 import sn.boutique.noyau.limitation.TropDeRequetesException;
@@ -102,6 +103,16 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
         return construire(HttpStatus.BAD_GATEWAY, "YOUTUBE_INDISPONIBLE",
                 "YouTube ne répond pas pour le moment : la vidéo n'a pas pu être vérifiée. Réessayez dans quelques "
                         + "instants.", requete);
+    }
+
+    /** Prestataire de paiement injoignable : détail technique dans le journal seulement. */
+    @ExceptionHandler(PaiementIndisponibleException.class)
+    ProblemDetail gererPaiementIndisponible(PaiementIndisponibleException ex, HttpServletRequest requete) {
+        log.warn("Paiement en ligne indisponible sur {} {} : {}", requete.getMethod(), requete.getRequestURI(),
+                ex.getMessage(), ex.getCause());
+        return construire(HttpStatus.SERVICE_UNAVAILABLE, "PAIEMENT_INDISPONIBLE",
+                "Le paiement en ligne est momentanément indisponible. Réessayez dans quelques instants ou payez "
+                        + "à la livraison.", requete);
     }
 
     @ExceptionHandler(TropDeRequetesException.class)

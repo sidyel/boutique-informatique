@@ -27,10 +27,20 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   d'annulation. Les numéros de commande peuvent avoir des trous. — *ADR 0004 §4, bilan 1*
 - [ ] Décrément du stock à la commande : relire le produit si on le renvoie (règle permanente ci-dessus).
   — *ADR 0004 §2*
-- [ ] Panier et commande en `no-store` (règle permanente ci-dessus) : panier fait en 4a, commande en 4b.
-  — *décision (validation 3a)*
+- [x] Panier et commande en `no-store` (règle permanente ci-dessus). — *décision (validation 3a)* (4a, 4b)
 - [ ] Modèle de facture et d'avoir (mentions légales, HT / TVA / TTC ou « TVA non applicable ») **validé par le
   comptable** : modèle Thymeleaf isolé, facile à modifier. — *décision (validation du plan de la phase 4)*
+- [ ] 4c — Reprise du paiement branchée sur PayDunya (la route et le modèle existent depuis 4b, avec un faux
+  prestataire en test) ; carte bancaire proposée dans le tunnel seulement si le prestataire l'indique activée sur
+  le compte ; avant d'annuler une commande échue, rappeler `confirm/{token}` (un paiement tardif ne se perd pas).
+  — *décision (validation du plan de la phase 4, point 3), ADR 0008 §7*
+- [ ] 4c — Paiement arrivé après l'expiration sans stock : alerte admin **et** information du client (e-mail s'il
+  existe, message sur la page de suivi : « remboursement en cours »). Paiement en double (deux factures créées
+  par une reprise) : à rembourser. — *décision (validation du plan, point 15), ADR 0008 « Limites »*
+- [ ] 4d — Version texte des e-mails de commande (`commande-recue.html` n'a que le HTML) : même règle que
+  l'engagement « Sans phase fixée ». — *bilan 1*
+- [ ] Statut `PAYEE` fixé **uniquement** par la vérification serveur à serveur du prestataire (jamais par la page
+  de retour du navigateur ni par le seul corps d'une notification). — *décision (plan de la phase 4)*
 
 ## Phase 5 — compte client
 
@@ -42,8 +52,11 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   `Referrer-Policy: no-referrer`. — *ADR 0003 §12, bilan 1*
 - [ ] Le SSR ne relaie pas `X-Forwarded-For`. — *bilan 1*
 - [ ] Suppression de compte = anonymisation partielle des commandes (garder la facture ; effacer IP, user agent,
-  `fbp`, `fbc`, `gclid`, `fbclid`, `utm…`). Durée de conservation (10 ans OHADA ?) à confirmer avec le
-  comptable. — *ADR 0004 §3, bilan 1*
+  `fbp`, `fbc`, `gclid`, `fbclid`, `utm…`, `premiere_*`, `jeton_suivi`, `nom_client`, e-mail et téléphone selon
+  la durée de conservation). Durée de conservation (10 ans OHADA ?) à confirmer avec le comptable.
+  — *ADR 0004 §3, bilan 1, ADR 0008 §8*
+- [ ] Rattacher à son compte les commandes passées en invité avec le même e-mail ou téléphone vérifié (le lien de
+  suivi n'existe que pour l'invité). — *ADR 0008*
 - [ ] Avis d'un compte supprimé signés « Client vérifié » si `achatVerifie`, « Client » sinon. — *ADR 0004 §3*
 
 ## Phase 6 — back-office
@@ -62,6 +75,11 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   rattachement des images aux bannières, suppression d'une variante. — *ADR 0005, bilan 2*
 - [ ] Formulaires des promesses commerciales (`messageBarreSuperieure`, `elementsConfiance`). — *ADR 0004 §6*
 - [ ] Renommer `CatalogueModifie` (il vide aussi le cache des paramètres). — *bilan 2*
+- [ ] Back-office des commandes : liste et détail (`/api/admin/commandes` ne propose aujourd'hui que la file
+  « à confirmer » et les routes confirmer/annuler), historique, filtres. — *ADR 0008 §5, bilan 4b*
+- [ ] Saisie des réglages de commande dans `ParametresSite` : paiement à la livraison (activé, plafond,
+  commandes non confirmées par numéro, délai d'annulation), délai du paiement mobile, quantité maximale par ligne
+  (et `quantite_max` par variante). — *décisions 5 et 6 du plan de la phase 4, ADR 0008*
 
 ## Phase 7 — flux produits, Merchant Center, Meta
 
@@ -71,6 +89,18 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Flux sans produits retirés ni masqués ; `id` = SKU de la variante, identique aux `item_id` /
   `content_ids` des événements de suivi. — *ADR 0004 §1, ADR 0007, CLAUDE.md*
 - [ ] Images des flux en URL transformée (règle permanente). — *ADR 0005 §4*
+- [ ] `ConsentementService` (aujourd'hui : refuse toujours) branché sur le bandeau de consentement : sans lui,
+  `gclid`, `fbclid`, `_fbp`, `_fbc` ne sont jamais enregistrés avec la commande. — *décision 7 du plan de la
+  phase 4, ADR 0008 §9*
+- [ ] Événement « achat » **côté serveur** (API Conversions Meta, Google Ads), partagé par `event_id`
+  (`achat-CMD-…`) avec le navigateur : seule voie pour les commandes à la livraison confirmées par téléphone
+  hors du site. Aujourd'hui, `SuiviService.achat` part du navigateur, une seule fois (`achat_suivi_le`).
+  — *ADR 0008 §10*
+- [ ] Remplir `SuiviService` (dataLayer GA4, pixel Meta) : `voirPanier`, `commencerCommande`, `choisirLivraison`,
+  `choisirPaiement`, `achat` sont appelés aux bons endroits mais vides ; l'événement `achat` reçoit marque et
+  catégorie vides (la page de suivi ne les connaît pas) : à compléter. — *ADR 0008 §10*
+- [ ] Vrai prestataire WhatsApp/SMS derrière `NotificationClient` (journal seulement aujourd'hui).
+  — *décision (validation 4b, point 5)*
 
 ## Phase 8 — avis
 
@@ -101,7 +131,10 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Vérifier la réception d'une **vraie notification PayDunya** (IPN) sur le premier serveur public : en local,
   pas de tunnel, l'IPN n'est testée qu'avec des notifications simulées. — *décision (validation du plan de la
   phase 4)*
-
+- [ ] Les journaux d'accès de nginx contiennent le jeton des liens `/suivi/{jeton}` : les protéger comme des
+  données personnelles (accès restreint, durée de conservation courte). — *ADR 0008 §8*
+- [ ] Si le backend tourne en plusieurs instances : `ExpirationCommandes` est idempotente (verrous), mais une
+  tâche qui ne doit tourner qu'une fois demandera ShedLock. — *ADR 0008 « Limites »*
 ## Sans phase fixée
 
 - [ ] Version texte des e-mails (HTML seulement aujourd'hui). — *bilan 1*
@@ -112,6 +145,11 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 ## Fait
 
+- [x] Phase 4b : `/panier` (avec un panier de démonstration) et `/commande` ajoutés au workflow Lighthouse.
+  — *décision (validation 4a, point 6)*
+- [x] Phase 4b : attribution (UTM, page d'arrivée, référent ; gclid/fbclid/_fbp/_fbc seulement avec consentement,
+  coquille « refusé ») ; réglages du paiement à la livraison dans `ParametresSite` ; idempotence ; reprise du
+  paiement (route et modèle) ; lien de suivi par e-mail et notification. — *décisions 6, 7, 1, 3 et 5 du point 4b*
 - [x] Phase 4a : message « La commande en ligne ouvre très bientôt… » retiré, l'ajout au panier fonctionne.
   — *décision (validation 3c), README* (commit du frontend du panier)
 - [x] Phase 3 : produit désactivé → 404 (masqué), 301 vers le successeur ou 410 (retiré) ; catégorie

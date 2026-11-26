@@ -29,7 +29,7 @@ public class ReferencementControleur {
      * Pages privées ou sans intérêt pour la recherche. Les URL filtrées ou triées des listes ne sont PAS
      * bloquées : Google doit pouvoir les visiter pour lire leur balise « noindex ».
      */
-    static final String[] INTERDITS = {"/admin", "/compte", "/panier", "/commande", "/api/", "/recherche"};
+    static final String[] INTERDITS = {"/admin", "/compte", "/panier", "/commande", "/suivi", "/api/", "/recherche"};
 
     private final SitemapService sitemap;
     private final ProprietesBoutique proprietes;
