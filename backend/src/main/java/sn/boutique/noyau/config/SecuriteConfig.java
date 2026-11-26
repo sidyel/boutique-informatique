@@ -78,6 +78,8 @@ public class SecuriteConfig {
                         .requestMatchers("/api/admin/**").hasAnyRole(ROLES_INTERNES)
                         .requestMatchers("/api/compte/**").authenticated()
                         .requestMatchers("/api/**", "/error").permitAll()
+                        // Référencement (ADR 0007) : lus par les moteurs de recherche
+                        .requestMatchers("/robots.txt", "/sitemap.xml", "/sitemap-*.xml").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers(ROUTES_DOCUMENTATION).permitAll()
                         .anyRequest().denyAll())

@@ -97,6 +97,7 @@ public class CacheConfig implements CachingConfigurer {
                 types.constructParametricType(PageReponse.class, ProduitResumeReponse.class));
         typesParCache.put(CachesPublics.FILTRES, types.constructType(FiltresReponse.class));
         typesParCache.put(CachesPublics.ACCUEIL, types.constructType(AccueilReponse.class));
+        typesParCache.put(CachesPublics.SITEMAP, types.constructType(String.class));
         if (!typesParCache.keySet().equals(new java.util.HashSet<>(CachesPublics.TOUS))) {
             throw new IllegalStateException("Chaque cache public doit avoir son type : " + CachesPublics.TOUS);
         }

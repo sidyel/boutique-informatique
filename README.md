@@ -106,6 +106,9 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 
 ## À traiter avant la mise en production (phase 9)
 
+- **Indexation** : mettre `INDEXATION_AUTORISEE=true` dans le `.env` de production, et **uniquement** là
+  (false par défaut : `robots.txt` interdit tout le site et toutes les pages sont en `noindex`, ADR 0007).
+  Vérifier ensuite `/robots.txt` et soumettre `/sitemap.xml` dans la Search Console.
 - **Fiche produit** : retirer le message « La commande en ligne ouvre très bientôt… » affiché au clic
   sur « Ajouter au panier » (`BlocAchat.ajouterAuPanier`) dès que le panier de la phase 4 fonctionne.
 - **Images de démonstration** : `frontend/public/demo/images/` (WebP du profil `demo`) ne doit pas se

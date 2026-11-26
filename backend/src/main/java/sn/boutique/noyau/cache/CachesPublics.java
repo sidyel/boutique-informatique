@@ -24,9 +24,11 @@ public final class CachesPublics {
     public static final String FILTRES = "filtres";
     /** Sections de produits de l'accueil (nouveautés, meilleures ventes ou sélection, promotions). */
     public static final String ACCUEIL = "accueil";
+    /** Fichiers du sitemap (XML déjà construit), par nom de fichier. */
+    public static final String SITEMAP = "sitemap";
 
     public static final List<String> TOUS = List.of(ARBRE_CATEGORIES, CATEGORIE, MARQUES, MARQUE, PARAMETRES,
-            BANNIERES, FICHE_PRODUIT, PRODUITS_SIMILAIRES, LISTE_PRODUITS, FILTRES, ACCUEIL);
+            BANNIERES, FICHE_PRODUIT, PRODUITS_SIMILAIRES, LISTE_PRODUITS, FILTRES, ACCUEIL, SITEMAP);
 
     private CachesPublics() {
     }
