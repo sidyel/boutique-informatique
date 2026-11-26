@@ -53,6 +53,7 @@
       <a
         class="action"
         routerLink="/panier"
+        (click)="ouvrirPanier($event)"
         [attr.aria-label]="'Panier, ' + panier.nombreArticles() + ' article' + (panier.nombreArticles() > 1 ? 's' : '')"
       >
         <span class="action__panier">

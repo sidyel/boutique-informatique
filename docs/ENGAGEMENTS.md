@@ -27,9 +27,10 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   d'annulation. Les numéros de commande peuvent avoir des trous. — *ADR 0004 §4, bilan 1*
 - [ ] Décrément du stock à la commande : relire le produit si on le renvoie (règle permanente ci-dessus).
   — *ADR 0004 §2*
-- [ ] Retirer le message « La commande en ligne ouvre très bientôt… » (`BlocAchat.ajouterAuPanier`) dès que le
-  panier fonctionne. — *décision (validation 3c), README*
-- [ ] Panier et commande en `no-store` (règle permanente ci-dessus). — *décision (validation 3a)*
+- [ ] Panier et commande en `no-store` (règle permanente ci-dessus) : panier fait en 4a, commande en 4b.
+  — *décision (validation 3a)*
+- [ ] Modèle de facture et d'avoir (mentions légales, HT / TVA / TTC ou « TVA non applicable ») **validé par le
+  comptable** : modèle Thymeleaf isolé, facile à modifier. — *décision (validation du plan de la phase 4)*
 
 ## Phase 5 — compte client
 
@@ -97,6 +98,9 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Tâche de nettoyage Cloudinary : `media_orphelin`, signatures vidéo expirées jamais utilisées, images de
   bannières jamais rattachées. — *ADR 0005, bilan 2*
 - [ ] Revoir les valeurs de la zone nginx `pages` (`5r/s`, rafale `40`). — *README (limitation du débit)*
+- [ ] Vérifier la réception d'une **vraie notification PayDunya** (IPN) sur le premier serveur public : en local,
+  pas de tunnel, l'IPN n'est testée qu'avec des notifications simulées. — *décision (validation du plan de la
+  phase 4)*
 
 ## Sans phase fixée
 
@@ -108,6 +112,8 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 ## Fait
 
+- [x] Phase 4a : message « La commande en ligne ouvre très bientôt… » retiré, l'ajout au panier fonctionne.
+  — *décision (validation 3c), README* (commit du frontend du panier)
 - [x] Phase 3 : produit désactivé → 404 (masqué), 301 vers le successeur ou 410 (retiré) ; catégorie
   désactivée → 301 vers la parente ou 410. — *ADR 0004 « À trancher », ADR 0007* (`85c8bac`, `18b1b46`)
 - [x] Phase 3 : chargeur `NgOptimizedImage` qui complète `f_auto,q_auto` avec la largeur. — *ADR 0005, bilan 2*

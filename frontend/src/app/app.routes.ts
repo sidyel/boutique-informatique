@@ -57,13 +57,7 @@ export const routes: Routes = [
       {
         path: 'panier',
         loadComponent: () =>
-          import('./fonctionnalites/page-a-venir/page-a-venir').then((m) => m.PageAVenir),
-        data: {
-          titre: 'Mon panier',
-          texte:
-            'Votre panier est vide. La commande en ligne sera bientôt disponible : ' +
-            'en attendant, commandez par WhatsApp ou par téléphone.',
-        },
+          import('./fonctionnalites/panier/page-panier/page-panier').then((m) => m.PagePanier),
       },
       {
         path: '**',

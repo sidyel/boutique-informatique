@@ -82,8 +82,9 @@ export class BlocAchat {
     return lienWhatsApp(this.site.parametres()?.whatsapp, message);
   });
 
-  /** Réponse au clic sur « Ajouter au panier » tant que la commande en ligne n'est pas ouverte (phase 4). */
+  /** Refus de l'ajout (stock insuffisant, quantité maximale…), annoncé aux lecteurs d'écran. */
   protected readonly annonce = signal<string | null>(null);
+  protected readonly ajoutEnCours = signal(false);
   /** Boutons principaux visibles à l'écran (sinon, barre collante sur mobile). */
   protected readonly actionsVisibles = signal(true);
   protected readonly demandesZones = signal(0);
@@ -98,13 +99,17 @@ export class BlocAchat {
     });
   }
 
-  protected ajouterAuPanier(): void {
-    const variante = this.variante();
-    if (this.rupture()) return;
-    this.panier.ajouter(variante.sku, variante.prix);
-    this.annonce.set(
-      'La commande en ligne ouvre très bientôt : en attendant, commandez sur WhatsApp ou par téléphone.',
-    );
+  /** Ajout d'un exemplaire ; le panier latéral s'ouvre (PanierService), le suivi part avec le prix du serveur. */
+  protected async ajouterAuPanier(): Promise<void> {
+    if (this.rupture() || this.ajoutEnCours()) return;
+    this.annonce.set(null);
+    this.ajoutEnCours.set(true);
+    const ajoute = await this.panier.ajouter(this.variante().id);
+    this.ajoutEnCours.set(false);
+    if (!ajoute) {
+      this.annonce.set(this.panier.erreur());
+      this.panier.erreur.set(null);
+    }
   }
 
   protected contacterWhatsApp(): void {

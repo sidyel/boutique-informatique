@@ -1,0 +1,207 @@
+// Ligne du panier : photo à gauche, informations à droite, alertes et actions sur toute la largeur.
+.ligne {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--espace-2) var(--espace-3);
+  padding-block: var(--espace-4);
+  border-block-end: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}
+
+.ligne--indisponible {
+  .ligne__image,
+  .ligne__infos {
+    opacity: 0.6;
+  }
+}
+
+.ligne__image {
+  position: relative;
+  display: block;
+  width: 4.5rem;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--couleur-fond-photo);
+  border-radius: var(--rayon-1);
+
+  img {
+    object-fit: contain;
+  }
+}
+
+.ligne__infos {
+  min-width: 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.ligne__nom {
+  // Zone tactile de 44 px sans décaler la mise en page
+  display: flex;
+  align-items: center;
+  min-height: var(--cible-tactile);
+  margin-block: calc((1lh - var(--cible-tactile)) / 2);
+  font-weight: var(--graisse-semi-gras);
+  line-height: var(--interligne-serre);
+  color: var(--couleur-texte);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.ligne__variante {
+  margin-block-start: var(--espace-1) !important;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+  overflow-wrap: anywhere;
+}
+
+.ligne__sku {
+  font-family: var(--police-mono);
+  font-size: var(--taille-xs);
+}
+
+.ligne__prix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--espace-2);
+  margin-block-start: var(--espace-1) !important;
+}
+
+.ligne__unitaire {
+  font-family: var(--police-prix);
+  font-weight: var(--graisse-gras);
+  white-space: nowrap;
+}
+
+.ligne__detail {
+  font-family: var(--police-mono);
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+  white-space: nowrap;
+}
+
+.ligne__stock {
+  margin-block-start: var(--espace-1) !important;
+  font-size: var(--taille-sm);
+  color: var(--couleur-alerte);
+}
+
+.ligne__alerte {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: var(--espace-2) var(--espace-3);
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte);
+  background: var(--couleur-alerte-fond);
+  border-inline-start: var(--espace-1) solid var(--couleur-alerte);
+  border-radius: var(--rayon-1);
+
+  bi-icone {
+    color: var(--couleur-alerte);
+  }
+
+  span {
+    flex: 1 1 12rem;
+  }
+}
+
+.ligne__alerte--danger {
+  border-inline-start-color: var(--couleur-danger);
+
+  bi-icone {
+    color: var(--couleur-danger);
+  }
+}
+
+.ligne__lien {
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-2);
+  font: inherit;
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-accent);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ligne__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-3);
+}
+
+.quantite {
+  display: inline-flex;
+  align-items: center;
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-champ);
+  border-radius: var(--rayon-2);
+}
+
+.quantite__bouton {
+  display: grid;
+  place-items: center;
+  width: var(--cible-tactile);
+  height: var(--cible-tactile);
+  color: var(--couleur-texte);
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--couleur-texte-desactive);
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--anneau-focus);
+  }
+}
+
+.quantite__valeur {
+  min-width: 2.5rem;
+  font-family: var(--police-mono);
+  font-weight: var(--graisse-semi-gras);
+  text-align: center;
+}
+
+.ligne__retirer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-3);
+  font: inherit;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--couleur-danger);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--anneau-focus);
+  }
+}

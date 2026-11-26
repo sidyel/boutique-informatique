@@ -253,6 +253,7 @@ export interface Avis {
 }
 
 export interface ZoneLivraison {
+  id: number;
   nom: string;
   villesQuartiers: string[];
   /** Frais en FCFA. */
@@ -340,4 +341,53 @@ export interface Suggestions {
   produits: ProduitResume[];
   categories: Lien[];
   marques: Lien[];
+}
+
+/** Ligne du panier (`LignePanierReponse`) : prix actuels, recalculés par le serveur. */
+export interface LignePanier {
+  id: number;
+  varianteId: number;
+  /** SKU de la variante : identifiant des événements de suivi et des flux. */
+  sku: string;
+  nomProduit: string;
+  slugProduit: string;
+  marque: string;
+  categorie: string;
+  libelleVariante: string;
+  image: Image | null;
+  prixUnitaire: number;
+  /** Prix vu par le client s'il a changé depuis (« passé de X à Y »), sinon null. */
+  prixPrecedent: number | null;
+  quantite: number;
+  /** Quantité commandable (0 si indisponible) ; le stock exact n'est jamais transmis. */
+  quantiteMax: number;
+  disponibilite: Disponibilite;
+  totalLigne: number;
+  probleme: 'INDISPONIBLE' | 'QUANTITE_TROP_ELEVEE' | null;
+}
+
+export interface CodePromoPanier {
+  code: string;
+  valide: boolean;
+  erreur: string | null;
+  /** Avantage (« -10 % ») ou raison du refus (« À partir de 50 000 FCFA d'achat »). */
+  message: string;
+}
+
+/** Panier complet (`PanierReponse`), renvoyé par chaque route de `/api/panier`. */
+export interface Panier {
+  lignes: LignePanier[];
+  nombreArticles: number;
+  sousTotal: number;
+  codePromo: CodePromoPanier | null;
+  remise: number;
+  /** Frais de la zone choisie ; null tant qu'aucune zone n'est choisie. */
+  fraisLivraison: number | null;
+  livraisonOfferte: boolean;
+  total: number;
+  /** Au moins un prix a changé depuis que le client l'a vu : à accepter avant de commander. */
+  prixModifies: boolean;
+  commandable: boolean;
+  /** Messages de la dernière action (quantité ramenée au stock, panier fusionné…). */
+  avertissements: string[];
 }

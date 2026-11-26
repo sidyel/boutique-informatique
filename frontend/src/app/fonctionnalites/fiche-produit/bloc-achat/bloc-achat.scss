@@ -159,7 +159,7 @@
 .achat__annonce {
   margin: 0;
   font-size: var(--taille-sm);
-  color: var(--couleur-info);
+  color: var(--couleur-danger);
 
   &:empty {
     display: none;

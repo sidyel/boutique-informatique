@@ -8,6 +8,17 @@ export interface ListeSuivie {
   nom: string;
 }
 
+/** Article d'un événement de panier ou de commande : `sku` = `item_id` GA4 = `content_ids` Meta = id des flux. */
+export interface ArticleSuivi {
+  sku: string;
+  nom: string;
+  marque: string;
+  categorie: string;
+  variante: string;
+  prix: number;
+  quantite: number;
+}
+
 export type OrigineWhatsApp =
   | 'flottant'
   | 'entete'
@@ -40,6 +51,12 @@ export class SuiviService {
 
   /** Ajout au panier (add_to_cart / AddToCart). */
   ajouterAuPanier(_sku: string, _prix: number, _quantite: number): void {}
+
+  /**
+   * Panier affiché (view_cart) : page panier ou ouverture du tiroir. Lignes commandables seulement, aux prix
+   * recalculés par le serveur ; `valeur` = sous-total moins la remise (hors livraison).
+   */
+  voirPanier(_lignes: readonly ArticleSuivi[], _valeur: number): void {}
 
   /** Bannière promotionnelle vue ou cliquée (view_promotion / select_promotion). */
   voirPromotion(_idBanniere: number, _titre: string | null): void {}

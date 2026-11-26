@@ -43,3 +43,11 @@
     display: none;
   }
 }
+
+// Barre d'action fixée en bas de l'écran sur mobile (panier, commande) : le bouton WhatsApp flottant
+// passe au-dessus d'elle pour ne pas cacher « Commander ».
+@media (max-width: 63.99rem) {
+  body:has(.barre-mobile) .whatsapp {
+    inset-block-end: calc(var(--hauteur-barre-mobile) + var(--espace-3) + env(safe-area-inset-bottom));
+  }
+}

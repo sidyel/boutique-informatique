@@ -35,6 +35,17 @@ export class Entete {
     this.boutonMenu()?.nativeElement.focus();
   }
 
+  /**
+   * Icône du panier : ouvre le panier latéral s'il contient des articles. Le lien vers /panier reste pour un
+   * panier vide, un clic avec Ctrl ou Maj (nouvel onglet) et un clic du milieu.
+   */
+  protected ouvrirPanier(evenement: MouseEvent): void {
+    if (evenement.button !== 0 || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey) return;
+    if (this.panier.nombreArticles() === 0) return;
+    evenement.preventDefault();
+    this.panier.ouvrirTiroir(true);
+  }
+
   protected contactWhatsApp(): void {
     this.suivi.contactWhatsApp('entete');
   }

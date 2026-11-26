@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, afterNextRender, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { TiroirPanier } from '../fonctionnalites/panier/tiroir-panier/tiroir-panier';
+import { PanierService } from '../noyau/panier/panier.service';
 import { BoutonWhatsapp } from './bouton-whatsapp/bouton-whatsapp';
 import { Entete } from './entete/entete';
 import { PiedDePage } from './pied-de-page/pied-de-page';
@@ -8,7 +10,7 @@ import { PiedDePage } from './pied-de-page/pied-de-page';
 /** Cadre des pages publiques : en-tête, contenu, pied de page, bouton WhatsApp. L'admin a le sien. */
 @Component({
   selector: 'bi-mise-en-page-publique',
-  imports: [BoutonWhatsapp, Entete, PiedDePage, RouterOutlet],
+  imports: [BoutonWhatsapp, Entete, PiedDePage, RouterOutlet, TiroirPanier],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a class="lien-evitement" href="#contenu">Aller au contenu</a>
@@ -20,6 +22,10 @@ import { PiedDePage } from './pied-de-page/pied-de-page';
       <bi-pied-de-page />
     }
     <bi-bouton-whatsapp />
+    <!-- Panier latéral : code chargé à la première ouverture seulement -->
+    @defer (when panier.tiroirOuvert()) {
+      <bi-tiroir-panier />
+    }
   `,
   styles: `
     :host {
@@ -49,4 +55,11 @@ import { PiedDePage } from './pied-de-page/pied-de-page';
     }
   `,
 })
-export class MiseEnPagePublique {}
+export class MiseEnPagePublique {
+  protected readonly panier = inject(PanierService);
+
+  constructor() {
+    // Compteur de l'en-tête : panier chargé dans le navigateur seulement, s'il en existe un
+    afterNextRender(() => this.panier.initialiser());
+  }
+}

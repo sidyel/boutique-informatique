@@ -1,0 +1,268 @@
+@use 'points-rupture' as pr;
+
+.page-panier {
+  padding-block: var(--espace-6) var(--espace-12);
+  // Place pour la barre « Commander » fixée en bas sur mobile
+  padding-block-end: calc(var(--hauteur-barre-mobile) + var(--espace-8));
+
+  @media (min-width: pr.$ordinateur) {
+    padding-block-end: var(--espace-16);
+  }
+}
+
+.page-panier__titre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-3);
+  margin: 0 0 var(--espace-4);
+}
+
+.page-panier__nombre {
+  font-family: var(--police-mono);
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-normale);
+  color: var(--couleur-texte-secondaire);
+}
+
+.page-panier__grille {
+  display: grid;
+  gap: var(--espace-6);
+
+  @media (min-width: pr.$ordinateur) {
+    grid-template-columns: minmax(0, 1fr) 24rem;
+    align-items: start;
+    gap: var(--espace-8);
+  }
+}
+
+.page-panier__lignes {
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+}
+
+.page-panier__continuer {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible-tactile);
+  margin-block-start: var(--espace-2);
+  font-weight: var(--graisse-semi-gras);
+}
+
+.page-panier__cote {
+  display: grid;
+  gap: var(--espace-4);
+
+  @media (min-width: pr.$ordinateur) {
+    position: sticky;
+    inset-block-start: var(--espace-4);
+  }
+}
+
+.bloc {
+  padding: var(--espace-4);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  border-radius: var(--rayon-2);
+}
+
+.bloc__titre {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
+  margin: 0 0 var(--espace-3);
+  font-size: var(--taille-base);
+}
+
+.bloc__note {
+  margin: var(--espace-2) 0 0;
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+}
+
+// Champs : 16 px au moins (sinon l'iPhone zoome), 44 px de haut
+.champ-texte {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-3);
+  font-size: var(--taille-base);
+  color: var(--couleur-texte);
+  background: var(--couleur-surface);
+  border: var(--epaisseur-bordure) solid var(--couleur-bordure-champ);
+  border-radius: var(--rayon-2);
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--couleur-focus);
+    box-shadow: var(--anneau-focus);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--couleur-danger);
+  }
+}
+
+input.champ-texte {
+  text-transform: uppercase;
+  font-family: var(--police-mono);
+
+  &::placeholder {
+    text-transform: none;
+    font-family: var(--police-texte);
+  }
+}
+
+.code-form {
+  display: flex;
+  gap: var(--espace-2);
+
+  .champ-texte {
+    flex: 1;
+  }
+}
+
+.code-form__erreur {
+  margin: var(--espace-2) 0 0;
+  font-size: var(--taille-sm);
+  color: var(--couleur-danger);
+}
+
+.code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  padding: var(--espace-2) var(--espace-2) var(--espace-2) var(--espace-3);
+  background: var(--couleur-succes-fond);
+  border-radius: var(--rayon-1);
+}
+
+.code--invalide {
+  background: var(--couleur-alerte-fond);
+}
+
+.code__texte {
+  display: grid;
+  gap: var(--espace-1);
+  min-width: 0;
+  margin: 0;
+  font-size: var(--taille-sm);
+}
+
+.code__valeur {
+  font-family: var(--police-mono);
+  font-weight: var(--graisse-semi-gras);
+  overflow-wrap: anywhere;
+}
+
+.lien-bouton {
+  flex: none;
+  min-height: var(--cible-tactile);
+  padding-inline: var(--espace-2);
+  font-size: var(--taille-sm);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-accent);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.page-panier__commander {
+  margin-block-start: var(--espace-4);
+}
+
+// Sur mobile, le bouton du récapitulatif fait doublon avec la barre du bas
+.bloc--resume .page-panier__commander {
+  display: none;
+
+  @media (min-width: pr.$ordinateur) {
+    display: block;
+  }
+}
+
+.message {
+  margin: 0 0 var(--espace-3);
+  padding: var(--espace-2) var(--espace-3);
+  font-size: var(--taille-sm);
+  background: var(--couleur-info-fond);
+  border-radius: var(--rayon-1);
+}
+
+.message--erreur {
+  background: var(--couleur-alerte-fond);
+  border-inline-start: var(--espace-1) solid var(--couleur-danger);
+}
+
+.barre-mobile {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-collant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  min-height: var(--hauteur-barre-mobile);
+  padding: var(--espace-2) var(--marge-page) calc(var(--espace-2) + env(safe-area-inset-bottom));
+  background: var(--couleur-surface);
+  border-block-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+  box-shadow: var(--ombre-2);
+
+  @media (min-width: pr.$ordinateur) {
+    display: none;
+  }
+}
+
+.barre-mobile__total {
+  display: grid;
+  line-height: var(--interligne-serre);
+}
+
+.barre-mobile__libelle {
+  font-size: var(--taille-xs);
+  color: var(--couleur-texte-secondaire);
+}
+
+.barre-mobile__montant {
+  font-family: var(--police-prix);
+  font-size: var(--taille-lg);
+  font-weight: var(--graisse-gras);
+  white-space: nowrap;
+}
+
+.vide {
+  display: grid;
+  justify-items: center;
+  gap: var(--espace-3);
+  padding-block: var(--espace-12);
+  text-align: center;
+  color: var(--couleur-texte-secondaire);
+
+  p {
+    margin: 0;
+  }
+}
+
+.vide__titre {
+  font-size: var(--taille-lg);
+  font-weight: var(--graisse-semi-gras);
+  color: var(--couleur-texte);
+}
+
+.squelette-ligne {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: var(--espace-3);
+  padding-block: var(--espace-4);
+
+  div {
+    display: grid;
+    gap: var(--espace-2);
+    align-content: start;
+  }
+}

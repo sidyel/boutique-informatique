@@ -39,6 +39,7 @@
       taille="lg"
       pleineLargeur
       [disabled]="rupture()"
+      [chargement]="ajoutEnCours()"
       (click)="ajouterAuPanier()"
     >
       <bi-icone nom="panier" taille="1.25rem" />
@@ -62,7 +63,7 @@
   @if (rupture()) {
     <p class="achat__note">Ce produit est en rupture de stock : l'ajout au panier est indisponible pour le moment.</p>
   }
-  <p class="achat__annonce" aria-live="polite">{{ annonce() }}</p>
+  <p class="achat__annonce" role="alert">{{ annonce() }}</p>
 
   @if (telephone().lien; as lienTel) {
     <p class="achat__ligne achat__ligne--discrete">

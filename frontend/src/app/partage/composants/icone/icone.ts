@@ -81,6 +81,22 @@ const ICONES = {
     { cx: 12, cy: 10, r: 3 },
   ],
   horloge: [{ cx: 12, cy: 12, r: 10 }, { d: 'M12 6v6l4 2' }],
+  plus: [{ d: 'M5 12h14' }, { d: 'M12 5v14' }],
+  moins: [{ d: 'M5 12h14' }],
+  corbeille: [
+    { d: 'M3 6h18' },
+    { d: 'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6' },
+    { d: 'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2' },
+    { d: 'M10 11v6' },
+    { d: 'M14 11v6' },
+  ],
+  alerte: [{ cx: 12, cy: 12, r: 10 }, { d: 'M12 8v4' }, { d: 'M12 16h.01' }],
+  etiquette: [
+    {
+      d: 'M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z',
+    },
+    { cx: 7.5, cy: 7.5, r: 0.5 },
+  ],
 } satisfies Record<string, Trace[]>;
 
 export type NomIcone = keyof typeof ICONES;

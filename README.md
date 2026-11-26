@@ -109,8 +109,8 @@ Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres p
 - **Indexation** : mettre `INDEXATION_AUTORISEE=true` dans le `.env` de production, et **uniquement** là
   (false par défaut : `robots.txt` interdit tout le site et toutes les pages sont en `noindex`, ADR 0007).
   Vérifier ensuite `/robots.txt` et soumettre `/sitemap.xml` dans la Search Console.
-- **Fiche produit** : retirer le message « La commande en ligne ouvre très bientôt… » affiché au clic
-  sur « Ajouter au panier » (`BlocAchat.ajouterAuPanier`) dès que le panier de la phase 4 fonctionne.
+- **Paiements** : vérifier la réception d'une vraie notification PayDunya (IPN) sur le premier serveur
+  public (en local, elle n'est testée qu'avec des notifications simulées).
 - **Images de démonstration** : `frontend/public/demo/images/` (WebP du profil `demo`) ne doit pas se
   retrouver dans l'image Docker de production. Angular copie tout `public/` dans `dist/` : exclure le
   dossier à la compilation de production (par exemple `rm -rf dist/frontend/browser/demo` dans le
