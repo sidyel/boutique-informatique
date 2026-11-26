@@ -131,6 +131,17 @@ class LecturesCatalogueTest extends CatalogueTestBase {
                 .andExpect(jsonPath("$.avisReservesAuxAcheteurs").value(true))
                 // Fiche produit (V14) : panier en bouton principal par défaut
                 .andExpect(jsonPath("$.boutonPrincipalFiche").value("PANIER"))
+                // Politique de retour (V15) : 7 jours, gratuits, en boutique par défaut
+                .andExpect(jsonPath("$.politiqueRetour.acceptes").value(true))
+                .andExpect(jsonPath("$.politiqueRetour.delaiJours").value(7))
+                .andExpect(jsonPath("$.politiqueRetour.frais").value("GRATUIT"))
+                .andExpect(jsonPath("$.politiqueRetour.enBoutique").value(true))
+                // Pas de boutique physique ni d'adresse structurée tant qu'elles ne sont pas saisies
+                .andExpect(jsonPath("$.adresseStructuree").isEmpty())
+                .andExpect(jsonPath("$.boutiquePhysique").isEmpty())
+                // Indexation interdite hors production (INDEXATION_AUTORISEE absente : false)
+                .andExpect(jsonPath("$.site.indexationAutorisee").value(false))
+                .andExpect(jsonPath("$.site.url").isNotEmpty())
                 // Les identifiants internes de stockage des images ne sont pas exposés
                 .andExpect(jsonPath("$.logoIdPublic").doesNotExist());
         assertThat(requete.requetesSql()).isEqualTo(1);
@@ -215,6 +226,60 @@ class LecturesCatalogueTest extends CatalogueTestBase {
             lire("/api/redirections?chemin={chemin}", chemin).andExpect(status().isNotFound());
         }
         lire("/api/redirections").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void unProduitRetireRedirigeVersSonSuccesseurPublieSinonRepond410() throws Exception {
+        Categorie parente = categorie("Ordinateurs", null, 0, true);
+        Categorie archivee = categorie("Netbooks", parente, 0, false);
+        Marque marque = marque("Asus");
+        Produit successeur = produit("Vivobook 15 2026", marque, parente, true);
+        Produit intermediaire = produit("Vivobook 15 2025", marque, parente, false);
+        Produit ancien = produit("Vivobook 15 2024", marque, parente, false);
+        Produit sansSuite = produit("Eee PC", marque, archivee, false);
+        Produit masque = produit("Vivobook Go", marque, parente, false);
+        Instant retrait = Instant.parse("2026-11-20T10:00:00Z");
+        enTransaction(em -> {
+            // Chaîne : 2024 → 2025 (retiré à son tour) → 2026 (publié) : une seule 301, vers 2026
+            em.find(Produit.class, intermediaire.getId()).retirer(retrait, em.find(Produit.class, successeur.getId()));
+            em.find(Produit.class, ancien.getId()).retirer(retrait, em.find(Produit.class, intermediaire.getId()));
+            em.find(Produit.class, sansSuite.getId()).retirer(retrait, null);
+            return null;
+        });
+
+        lire("/api/redirections?chemin=/produit/{slug}", ancien.getSlug())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statut").value(301))
+                .andExpect(jsonPath("$.destination").value("/produit/" + successeur.getSlug()));
+        // Sans successeur : 410, avec le rayon actif le plus proche (la catégorie archivée est remplacée par sa parente)
+        lire("/api/redirections?chemin=/produit/{slug}", sansSuite.getSlug())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statut").value(410))
+                .andExpect(jsonPath("$.destination").isEmpty())
+                .andExpect(jsonPath("$.retrait.nom").value("Eee PC"))
+                .andExpect(jsonPath("$.retrait.categorie.slug").value(parente.getSlug()));
+        // Masqué temporairement (non retiré) : 404, Google réessaiera
+        lire("/api/redirections?chemin=/produit/{slug}", masque.getSlug()).andExpect(status().isNotFound());
+        // Les produits retirés restent introuvables sur la fiche (404 de l'API, la page demande la redirection)
+        lire("/api/produits/{slug}", ancien.getSlug()).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void uneCategorieDesactiveeRedirigeVersSaParenteActiveSinonRepond410() throws Exception {
+        Categorie racine = categorie("Ordinateurs", null, 0, true);
+        Categorie archivee = categorie("Netbooks", racine, 0, false);
+        Categorie sousArchivee = categorie("Netbooks 10 pouces", archivee, 0, false);
+        Categorie racineArchivee = categorie("Disquettes", null, 1, false);
+
+        lire("/api/redirections?chemin=/categorie/{slug}", sousArchivee.getSlug())
+                .andExpect(jsonPath("$.statut").value(301))
+                .andExpect(jsonPath("$.destination").value("/categorie/" + racine.getSlug()));
+        lire("/api/redirections?chemin=/categorie/{slug}", racineArchivee.getSlug())
+                .andExpect(jsonPath("$.statut").value(410))
+                .andExpect(jsonPath("$.retrait.nom").value("Disquettes"))
+                .andExpect(jsonPath("$.retrait.categorie").isEmpty());
+        // Catégorie publiée à son adresse actuelle : rien à appliquer
+        lire("/api/redirections?chemin=/categorie/{slug}", racine.getSlug()).andExpect(status().isNotFound());
     }
 
     // ------------------------------------------------------------------------------------------------

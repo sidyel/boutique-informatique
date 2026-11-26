@@ -5,9 +5,13 @@ import { RouterLink } from '@angular/router';
 import { Categorie, Filtres, Page, ProduitResume } from '../../noyau/api/modeles';
 import { chargementMemorise } from '../../noyau/donnees/chargement-memorise';
 import { ParametresSiteService } from '../../noyau/donnees/parametres-site.service';
+import { referencementListe } from '../liste-produits/referencement-liste';
+import { filAriane, listeProduits } from '../../noyau/seo/donnees-structurees';
 import { SeoService } from '../../noyau/seo/seo.service';
 import { EtapeAriane, FilAriane } from '../../partage/composants/fil-ariane/fil-ariane';
 import { Squelette } from '../../partage/composants/squelette/squelette';
+import { reponseDefinitive } from '../../noyau/seo/reponse-definitive';
+import { PageRetiree } from '../erreurs/page-retiree/page-retiree';
 import { PageIntrouvable } from '../erreurs/page-introuvable/page-introuvable';
 import {
   Criteres,
@@ -40,7 +44,7 @@ export function paragraphes(texte: string | null | undefined): string[] {
  */
 @Component({
   selector: 'bi-page-categorie',
-  imports: [FilAriane, ListeProduits, PageIntrouvable, RouterLink, Squelette],
+  imports: [FilAriane, ListeProduits, PageIntrouvable, PageRetiree, RouterLink, Squelette],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './page-categorie.html',
   styleUrl: './page-categorie.scss',
@@ -63,9 +67,14 @@ export class PageCategorie {
     urlAvecParametres(`/api/categories/${this.slug()}/filtres`, parametresFiltres(this.criteres())),
   );
 
-  protected readonly introuvable = computed(
-    () => this.categorie.statutErreur() === 404 || this.produits.statutErreur() === 404,
+  /** API 404 : ancien slug ou catégorie désactivée (301 vers la parente, sinon 410), sinon vraie 404. */
+  private readonly definitive = reponseDefinitive(() =>
+    !this.categorie.chargement() && this.categorie.statutErreur() === 404 ? `/categorie/${this.slug()}` : null,
   );
+  protected readonly introuvable = computed(
+    () => this.definitive.introuvable() || (!this.categorie.statutErreur() && this.produits.statutErreur() === 404),
+  );
+  protected readonly retrait = this.definitive.retrait;
   protected readonly invalide = computed(
     () => this.produits.statutErreur() === 400 || this.filtres.statutErreur() === 400,
   );
@@ -119,6 +128,14 @@ export class PageCategorie {
       const categorie = this.courante();
       if (!categorie) return;
       seo.definirPage({
+        ...referencementListe(`/categorie/${categorie.slug}`, this.criteres()),
+        donneesStructurees: (url) => {
+          const page = this.produits.valeur();
+          return [
+            filAriane(this.ariane(), url),
+            page?.elements.length ? listeProduits(page.elements, url, (page.page - 1) * page.taille) : null,
+          ];
+        },
         titre: titreListe(categorie.nom, this.site.nomSite(), categorie.metaTitre),
         description:
           categorie.metaDescription?.trim() ||

@@ -5,10 +5,13 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@a
 import { Filtres, Marque, Page, ProduitResume } from '../../noyau/api/modeles';
 import { chargementMemorise } from '../../noyau/donnees/chargement-memorise';
 import { ParametresSiteService } from '../../noyau/donnees/parametres-site.service';
+import { referencementListe } from '../liste-produits/referencement-liste';
+import { filAriane, listeProduits } from '../../noyau/seo/donnees-structurees';
 import { SeoService } from '../../noyau/seo/seo.service';
 import { FilAriane } from '../../partage/composants/fil-ariane/fil-ariane';
 import { Squelette } from '../../partage/composants/squelette/squelette';
 import { parametresFiltres } from '../categorie/page-categorie';
+import { reponseDefinitive } from '../../noyau/seo/reponse-definitive';
 import { PageIntrouvable } from '../erreurs/page-introuvable/page-introuvable';
 import { Criteres, TRIS_LISTE, lireCriteres, pucesActives, titreListe, versParametres } from '../liste-produits/criteres';
 import { ListeProduits } from '../liste-produits/liste-produits';
@@ -112,8 +115,12 @@ export class PageMarque {
     urlAvecParametres(`/api/marques/${this.slug()}/filtres`, parametresFiltres(this.criteres())),
   );
 
+  /** API 404 : ancien slug (301) ou vraie 404. */
+  private readonly definitive = reponseDefinitive(() =>
+    !this.marque.chargement() && this.marque.statutErreur() === 404 ? `/marque/${this.slug()}` : null,
+  );
   protected readonly introuvable = computed(
-    () => this.marque.statutErreur() === 404 || this.filtres.statutErreur() === 404,
+    () => this.definitive.introuvable() || (!this.marque.statutErreur() && this.filtres.statutErreur() === 404),
   );
   protected readonly invalide = computed(
     () => this.produits.statutErreur() === 400 || this.filtres.statutErreur() === 400,
@@ -153,6 +160,14 @@ export class PageMarque {
       const marque = this.courante();
       if (!marque) return;
       seo.definirPage({
+        ...referencementListe(`/marque/${marque.slug}`, this.criteres()),
+        donneesStructurees: (url) => {
+          const page = this.produits.valeur();
+          return [
+            filAriane([{ nom: marque.nom }], url),
+            page?.elements.length ? listeProduits(page.elements, url, (page.page - 1) * page.taille) : null,
+          ];
+        },
         titre: titreListe(marque.nom, this.site.nomSite(), marque.metaTitre),
         description:
           marque.metaDescription?.trim() ||

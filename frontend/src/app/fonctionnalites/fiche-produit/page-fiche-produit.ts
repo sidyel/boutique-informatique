@@ -14,6 +14,7 @@ import { Avis, FicheProduit, Page } from '../../noyau/api/modeles';
 import { chargementMemorise } from '../../noyau/donnees/chargement-memorise';
 import { ParametresSiteService } from '../../noyau/donnees/parametres-site.service';
 import { RecemmentConsultesService } from '../../noyau/donnees/recemment-consultes.service';
+import { filAriane, produit as produitLd } from '../../noyau/seo/donnees-structurees';
 import { SeoService } from '../../noyau/seo/seo.service';
 import { SuiviService } from '../../noyau/suivi/suivi.service';
 import { Badge } from '../../partage/composants/badge/badge';
@@ -21,6 +22,8 @@ import { Etoiles } from '../../partage/composants/etoiles/etoiles';
 import { EtapeAriane, FilAriane } from '../../partage/composants/fil-ariane/fil-ariane';
 import { Squelette } from '../../partage/composants/squelette/squelette';
 import { formaterPrixFcfa } from '../../partage/pipes/prix-fcfa.pipe';
+import { reponseDefinitive } from '../../noyau/seo/reponse-definitive';
+import { PageRetiree } from '../erreurs/page-retiree/page-retiree';
 import { PageIntrouvable } from '../erreurs/page-introuvable/page-introuvable';
 import { parametreChemin, parametresRoute } from '../liste-produits/parametres-route';
 import { AvisProduit, noteAffichee } from './avis-produit/avis-produit';
@@ -29,6 +32,7 @@ import { ChoixVariante, ChoixVarianteFiche } from './choix-variante/choix-varian
 import {
   caracteristiquesPour,
   descriptionProduit,
+  imagesVariante,
   lireIdVariante,
   mediasPour,
   nomComplet,
@@ -61,6 +65,7 @@ const LIGNES_REPLIEES = 10;
     FilAriane,
     Galerie,
     PageIntrouvable,
+    PageRetiree,
     ProduitsRecents,
     ProduitsSimilaires,
     RouterLink,
@@ -84,7 +89,12 @@ export class PageFicheProduit {
   /** Chargés en même temps que la fiche (rendus par le serveur) ; seuls les 5 derniers. */
   protected readonly avisCharges = chargementMemorise<Page<Avis>>(() => `/api/produits/${this.slug()}/avis?taille=5`);
 
-  protected readonly introuvable = computed(() => this.ficheChargee.statutErreur() === 404);
+  /** API 404 : ancien slug (301), produit retiré (410 ou 301 vers le successeur) ou vraie 404. */
+  private readonly definitive = reponseDefinitive(() =>
+    !this.ficheChargee.chargement() && this.ficheChargee.statutErreur() === 404 ? `/produit/${this.slug()}` : null,
+  );
+  protected readonly introuvable = this.definitive.introuvable;
+  protected readonly retrait = this.definitive.retrait;
 
   /** Fiche du slug courant (pas la précédente pendant un passage d'un produit à un autre). */
   protected readonly fiche = computed(() => {
@@ -134,6 +144,15 @@ export class PageFicheProduit {
       seo.definirPage({
         titre: titreProduit(nom, this.site.nomSite(), fiche.metaTitre),
         description: descriptionProduit(fiche, nom, formaterPrixFcfa(fiche.prixMinimum)),
+        // Une seule canonique pour toutes les variantes (sans ?variante=, ADR 0007)
+        canonique: `/produit/${fiche.slug}`,
+        type: 'product',
+        image: this.medias().find((m) => m.type === 'IMAGE')?.url ?? null,
+        prix: variante.prix,
+        donneesStructurees: (url) => [
+          produitLd(fiche, nom, (v) => imagesVariante(fiche, v.id), this.avis(), url),
+          filAriane(this.ariane(), url),
+        ],
       });
     });
 

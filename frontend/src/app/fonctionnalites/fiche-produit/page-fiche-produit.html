@@ -1,5 +1,7 @@
 @if (introuvable()) {
   <bi-page-introuvable />
+} @else if (retrait(); as r) {
+  <bi-page-retiree [retrait]="r" />
 } @else {
   <div class="conteneur page">
     @if (fiche(); as f) {
