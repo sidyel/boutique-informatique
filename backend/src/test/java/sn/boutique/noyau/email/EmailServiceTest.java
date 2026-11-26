@@ -26,7 +26,7 @@ class EmailServiceTest {
     private final ITemplateEngine modeles = mock(ITemplateEngine.class);
     private final EmailService service = new EmailService(expediteur, modeles,
             new ProprietesEmail("Boutique <no-reply@exemple.sn>", "Boutique", 2),
-            new ProprietesBoutique("https://boutique.sn", List.of("https://boutique.sn")));
+            new ProprietesBoutique("https://boutique.sn", List.of("https://boutique.sn"), false));
 
     @Test
     void reessaieApresUnEchecDuServeurSmtp() throws Exception {

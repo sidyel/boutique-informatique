@@ -34,6 +34,8 @@ services:
       # par exemple http://localhost:8088.
       URL_SITE: ${URL_SITE_DOCKER:-http://localhost}
       CORS_ORIGINES: ${URL_SITE_DOCKER:-http://localhost}
+      # Jamais indexable en local, même si .env dit le contraire (ADR 0007)
+      INDEXATION_AUTORISEE: "false"
       # Dans un conteneur, « localhost » désigne le conteneur lui-même : le SMTP est le service mailpit
       SMTP_HOTE: mailpit
       SMTP_PORT: "1025"

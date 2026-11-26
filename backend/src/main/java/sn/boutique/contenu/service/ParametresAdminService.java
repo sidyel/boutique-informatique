@@ -27,6 +27,7 @@ public class ParametresAdminService {
     private final EnvoiImages envoiImages;
     private final TransactionTemplate transaction;
     private final ApplicationEventPublisher evenements;
+    private final ParametresService parametresService;
 
     public ParametresPublicsReponse remplacerImage(ImageParametre image, MultipartFile fichier) {
         ImageEnvoyee envoyee = envoiImages.envoyer(fichier, image.usage(), image.chemin());
@@ -42,7 +43,7 @@ public class ParametresAdminService {
                 }
                 // Vide aussi le cache des paramètres publics, après la validation
                 evenements.publishEvent(new CatalogueModifie("paramètres du site : " + image.chemin()));
-                return ParametresPublicsReponse.depuis(parametres);
+                return ParametresPublicsReponse.depuis(parametres, parametresService.site());
             });
         } catch (RuntimeException e) {
             envoiImages.annuler(envoyee, "image « " + image.chemin() + " » des paramètres non enregistrée");

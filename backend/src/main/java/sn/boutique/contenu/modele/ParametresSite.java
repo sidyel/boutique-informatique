@@ -1,5 +1,6 @@
 package sn.boutique.contenu.modele;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -144,6 +145,55 @@ public class ParametresSite {
      */
     @Column(length = 120)
     private String delaiLivraison;
+
+    /* --- Politique de retour (JSON-LD MerchantReturnPolicy, V15) --- */
+
+    /** Faux : « retours refusés » (MerchantReturnNotPermitted). */
+    @Column(nullable = false)
+    private boolean retoursAcceptes = true;
+
+    /** Délai de retour en jours, obligatoire si les retours sont acceptés. */
+    private Integer delaiRetourJours = 7;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 40)
+    private FraisRetour fraisRetour = FraisRetour.GRATUIT;
+
+    @Column(nullable = false)
+    private boolean retourEnBoutique = true;
+
+    /** Reprise par un livreur (JSON-LD ReturnByMail). */
+    @Column(nullable = false)
+    private boolean retourParLivreur;
+
+    /* --- Boutique physique (JSON-LD Store, V15) --- */
+
+    /** Vrai : la page publie un Store ; impose rue, ville et région (contrainte en base). */
+    @Column(nullable = false)
+    private boolean boutiquePhysique;
+
+    @Column(length = 200)
+    private String boutiqueRue;
+
+    @Column(length = 100)
+    private String boutiqueVille;
+
+    /** Région administrative : « Dakar », « Thiès ». */
+    @Column(length = 100)
+    private String boutiqueRegion;
+
+    @Column(length = 10)
+    private String boutiqueCodePostal;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal boutiqueLatitude;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal boutiqueLongitude;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false)
+    private List<HoraireOuverture> horairesOuverture = new ArrayList<>();
 
     @LastModifiedDate
     @Column(nullable = false)

@@ -113,6 +113,9 @@ springdoc:
 
 boutique:
   url-site: ${URL_SITE:http://localhost:4200}
+  # Indexation par les moteurs de recherche : true UNIQUEMENT en production (ADR 0007). Sinon robots.txt
+  # interdit tout et chaque page porte « noindex » (préproduction, démonstration, développement).
+  indexation-autorisee: ${INDEXATION_AUTORISEE:false}
   # Sections de produits de l'accueil (GET /api/accueil)
   accueil:
     produits-par-section: 12

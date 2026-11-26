@@ -1,6 +1,7 @@
 package sn.boutique.catalogue.modele;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,6 +78,19 @@ public class Produit extends EntiteAuditee {
     @Column(nullable = false)
     private boolean misEnAvant;
 
+    /**
+     * Retrait définitif (ADR 0007) : renseignée, le produit n'est plus vendu (301 vers le remplaçant publié,
+     * sinon 410) ; null avec {@code actif = false} : simplement masqué (404). Modifiée par {@link #retirer}.
+     */
+    @Setter(AccessLevel.NONE)
+    private Instant dateRetrait;
+
+    /** Produit qui le remplace (successeur) : redirection 301 tant qu'il est publié. */
+    @Setter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "produit_remplacant_id")
+    private Produit produitRemplacant;
+
     @Column(length = 70)
     private String metaTitre;
 
@@ -133,6 +147,25 @@ public class Produit extends EntiteAuditee {
         this.slug = slug;
         this.marque = marque;
         this.categorie = categorie;
+    }
+
+    /**
+     * Retire définitivement le produit du catalogue (il n'est plus publié).
+     *
+     * @param date        instant du retrait ({@code horloge.instant()})
+     * @param remplacant  successeur, ou null
+     */
+    public void retirer(Instant date, Produit remplacant) {
+        if (remplacant == this) {
+            throw new IllegalArgumentException("Un produit ne peut pas se remplacer lui-même");
+        }
+        this.actif = false;
+        this.dateRetrait = date;
+        this.produitRemplacant = remplacant;
+    }
+
+    public boolean estRetire() {
+        return dateRetrait != null;
     }
 
     public VarianteProduit ajouterVariante(String sku, String libelle, long prix, int stock) {
