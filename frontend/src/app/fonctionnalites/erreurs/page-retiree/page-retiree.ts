@@ -19,28 +19,36 @@ const PRODUITS_PROPOSES = 8;
   imports: [RangeeProduits, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="conteneur retiree">
-      <p class="code">Plus disponible</p>
-      <h1>
-        @if (type() === 'produit') {
-          Ce produit n'est plus vendu
-        } @else {
-          Cette catégorie n'existe plus
+    <section class="conteneur">
+      <div class="retiree">
+        <p class="code">Plus disponible</p>
+        <h1>
+          @if (type() === 'produit') {
+            Ce produit n'est plus vendu
+          } @else {
+            Cette catégorie n'existe plus
+          }
+        </h1>
+        @if (retrait(); as r) {
+          <p class="nom">« {{ r.nom }} » a été retiré définitivement de notre catalogue.</p>
         }
-      </h1>
-      @if (retrait(); as r) {
-        <p class="nom">« {{ r.nom }} » a été retiré définitivement de notre catalogue.</p>
-      }
-      <p class="liens">
-        @if (retrait()?.categorie; as rayon) {
-          <a class="lien" [routerLink]="['/categorie', rayon.slug]">Voir le rayon {{ rayon.nom }}</a>
-        }
-        <a class="lien lien--secondaire" routerLink="/">Revenir à l'accueil</a>
-      </p>
+        <p class="liens">
+          @if (retrait()?.categorie; as rayon) {
+            <a class="lien" [routerLink]="['/categorie', rayon.slug]"
+              >Voir le rayon {{ rayon.nom }}</a
+            >
+          }
+          <a class="lien lien--secondaire" routerLink="/">Revenir à l'accueil</a>
+        </p>
+      </div>
     </section>
     @if (proposes().length) {
       <div class="conteneur">
-        <bi-rangee-produits titre="Produits similaires disponibles" [produits]="proposes()" [liste]="liste()" />
+        <bi-rangee-produits
+          titre="Produits similaires disponibles"
+          [produits]="proposes()"
+          [liste]="liste()"
+        />
       </div>
     }
   `,
@@ -99,7 +107,10 @@ export class PageRetiree {
     const seo = inject(SeoService);
     // Pas de canonique ni d'indexation : la page n'existe plus
     effect(() =>
-      seo.definirPage({ titre: this.type() === 'produit' ? 'Produit retiré' : 'Catégorie retirée', indexable: false }),
+      seo.definirPage({
+        titre: this.type() === 'produit' ? 'Produit retiré' : 'Catégorie retirée',
+        indexable: false,
+      }),
     );
   }
 }
