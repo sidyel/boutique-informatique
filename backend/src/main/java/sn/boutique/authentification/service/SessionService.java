@@ -96,7 +96,7 @@ public class SessionService {
         String jeton = GenerateurJetons.generer();
         jetonDepot.save(new JetonRafraichissement(utilisateur, GenerateurJetons.empreinte(jeton), expiration,
                 famille, contexte.adresseIp(), contexte.userAgent()));
-        JetonAcces acces = jetonAccesService.emettre(utilisateur);
+        JetonAcces acces = jetonAccesService.emettre(utilisateur, famille);
         return new Session(utilisateur, acces, jeton, Duration.between(maintenant, expiration));
     }
 

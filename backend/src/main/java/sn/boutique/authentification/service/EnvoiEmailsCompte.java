@@ -56,6 +56,6 @@ class EnvoiEmailsCompte {
     @Async
     @TransactionalEventListener
     void surMotDePasseModifie(MotDePasseModifie evenement) {
-        emails.envoyerMotDePasseModifie(evenement.utilisateurId());
+        emails.envoyerMotDePasseModifie(evenement.utilisateurId(), evenement.sessionCouranteConservee());
     }
 }

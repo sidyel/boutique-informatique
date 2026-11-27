@@ -102,8 +102,29 @@ def creer_panier_demo(base: str, produit: str, certificat_autosigne: bool) -> di
     return {"Cookie": jeton}
 
 
+def ouvrir_session(base: str, email: str, mot_de_passe: str, certificat_autosigne: bool) -> str:
+    """Connecte le compte de test et renvoie le cookie de rafraîchissement (`jeton_rafraichissement=…`).
+
+    Le cookie tourne à chaque utilisation (rotation + détection de réutilisation) : une session neuve par passage,
+    sinon le 2e passage présenterait un ancien cookie et passerait pour un vol (session révoquée)."""
+    contexte = ssl._create_unverified_context() if certificat_autosigne else None
+    racine = base.rstrip("/")
+    requete = urllib.request.Request(
+        f"{racine}/api/auth/connexion",
+        data=json.dumps({"email": email, "motDePasse": mot_de_passe}).encode(),
+        headers={"Content-Type": "application/json", "Origin": racine},
+        method="POST",
+    )
+    with urllib.request.urlopen(requete, timeout=60, context=contexte) as reponse:
+        cookie = reponse.headers.get("Set-Cookie", "")
+    jeton = cookie.split(";", 1)[0]
+    if not jeton.startswith("jeton_rafraichissement="):
+        raise SystemExit("Connexion du compte de test impossible (pas de cookie de rafraîchissement)")
+    return jeton
+
+
 def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, certificat_autosigne: bool,
-                 entetes: dict | None = None) -> dict:
+                 entetes: dict | None = None, compte: tuple[str, str] | None = None) -> dict:
     url = base.rstrip("/") + chemin
     # Chauffe : le premier rendu SSR (compilation à la volée de Node) ne doit pas fausser le 1er passage
     contexte = ssl._create_unverified_context() if certificat_autosigne else None
@@ -113,7 +134,12 @@ def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, 
     for numero in range(1, passages + 1):
         destination = sortie / f"{nom}-{numero}"
         print(f"[{nom}] passage {numero}/{passages} : {url}", flush=True)
-        resultats.append(metriques(lancer_lighthouse(url, destination, certificat_autosigne, entetes)))
+        entetes_passage = entetes
+        if compte:
+            # Session neuve à chaque passage ; le cookie du panier (s'il y en a un) est conservé
+            session = ouvrir_session(base, compte[0], compte[1], certificat_autosigne)
+            entetes_passage = {"Cookie": "; ".join(filter(None, [(entetes or {}).get("Cookie"), session]))}
+        resultats.append(metriques(lancer_lighthouse(url, destination, certificat_autosigne, entetes_passage)))
 
     mediane = {cle: statistics.median(r[cle] for r in resultats) for cle in resultats[0]}
     # Rapport HTML conservé : celui du passage dont le score de performance est le plus proche de la médiane
@@ -165,6 +191,12 @@ def main() -> int:
     analyseur.add_argument("--page", action="append", required=True, help="nom=/chemin (répétable)")
     analyseur.add_argument("--page-panier", action="append", default=[],
                            help="nom=/chemin mesuré avec un panier de démonstration (répétable)")
+    analyseur.add_argument("--page-connectee", action="append", default=[],
+                           help="nom=/chemin mesuré connecté (compte de test, session neuve à chaque passage) ; "
+                                "mot de passe dans la variable LIGHTHOUSE_COMPTE_MOT_DE_PASSE (répétable)")
+    analyseur.add_argument("--page-connectee-panier", action="append", default=[],
+                           help="comme --page-connectee, avec en plus le panier de démonstration")
+    analyseur.add_argument("--compte-email", default="client@exemple.sn", help="e-mail du compte de test")
     analyseur.add_argument("--variante-demo", help="slug du produit mis dans le panier de démonstration")
     analyseur.add_argument("--passages", type=int, default=7)
     analyseur.add_argument("--sortie", default="rapports-lighthouse")
@@ -193,6 +225,23 @@ def main() -> int:
             if not nom or not chemin.startswith("/"):
                 analyseur.error(f"page invalide : « {definition} » (attendu : nom=/chemin)")
             pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie, args.certificat_autosigne, entetes))
+
+    if args.page_connectee or args.page_connectee_panier:
+        mot_de_passe = os.environ.get("LIGHTHOUSE_COMPTE_MOT_DE_PASSE", "")
+        if not mot_de_passe:
+            analyseur.error("les pages connectées exigent LIGHTHOUSE_COMPTE_MOT_DE_PASSE")
+        compte = (args.compte_email, mot_de_passe)
+        avec_panier = [(d, True) for d in args.page_connectee_panier]
+        sans_panier = [(d, False) for d in args.page_connectee]
+        if avec_panier and not args.variante_demo:
+            analyseur.error("--page-connectee-panier exige --variante-demo")
+        for definition, panier in sans_panier + avec_panier:
+            nom, _, chemin = definition.partition("=")
+            if not nom or not chemin.startswith("/"):
+                analyseur.error(f"page invalide : « {definition} » (attendu : nom=/chemin)")
+            entetes = creer_panier_demo(args.base, args.variante_demo, args.certificat_autosigne) if panier else None
+            pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie, args.certificat_autosigne,
+                                      entetes, compte))
 
     resume = tableau(pages, args.passages)
     print(resume)

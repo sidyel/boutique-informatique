@@ -14,6 +14,9 @@ export interface Profil {
   role: string;
   emailVerifie: boolean;
   consentementMarketing: boolean;
+  /** Date de la dernière décision de consentement (acceptation ou retrait). */
+  dateConsentement: string | null;
+  sourceConsentement: 'INSCRIPTION' | 'COMPTE' | 'ADMIN' | null;
 }
 
 interface ReponseConnexion {

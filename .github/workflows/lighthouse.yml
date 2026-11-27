@@ -49,6 +49,11 @@ jobs:
           cp .env.exemple .env
           sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')|" .env
           grep -q '^JWT_SECRET=.\+' .env
+          # Compte client de test, dédié à ce job : mot de passe jetable, jamais affiché (masqué dans les journaux)
+          MOT_DE_PASSE_COMPTE="$(openssl rand -hex 16)Aa1"
+          echo "::add-mask::${MOT_DE_PASSE_COMPTE}"
+          echo "DEMO_CLIENT_MOT_DE_PASSE=${MOT_DE_PASSE_COMPTE}" >> .env
+          echo "LIGHTHOUSE_COMPTE_MOT_DE_PASSE=${MOT_DE_PASSE_COMPTE}" >> "$GITHUB_ENV"
 
       # Seule différence avec la production : le certificat (Let's Encrypt en phase 9). Clé jetable.
       - name: Certificat autosigné pour nginx
@@ -66,7 +71,7 @@ jobs:
           NGINX_MODE: https
           URL_SITE_DOCKER: https://localhost
         run: >-
-          docker compose -f docker-compose.yml -f docker-compose.dev.yml
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci.yml
           up -d --build --wait --wait-timeout 900
 
       - name: Attente du catalogue de démonstration
@@ -79,6 +84,8 @@ jobs:
           done
           echo "::error::Le catalogue de démonstration n'est pas disponible"; exit 1
 
+      # Pages connectées (5b) : compte de test dédié (DEMO_CLIENT_*), une session neuve par passage, limitation du débit
+      # coupée par docker-compose.ci.yml (sinon 7 connexions par page dépasseraient la limite horaire e-mail + IP).
       # Pages ajoutées au fil des parties : fiche produit en 3c, panier et commande en 4b (mesurés avec un panier
       # de démonstration : le script crée un panier invité et le présente par l'en-tête Cookie).
       # --certificat-autosigne (Chrome --ignore-certificate-errors) : uniquement dans ce job.
@@ -99,6 +106,9 @@ jobs:
           --variante-demo apple-macbook-air-13-m2
           --page-panier panier=/panier
           --page-panier commande=/commande
+          --compte-email client@exemple.sn
+          --page-connectee compte=/compte
+          --page-connectee-panier commande-connecte=/commande
 
       - name: Rapports Lighthouse
         if: always()
@@ -114,4 +124,4 @@ jobs:
         working-directory: infra
         env:
           NGINX_MODE: https
-        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml logs --no-color --tail=200
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci.yml logs --no-color --tail=200

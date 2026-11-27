@@ -97,8 +97,10 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   `fbp`, `fbc`, `gclid`, `fbclid`, `utm…`, `premiere_*`, `jeton_suivi`, `nom_client`, e-mail et téléphone selon
   la durée de conservation). Durée de conservation (10 ans OHADA ?) à confirmer avec le comptable.
   — *ADR 0004 §3, bilan 1, ADR 0008 §8*
-- [ ] Rattacher à son compte les commandes passées en invité avec le même e-mail ou téléphone vérifié (le lien de
-  suivi n'existe que pour l'invité). — *ADR 0008*
+- [x] Rattacher à son compte les commandes passées en invité : **e-mail identique (sans casse) ET vérifié, jamais par
+  le téléphone seul**, idempotent, journalisé (`rattachement_commande`), e-mail récapitulatif ; déclenché à la
+  vérification de l'e-mail, à la réinitialisation, au changement d'e-mail confirmé et à la connexion. Le lien de suivi
+  invité reste valable. Risque résiduel accepté (décision 1). — *ADR 0008, 5b*
 - [ ] Avis d'un compte supprimé signés « Client vérifié » si `achatVerifie`, « Client » sinon. — *ADR 0004 §3*
 
 ## Phase 6 — back-office
@@ -252,8 +254,10 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   vérification Meta Business (bloquée tant que les documents de l'entreprise ne sont pas prêts). Connexion complète par
   téléphone (e-mail facultatif, téléphone unique et vérifié, limites anti-fraude au SMS) seulement si l'usage le justifie.
   — *décision (validation du plan de la phase 5)*
-- [ ] Lighthouse authentifié (espace client) : une connexion par passage avec un compte de test dédié ; limitation de
-  débit et verrouillage adaptés au profil CI seulement. À faire avec la partie 5b. — *décision (plan 5)*
+- [x] Lighthouse authentifié (espace client) : une connexion par passage avec un compte de test dédié
+  (`DEMO_CLIENT_*`, mot de passe jetable généré par le job) ; limitation du débit coupée **en CI seulement**
+  (`infra/docker-compose.ci.yml`), aucun échec de connexion donc aucun verrouillage. Pages mesurées : `/compte` et
+  `/commande` connecté. Les listes et le détail de commande s'ajouteront en 5c. — *5b*
 - [ ] Scripts de capture : `infra/scripts/captures/` (playwright-core installé à la demande, jamais dans les
   `package.json`). `parcours-auth.mjs` couvre l'authentification (5a) ; étendre à chaque partie. — *décision (plan 5)*
 - [x] Les pages `/compte/**` sont rendues dans le navigateur (`RenderMode.Client`) ; nginx pose `no-store`,
@@ -261,3 +265,15 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [x] Le panier attend la restauration de la session avant de lire ou modifier (sinon un client connecté qui recharge
   la page voyait un panier de visiteur vide) ; la fusion du panier invité est faite par le serveur à la première lecture
   du client connecté, vérifiée de bout en bout. — *5a*
+- [x] Changement de mot de passe : ancien exigé (essais limités par compte, réponse 422 jamais 401), autres sessions
+  révoquées via la revendication `sid` du jeton, session courante conservée, e-mail d'alerte. — *5b*
+- [x] Changement d'e-mail : mot de passe exigé, lien vers la nouvelle adresse (24 h), alerte à l'ancienne avec « Ce
+  n'est pas moi » (annule, ou rétablit l'ancienne adresse dans les 7 jours, révoque les sessions, envoie un lien de
+  réinitialisation) ; réponse identique si l'adresse est déjà prise. — *5b*
+- [x] Consentement marketing : date + source (`INSCRIPTION`, `COMPTE`, `ADMIN`) sur le compte et historique en ajout
+  seul ; retrait en un clic, sans mot de passe. Téléphone du profil et des adresses normalisé en E.164. — *5b*
+- [ ] **Avant le lancement** : un utilisateur supprimé doit aussi disparaître de `historique_consentement` /
+  `changement_email` (anonymisation, partie 5d) ; vérifier avec le juriste la durée de conservation de la preuve de
+  consentement. — *5b*
+- [ ] Limite du carnet d'adresses fixée à 10 (`AdresseService.MAXIMUM`) : à revoir si des clients professionnels en
+  demandent davantage. — *5b*

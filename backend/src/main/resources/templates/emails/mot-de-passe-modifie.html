@@ -3,8 +3,10 @@
 <body>
 <div th:fragment="contenu">
     <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
-    <p>Le mot de passe de votre compte vient d'être modifié. Par sécurité, vous avez été déconnecté de tous
-       vos appareils.</p>
+    <p>Le mot de passe de votre compte vient d'être modifié.
+       <span th:if="${sessionCouranteConservee}">Vos autres appareils ont été déconnectés ; l'appareil utilisé pour ce
+       changement reste connecté.</span>
+       <span th:unless="${sessionCouranteConservee}">Par sécurité, vous avez été déconnecté de tous vos appareils.</span></p>
     <p><strong>Ce n'était pas vous ?</strong> Choisissez immédiatement un nouveau mot de passe et contactez-nous.</p>
     <th:block th:replace="~{emails/bouton :: bouton(${lienMotDePasseOublie}, 'Sécuriser mon compte')}"></th:block>
 </div>

@@ -73,6 +73,18 @@ export const routes: Routes = [
           import('./fonctionnalites/compte/liens-email/page-lien-email').then((m) => m.PageLienEmail),
       },
       {
+        path: 'compte/confirmer-email',
+        data: { action: 'confirmer-email' },
+        loadComponent: () =>
+          import('./fonctionnalites/compte/liens-email/page-lien-email').then((m) => m.PageLienEmail),
+      },
+      {
+        path: 'compte/signaler-changement',
+        data: { action: 'signaler-changement' },
+        loadComponent: () =>
+          import('./fonctionnalites/compte/liens-email/page-lien-email').then((m) => m.PageLienEmail),
+      },
+      {
         path: 'compte/nouveau-mot-de-passe',
         loadComponent: () =>
           import('./fonctionnalites/compte/liens-email/nouveau-mot-de-passe').then((m) => m.NouveauMotDePasse),
@@ -80,8 +92,23 @@ export const routes: Routes = [
       {
         path: 'compte',
         canActivate: [gardeConnecte],
-        loadComponent: () =>
-          import('./fonctionnalites/compte/tableau-de-bord/tableau-de-bord').then((m) => m.TableauDeBord),
+        loadComponent: () => import('./fonctionnalites/compte/espace/espace-client').then((m) => m.EspaceClient),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./fonctionnalites/compte/tableau-de-bord/tableau-de-bord').then((m) => m.TableauDeBord),
+          },
+          { path: 'profil', loadComponent: () => import('./fonctionnalites/compte/profil/profil').then((m) => m.Profil) },
+          {
+            path: 'adresses',
+            loadComponent: () => import('./fonctionnalites/compte/adresses/adresses').then((m) => m.Adresses),
+          },
+          {
+            path: 'securite',
+            loadComponent: () => import('./fonctionnalites/compte/securite/securite').then((m) => m.Securite),
+          },
+        ],
       },
       {
         path: 'panier',

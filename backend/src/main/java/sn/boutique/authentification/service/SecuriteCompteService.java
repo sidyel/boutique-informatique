@@ -23,6 +23,8 @@ import sn.boutique.authentification.modele.JetonVerificationEmail;
 import sn.boutique.authentification.securite.GenerateurJetons;
 import sn.boutique.compte.depot.UtilisateurDepot;
 import sn.boutique.compte.modele.Utilisateur;
+import sn.boutique.compte.service.RattachementCommandesService;
+import sn.boutique.compte.service.RattachementCommandesService.Declencheur;
 
 /**
  * Vérification de l'e-mail et mot de passe oublié (ADR 0003).
@@ -44,6 +46,7 @@ public class SecuriteCompteService {
     private final PasswordEncoder encodeur;
     private final ApplicationEventPublisher evenements;
     private final Clock horloge;
+    private final RattachementCommandesService rattachement;
 
     /** Valide le lien reçu par e-mail. Le JWT en cours garde emailVerifie=false jusqu'au prochain rafraîchissement. */
     @Transactional
@@ -57,6 +60,7 @@ public class SecuriteCompteService {
         trouve.marquerUtilise(maintenant);
         trouve.getUtilisateur().setEmailVerifie(true);
         log.info("Adresse e-mail du compte {} vérifiée", trouve.getUtilisateur().getId());
+        rattachement.rattacher(trouve.getUtilisateur(), Declencheur.VERIFICATION_EMAIL);
     }
 
     @Transactional(readOnly = true)
@@ -115,6 +119,8 @@ public class SecuriteCompteService {
         reinitialisationDepot.invaliderPourUtilisateur(utilisateur.getId(), maintenant);
         int sessions = rafraichissementDepot.revoquerTousPourUtilisateur(utilisateur.getId());
         log.info("Mot de passe du compte {} réinitialisé : {} session(s) révoquée(s)", utilisateur.getId(), sessions);
+        // Le lien prouve l'accès à la boîte mail : l'adresse est vérifiée, les commandes invité peuvent être rattachées
+        rattachement.rattacher(utilisateur, Declencheur.REINITIALISATION);
         evenements.publishEvent(new MotDePasseModifie(utilisateur.getId()));
     }
 }

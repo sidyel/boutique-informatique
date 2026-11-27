@@ -22,7 +22,11 @@ import sn.boutique.authentification.evenement.InscriptionEffectuee;
 import sn.boutique.authentification.service.SessionService.Contexte;
 import sn.boutique.authentification.service.SessionService.Session;
 import sn.boutique.compte.depot.UtilisateurDepot;
+import sn.boutique.compte.modele.SourceConsentement;
 import sn.boutique.compte.modele.Utilisateur;
+import sn.boutique.compte.service.ConsentementMarketingService;
+import sn.boutique.compte.service.RattachementCommandesService;
+import sn.boutique.compte.service.RattachementCommandesService.Declencheur;
 
 /**
  * Inscription et connexion.
@@ -54,12 +58,15 @@ public class AuthService {
     private final ProprietesAuthentification proprietes;
     private final EchecConnexionDepot echecs;
     private final Clock horloge;
+    private final ConsentementMarketingService consentement;
+    private final RattachementCommandesService rattachement;
     /** Empreinte factice comparée quand l'e-mail est inconnu, pour un temps de réponse constant. */
     private final String empreinteLeurre;
 
     public AuthService(UtilisateurDepot utilisateurDepot, PasswordEncoder encodeur, SessionService sessionService,
                        ApplicationEventPublisher evenements, ProprietesAuthentification proprietes,
-                       EchecConnexionDepot echecs, Clock horloge) {
+                       EchecConnexionDepot echecs, Clock horloge, ConsentementMarketingService consentement,
+                       RattachementCommandesService rattachement) {
         this.utilisateurDepot = utilisateurDepot;
         this.encodeur = encodeur;
         this.sessionService = sessionService;
@@ -67,6 +74,8 @@ public class AuthService {
         this.proprietes = proprietes;
         this.echecs = echecs;
         this.horloge = horloge;
+        this.consentement = consentement;
+        this.rattachement = rattachement;
         this.empreinteLeurre = encodeur.encode("leurre-anti-enumeration-" + System.nanoTime());
     }
 
@@ -83,8 +92,8 @@ public class AuthService {
         }
         Utilisateur utilisateur = new Utilisateur(requete.email(), hash, requete.prenom().strip(), requete.nom().strip());
         utilisateur.setTelephone(requete.telephone());
-        utilisateur.definirConsentementMarketing(requete.consentementMarketingDonne(), horloge.instant());
         utilisateurDepot.save(utilisateur);
+        consentement.definir(utilisateur, requete.consentementMarketingDonne(), SourceConsentement.INSCRIPTION);
         evenements.publishEvent(new InscriptionEffectuee(utilisateur.getId()));
     }
 
@@ -134,6 +143,8 @@ public class AuthService {
             throw new IdentifiantsInvalidesException("compte " + utilisateur.getId() + " désactivé");
         }
         echecs.effacer(empreinteEmail, ip);
+        // Commandes passées en invité depuis la dernière connexion (adresse vérifiée seulement)
+        rattachement.rattacher(utilisateur, Declencheur.CONNEXION);
         return sessionService.ouvrir(utilisateur, contexte);
     }
 }

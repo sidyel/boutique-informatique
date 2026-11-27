@@ -134,10 +134,12 @@ public class EmailsCompteService {
                         "lienMotDePasseOublie", lien(CHEMIN_MOT_DE_PASSE_OUBLIE))));
     }
 
-    public void envoyerMotDePasseModifie(Long utilisateurId) {
+    /** @param sessionCouranteConservee changement fait depuis l'espace client : seuls les AUTRES appareils sont déconnectés */
+    public void envoyerMotDePasseModifie(Long utilisateurId, boolean sessionCouranteConservee) {
         lireDestinataire(utilisateurId).ifPresent(e -> emailService.envoyer(e.email(),
                 "Votre mot de passe a été modifié", "mot-de-passe-modifie",
-                Map.of("prenom", e.prenom(), "lienMotDePasseOublie", lien(CHEMIN_MOT_DE_PASSE_OUBLIE))));
+                Map.of("prenom", e.prenom(), "lienMotDePasseOublie", lien(CHEMIN_MOT_DE_PASSE_OUBLIE),
+                        "sessionCouranteConservee", sessionCouranteConservee)));
     }
 
     private Optional<Envoi> lireDestinataire(Long utilisateurId) {
@@ -151,7 +153,7 @@ public class EmailsCompteService {
     }
 
     /** « 24 heures », « 1 heure », « 30 minutes ». */
-    static String enClair(Duration duree) {
+    public static String enClair(Duration duree) {
         if (duree.toMinutesPart() == 0 && duree.toHours() > 0) {
             long heures = duree.toHours();
             return heures + (heures > 1 ? " heures" : " heure");

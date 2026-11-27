@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>Une demande de changement de l’adresse e-mail de votre compte vers <strong th:text="${nouvelEmail}">nouvelle@exemple.sn</strong>
+       vient d’être faite. Elle ne prendra effet que si le lien envoyé à cette nouvelle adresse est ouvert.</p>
+    <p><strong>Ce n’est pas vous ?</strong> Annulez cette demande tout de suite : nous déconnecterons vos appareils et vous
+       enverrons un lien pour choisir un nouveau mot de passe.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lienSignalement}, 'Ce n’est pas moi')}"></th:block>
+</div>
+</body>
+</html>

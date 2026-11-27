@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>Vous avez demandé à utiliser cette adresse e-mail pour votre compte. Confirmez-la pour terminer le changement ;
+       le lien est valable <span th:text="${validite}">24 heures</span> et ne sert qu’une fois.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lien}, 'Confirmer cette adresse')}"></th:block>
+    <p>Si vous n’êtes pas à l’origine de cette demande, ignorez ce message : rien ne changera.</p>
+</div>
+</body>
+</html>

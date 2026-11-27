@@ -79,9 +79,21 @@ public class Utilisateur extends EntiteAuditee {
         this.telephone = TelephoneSenegal.normaliserFacultatif(telephone);
     }
 
-    /** Enregistre le choix marketing et sa date (preuve du consentement). */
-    public void definirConsentementMarketing(boolean consentement, Instant date) {
+    /** D'où vient la dernière décision de consentement (inscription, espace client, administrateur). */
+    @Setter(AccessLevel.NONE)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private SourceConsentement sourceConsentement;
+
+    /** Enregistre le choix marketing, sa date et sa source (preuve du consentement). */
+    public void definirConsentementMarketing(boolean consentement, Instant date, SourceConsentement source) {
         this.consentementMarketing = consentement;
         this.dateConsentement = date;
+        this.sourceConsentement = source;
+    }
+
+    /** Choix fait à l'inscription. */
+    public void definirConsentementMarketing(boolean consentement, Instant date) {
+        definirConsentementMarketing(consentement, date, SourceConsentement.INSCRIPTION);
     }
 }

@@ -62,7 +62,8 @@ class ParcoursAuthentificationTest extends AuthentificationTestBase {
         assertThat(jwt.getClaimAsStringList("roles")).containsExactly("CLIENT");
         assertThat(jwt.getClaimAsBoolean("emailVerifie")).isFalse();
         assertThat(jwt.getExpiresAt()).isEqualTo(jwt.getIssuedAt().plusSeconds(900));
-        assertThat(jwt.getClaims()).containsOnlyKeys("iss", "sub", "iat", "exp", "email", "roles", "emailVerifie");
+        assertThat(jwt.getClaims()).containsOnlyKeys("iss", "sub", "iat", "exp", "email", "roles", "emailVerifie", "sid");
+        assertThat(java.util.UUID.fromString(jwt.getClaimAsString("sid"))).as("session courante").isNotNull();
 
         // 3. Profil
         profil(jetonAcces(connexion))

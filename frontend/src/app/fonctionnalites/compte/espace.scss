@@ -1,0 +1,133 @@
+// Espace client : navigation + contenu. Les formulaires reprennent les styles des pages d'authentification.
+@use 'auth';
+
+.espace {
+  display: grid;
+  gap: var(--espace-6);
+  padding-block: var(--espace-6) var(--espace-12);
+
+  @media (min-width: 48rem) {
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: var(--espace-10);
+  }
+}
+
+.espace__nav {
+  display: flex;
+  gap: var(--espace-1);
+  justify-content: space-between;
+  overflow-x: auto;
+  border-block-end: 1px solid var(--couleur-bordure);
+
+  @media (min-width: 48rem) {
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: visible;
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--couleur-bordure);
+    padding-inline-end: var(--espace-4);
+  }
+
+  a {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--espace-2);
+    color: var(--couleur-texte);
+    font-weight: 500;
+    text-decoration: none;
+    border-block-end: 2px solid transparent;
+
+    @media (min-width: 48rem) {
+      border-block-end: 0;
+      border-inline-start: 2px solid transparent;
+    }
+
+    &:hover {
+      color: var(--couleur-accent);
+    }
+
+    &.actif {
+      color: var(--couleur-accent);
+      border-color: var(--couleur-accent);
+    }
+  }
+}
+
+.espace__contenu {
+  min-width: 0;
+  max-width: 36rem;
+}
+
+.espace__titre {
+  margin: 0 0 var(--espace-2);
+  font-size: var(--taille-2xl);
+}
+
+.espace__sous-titre {
+  margin: 0 0 var(--espace-2);
+  font-size: var(--taille-lg);
+}
+
+.espace__section {
+  margin-block-start: var(--espace-8);
+  padding-block-start: var(--espace-6);
+  border-block-start: 1px solid var(--couleur-bordure);
+
+  h2 {
+    margin: 0 0 var(--espace-2);
+    font-size: var(--taille-lg);
+  }
+}
+
+.espace__aide {
+  margin: 0 0 var(--espace-4);
+  color: var(--couleur-texte-secondaire);
+  font-size: var(--taille-sm);
+}
+
+.espace__rangee {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2) var(--espace-4);
+  align-items: center;
+}
+
+.carte-adresse {
+  display: grid;
+  gap: var(--espace-1);
+  margin-block-end: var(--espace-3);
+  padding: var(--espace-4);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-sm);
+  background: var(--couleur-surface);
+
+  &--defaut {
+    border-color: var(--couleur-accent);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: var(--taille-md);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--taille-sm);
+  }
+
+  .mention {
+    color: var(--couleur-accent);
+    font-weight: 600;
+    font-size: var(--taille-xs);
+    text-transform: uppercase;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espace-2);
+    margin-block-start: var(--espace-2);
+  }
+}

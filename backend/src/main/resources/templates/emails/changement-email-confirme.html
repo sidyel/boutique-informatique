@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>L’adresse e-mail de votre compte est désormais <strong th:text="${nouvelEmail}">nouvelle@exemple.sn</strong>.
+       Vous ne recevrez plus de messages sur cette adresse-ci.</p>
+    <p><strong>Ce n’était pas vous ?</strong> Utilisez le lien « Ce n’est pas moi » de l’e-mail précédent (valable 7 jours)
+       ou choisissez un nouveau mot de passe, puis contactez-nous.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lienMotDePasseOublie}, 'Sécuriser mon compte')}"></th:block>
+</div>
+</body>
+</html>

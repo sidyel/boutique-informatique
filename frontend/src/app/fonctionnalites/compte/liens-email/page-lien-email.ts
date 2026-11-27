@@ -8,7 +8,7 @@ import { SessionService } from '../../../noyau/auth/session.service';
 import { SeoService } from '../../../noyau/seo/seo.service';
 import { lireJetonDuLien } from './jeton-lien';
 
-type Action = 'verifier-email' | 'deverrouiller';
+type Action = 'verifier-email' | 'deverrouiller' | 'confirmer-email' | 'signaler-changement';
 
 const TEXTES: Record<Action, { titre: string; chemin: string; ok: string; erreur: string }> = {
   'verifier-email': {
@@ -16,6 +16,18 @@ const TEXTES: Record<Action, { titre: string; chemin: string; ok: string; erreur
     chemin: '/api/auth/verification-email',
     ok: 'Votre adresse e-mail est vérifiée. Merci !',
     erreur: 'Ce lien n’est plus valide : il a expiré ou a déjà servi. Connectez-vous pour en demander un nouveau.',
+  },
+  'confirmer-email': {
+    titre: 'Confirmation de la nouvelle adresse e-mail',
+    chemin: '/api/auth/confirmer-email',
+    ok: 'Votre nouvelle adresse e-mail est confirmée. Utilisez-la pour vous connecter.',
+    erreur: 'Ce lien n’est plus valide : il a expiré ou a déjà servi. Refaites la demande depuis « Sécurité » dans votre compte.',
+  },
+  'signaler-changement': {
+    titre: 'Changement d’e-mail non sollicité',
+    chemin: '/api/auth/signaler-changement-email',
+    ok: 'Merci : le changement est annulé, vos appareils sont déconnectés et un lien pour choisir un nouveau mot de passe vient de vous être envoyé.',
+    erreur: 'Ce lien n’est plus valide (délai de 7 jours dépassé ou déjà utilisé). Utilisez « Mot de passe oublié », puis contactez-nous.',
   },
   deverrouiller: {
     titre: 'Déverrouillage du compte',
@@ -80,8 +92,13 @@ export class PageLienEmail implements OnInit {
     try {
       await firstValueFrom(this.http.post(this.textes.chemin, { jeton: this.jeton }));
       // Le jeton d'accès en cours garde `emailVerifie=false` : on le renouvelle (ADR 0003 §12)
-      await this.session.restaurer();
-      if (this.session.connecte()) await this.session.rafraichir(true);
+      if (this.action === 'signaler-changement') {
+        // Toutes les sessions sont révoquées côté serveur : celle-ci aussi
+        this.session.oublierLocalement();
+      } else {
+        await this.session.restaurer();
+        if (this.session.connecte()) await this.session.rafraichir(true);
+      }
       this.etat.set('ok');
     } catch (e) {
       const lue = lireErreur(e);

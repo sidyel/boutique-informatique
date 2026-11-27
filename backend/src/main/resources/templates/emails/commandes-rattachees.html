@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p th:if="${pluriel}">Vos commandes passées sans compte avec cette adresse sont maintenant dans votre espace client :</p>
+    <p th:unless="${pluriel}">Votre commande passée sans compte avec cette adresse est maintenant dans votre espace client :</p>
+    <ul><li th:each="n : ${numeros}" th:text="${n}">CMD-2026-000001</li></ul>
+    <p>Vos liens de suivi reçus par e-mail continuent de fonctionner.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lienCompte}, 'Ouvrir mon compte')}"></th:block>
+</div>
+</body>
+</html>

@@ -28,22 +28,33 @@ public class JetonAccesService {
     public static final String REVENDICATION_ROLES = "roles";
     public static final String REVENDICATION_EMAIL = "email";
     public static final String REVENDICATION_EMAIL_VERIFIE = "emailVerifie";
+    /** Famille de jetons de rafraîchissement (la « session ») : « sid ». Permet de garder la session courante ouverte
+     *  quand on révoque les autres (changement de mot de passe). */
+    public static final String REVENDICATION_SESSION = "sid";
 
     private final JwtEncoder encodeurJwt;
     private final ProprietesAuthentification proprietes;
     private final Clock horloge;
 
     public JetonAcces emettre(Utilisateur utilisateur) {
+        return emettre(utilisateur, null);
+    }
+
+    /** @param session famille de jetons de rafraîchissement de la session ouverte ; null : jeton sans session (tests) */
+    public JetonAcces emettre(Utilisateur utilisateur, java.util.UUID session) {
         Instant maintenant = horloge.instant();
-        JwtClaimsSet revendications = JwtClaimsSet.builder()
+        JwtClaimsSet.Builder constructeur = JwtClaimsSet.builder()
                 .issuer(proprietes.emetteur())
                 .subject(String.valueOf(utilisateur.getId()))
                 .issuedAt(maintenant)
                 .expiresAt(maintenant.plus(proprietes.dureeJetonAcces()))
                 .claim(REVENDICATION_EMAIL, utilisateur.getEmail())
                 .claim(REVENDICATION_ROLES, List.of(utilisateur.getRole().name()))
-                .claim(REVENDICATION_EMAIL_VERIFIE, utilisateur.isEmailVerifie())
-                .build();
+                .claim(REVENDICATION_EMAIL_VERIFIE, utilisateur.isEmailVerifie());
+        if (session != null) {
+            constructeur.claim(REVENDICATION_SESSION, session.toString());
+        }
+        JwtClaimsSet revendications = constructeur.build();
         JwsHeader entete = JwsHeader.with(MacAlgorithm.HS256).build();
         String valeur = encodeurJwt.encode(JwtEncoderParameters.from(entete, revendications)).getTokenValue();
         return new JetonAcces(valeur, proprietes.dureeJetonAcces().toSeconds());

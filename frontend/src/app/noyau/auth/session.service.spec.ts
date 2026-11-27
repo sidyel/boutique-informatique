@@ -16,7 +16,7 @@ const PROFIL: Profil = {
   telephone: null,
   role: 'CLIENT',
   emailVerifie: false,
-  consentementMarketing: false,
+  consentementMarketing: false, dateConsentement: null, sourceConsentement: null,
 };
 const reponse = (jeton: string, expireDans = 900) => ({ jetonAcces: jeton, typeJeton: 'Bearer', expireDans, utilisateur: PROFIL });
 

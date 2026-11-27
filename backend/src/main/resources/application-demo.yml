@@ -6,3 +6,6 @@ boutique:
     admin-email: ${DEMO_ADMIN_EMAIL:admin@exemple.sn}
     # Aucun mot de passe par défaut : sans DEMO_ADMIN_MOT_DE_PASSE, le compte admin n'est pas créé.
     admin-mot-de-passe: ${DEMO_ADMIN_MOT_DE_PASSE:}
+    # Compte client dédié aux mesures Lighthouse connectées : même règle, aucun mot de passe par défaut.
+    client-email: ${DEMO_CLIENT_EMAIL:client@exemple.sn}
+    client-mot-de-passe: ${DEMO_CLIENT_MOT_DE_PASSE:}

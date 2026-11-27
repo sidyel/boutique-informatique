@@ -62,6 +62,7 @@ public class AuthControleur {
     private final CookieRafraichissement cookie;
     private final ProblemesHttp problemes;
     private final LimitesAuthentification limites;
+    private final sn.boutique.compte.service.ChangementEmailService changementEmail;
 
     @Operation(summary = "Créer un compte client",
             description = "Réponse identique si l'e-mail a déjà un compte (son titulaire est prévenu par e-mail).")
@@ -148,6 +149,24 @@ public class AuthControleur {
     public MessageReponse deverrouiller(@Valid @RequestBody JetonRequete requete) {
         securiteCompte.deverrouiller(requete.jeton());
         return new MessageReponse("Votre compte est débloqué. Vous pouvez vous connecter.");
+    }
+
+    @Operation(summary = "Confirmer un changement d'adresse e-mail (lien reçu sur la nouvelle adresse, 24 h, usage unique)",
+            description = "L'adresse du compte change et devient vérifiée ; les commandes invité de cette adresse sont rattachées.")
+    @PostMapping("/confirmer-email")
+    public MessageReponse confirmerEmail(@Valid @RequestBody JetonRequete requete) {
+        changementEmail.confirmer(requete.jeton());
+        return new MessageReponse("Votre nouvelle adresse e-mail est confirmée.");
+    }
+
+    @Operation(summary = "Signaler un changement d'e-mail non sollicité (lien « ce n'est pas moi » reçu sur l'ancienne adresse)",
+            description = "Annule la demande ou rétablit l'ancienne adresse (7 jours après la confirmation) ; révoque toutes les "
+                    + "sessions et envoie un lien de réinitialisation du mot de passe.")
+    @PostMapping("/signaler-changement-email")
+    public MessageReponse signalerChangementEmail(@Valid @RequestBody JetonRequete requete) {
+        changementEmail.signaler(requete.jeton());
+        return new MessageReponse("Merci. Le changement est annulé et nous vous avons envoyé un lien pour choisir un nouveau "
+                + "mot de passe. Vos appareils ont été déconnectés.");
     }
 
     @ExceptionHandler(JetonInvalideException.class)

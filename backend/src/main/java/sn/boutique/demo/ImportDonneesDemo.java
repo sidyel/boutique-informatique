@@ -124,6 +124,7 @@ public class ImportDonneesDemo {
         importerProduits(catalogue, marques, categories, compteurs);
         importerSite(site, categories, compteurs);
         boolean admin = creerAdmin();
+        creerClient();
 
         Bilan bilan = new Bilan(compteurs.marques, compteurs.categories, compteurs.produits, compteurs.variantes,
                 compteurs.autres, admin);
@@ -400,6 +401,23 @@ public class ImportDonneesDemo {
         utilisateurDepot.save(admin);
         log.info("Compte administrateur de démonstration créé : {}", admin.getEmail());
         return true;
+    }
+
+    /** Compte client vérifié, dédié aux mesures Lighthouse connectées : jamais utilisé pour autre chose. */
+    private void creerClient() {
+        String motDePasse = proprietes.clientMotDePasse();
+        if (motDePasse == null || motDePasse.isBlank() || utilisateurDepot.emailExiste(proprietes.clientEmail())) {
+            return;
+        }
+        if (motDePasse.length() < LONGUEUR_MIN_MOT_DE_PASSE_ADMIN) {
+            throw new IllegalStateException("DEMO_CLIENT_MOT_DE_PASSE doit contenir au moins %d caractères."
+                    .formatted(LONGUEUR_MIN_MOT_DE_PASSE_ADMIN));
+        }
+        Utilisateur client = new Utilisateur(proprietes.clientEmail(), encodeurMotDePasse.encode(motDePasse),
+                "Awa", "Démo");
+        client.setEmailVerifie(true);
+        utilisateurDepot.save(client);
+        log.info("Compte client de démonstration créé : {}", client.getEmail());
     }
 
     // ------------------------------------------------------------------------------------------
