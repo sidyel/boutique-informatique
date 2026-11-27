@@ -103,8 +103,12 @@ public class Produit extends EntiteAuditee {
     @Column(nullable = false)
     private int nombreAvis;
 
-    /** Unités vendues (tri « popularité »), incrémenté à la confirmation du paiement (phase 4). */
-    @Column(nullable = false)
+    /**
+     * Unités vendues (tri « popularité »), incrémenté à l'émission de la facture et diminué par les avoirs
+     * ({@code VentesProduitService}, UPDATE relatif en SQL). {@code updatable = false} : une modification du produit
+     * par l'admin ne réécrit jamais ce compteur avec une valeur périmée.
+     */
+    @Column(nullable = false, updatable = false)
     private int nombreVentes;
 
     /*

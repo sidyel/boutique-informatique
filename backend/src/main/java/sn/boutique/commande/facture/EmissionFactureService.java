@@ -48,6 +48,7 @@ public class EmissionFactureService {
     private final CompteurDocumentService compteur;
     private final ParametresSiteDepot parametresDepot;
     private final RenduPdfService rendu;
+    private final VentesProduitService ventes;
     private final ApplicationEventPublisher evenements;
     private final Clock horloge;
 
@@ -100,6 +101,7 @@ public class EmissionFactureService {
                 site.getFactureAdresseSiege(), regime, site.getFactureTauxTvaBp(), site.getFactureMentionTva(),
                 nomClient, commande.getTelephoneClient(), commande.getEmailClient(), adresseClient,
                 commande.getModePaiement().name(), totalTtc, totalHt, totalTva, pdf, sha256(pdf), lignes));
+        ventes.compterFacture(id);
         evenements.publishEvent(new FactureEmise(id, commande.getId(), numero));
         log.info("Facture {} émise pour la commande {} ({} FCFA)", numero, commande.getNumero(), totalTtc);
         return factureDepot.trouverParCommande(commande.getId()).orElseThrow();

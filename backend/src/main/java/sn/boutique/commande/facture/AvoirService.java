@@ -73,6 +73,7 @@ public class AvoirService {
     private final CommandeDepot commandeDepot;
     private final CompteurDocumentService compteur;
     private final RenduPdfService rendu;
+    private final VentesProduitService ventes;
     private final ApplicationEventPublisher evenements;
     private final JdbcClient jdbc;
     private final Clock horloge;
@@ -150,6 +151,7 @@ public class AvoirService {
         long id = avoirDepot.inserer(new NouvelAvoir(numero, facture.id(), maintenant, motif, auteur, totalTtc,
                 totalHt, totalTva, pdf, sha256(pdf), lignesAvoir));
 
+        ventes.retirerAvoir(id);
         long creditTotal = totalTtc + credites.values().stream().mapToLong(Credite::totalTtc).sum();
         if (creditTotal == facture.totalTtc() && commande.getStatut() != StatutCommande.REMBOURSEE) {
             commande.changerStatut(StatutCommande.REMBOURSEE, auteur,
