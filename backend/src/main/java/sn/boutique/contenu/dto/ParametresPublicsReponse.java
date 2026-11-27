@@ -9,6 +9,7 @@ import sn.boutique.contenu.modele.ElementConfiance;
 import sn.boutique.contenu.modele.FraisRetour;
 import sn.boutique.contenu.modele.HoraireOuverture;
 import sn.boutique.contenu.modele.ParametresSite;
+import sn.boutique.contenu.modele.RegimeTva;
 import sn.boutique.media.TransformationsImages;
 
 /** Paramètres du site lisibles par tous : identité, contact, identifiants publics de suivi. */
@@ -35,6 +36,7 @@ public record ParametresPublicsReponse(
         PolitiqueRetour politiqueRetour,
         AdresseStructuree adresseStructuree,
         BoutiquePhysique boutiquePhysique,
+        boolean afficherTtc,
         Site site) {
 
     /**
@@ -104,7 +106,7 @@ public record ParametresPublicsReponse(
                 vide(p.getDelaiLivraison()) ? null : p.getDelaiLivraison().strip(),
                 new PolitiqueRetour(p.isRetoursAcceptes(), p.isRetoursAcceptes() ? p.getDelaiRetourJours() : null,
                         p.getFraisRetour(), p.isRetourEnBoutique(), p.isRetourParLivreur()),
-                adresse(p), boutique(p), site);
+                adresse(p), boutique(p), p.getFactureRegimeTva() == RegimeTva.ASSUJETTI, site);
     }
 
     private static AdresseStructuree adresse(ParametresSite p) {

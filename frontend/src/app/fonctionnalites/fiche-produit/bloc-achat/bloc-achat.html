@@ -3,7 +3,7 @@
 <div class="achat">
   <div class="achat__prix">
     <bi-prix [montant]="v.prix" [montantBarre]="v.prixBarre" taille="lg" />
-    <span class="achat__ttc">TTC</span>
+    @if (afficherTtc()) { <span class="achat__ttc">TTC</span> }
   </div>
 
   <p class="achat__dispo">
@@ -95,7 +95,7 @@
 <div class="barre-achat" [class.barre-achat--visible]="!actionsVisibles()" [attr.aria-hidden]="actionsVisibles()">
   <div class="barre-achat__prix">
     <bi-prix [montant]="v.prix" taille="sm" />
-    <span class="achat__ttc">TTC</span>
+    @if (afficherTtc()) { <span class="achat__ttc">TTC</span> }
   </div>
   @if (whatsappPrincipal() && lienWhatsApp(); as lien) {
     <a

@@ -74,6 +74,6 @@
     </section>
   </div>
   <div class="pied__bas">
-    <p class="conteneur">© {{ annee }} {{ site.nomSite() }} · Sénégal · Prix en FCFA TTC</p>
+    <p class="conteneur">© {{ annee }} {{ site.nomSite() }} · Sénégal · Prix en FCFA{{ site.parametres()?.afficherTtc ? ' TTC' : '' }}</p>
   </div>
 </footer>

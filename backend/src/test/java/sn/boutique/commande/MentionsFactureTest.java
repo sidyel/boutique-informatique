@@ -57,6 +57,19 @@ class MentionsFactureTest extends CommandeTestBase {
     }
 
     @Test
+    void laMentionTtcDuSiteNeSAfficheQueSiLeVendeurEstAssujetti() throws Exception {
+        String admin = acces(utilisateur(Role.ADMIN));
+        mockMvc.perform(get("/api/parametres")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.afficherTtc").value(false));
+
+        modifier(admin, CORPS).andExpect(status().isOk());
+        mockMvc.perform(get("/api/parametres")).andExpect(jsonPath("$.afficherTtc").value(true));
+
+        modifier(admin, CORPS.replace("ASSUJETTI", "NON_APPLICABLE")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/parametres")).andExpect(jsonPath("$.afficherTtc").value(false));
+    }
+
+    @Test
     void seulsAdminEtSuperAdminPeuventLesModifier() throws Exception {
         modifier(acces(utilisateur(Role.SERVICE_CLIENT)), CORPS).andExpect(status().isForbidden());
         modifier(acces(utilisateur(Role.CLIENT)), CORPS).andExpect(status().isForbidden());

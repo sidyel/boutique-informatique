@@ -54,6 +54,7 @@ export class BlocAchat {
   private readonly actions = viewChild.required<ElementRef<HTMLElement>>('actions');
 
   protected readonly rupture = computed(() => this.variante().disponibilite === 'RUPTURE');
+  protected readonly afficherTtc = computed(() => this.site.parametres()?.afficherTtc === true);
   protected readonly whatsappPrincipal = computed(() => this.site.parametres()?.boutonPrincipalFiche === 'WHATSAPP');
   protected readonly delai = computed(() => (this.rupture() ? null : (this.site.parametres()?.delaiLivraison ?? null)));
   protected readonly elementsConfiance = computed(() =>

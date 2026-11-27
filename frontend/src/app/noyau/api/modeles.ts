@@ -130,6 +130,11 @@ export interface ParametresPublics {
   adresseStructuree?: AdresseStructuree | null;
   /** Boutique ouverte au public (JSON-LD Store) ; null : pas de boutique physique. */
   boutiquePhysique?: BoutiquePhysique | null;
+  /**
+   * Vrai seulement si le vendeur est assujetti à la TVA : alors les prix sont annoncés « TTC ». Sinon (régime par
+   * défaut « TVA non applicable »), la mention n'est pas affichée. Absent (ancien cache) : faux.
+   */
+  afficherTtc?: boolean;
   /** Adresse publique et autorisation d'indexer (configuration du serveur : URL_SITE, INDEXATION_AUTORISEE). */
   site?: { url: string; indexationAutorisee: boolean } | null;
 }
