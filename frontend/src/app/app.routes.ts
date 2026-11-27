@@ -65,6 +65,13 @@ export const routes: Routes = [
           import('./fonctionnalites/commande/page-commande/page-commande').then((m) => m.PageCommande),
       },
       {
+        path: 'commande/retour/:jeton',
+        loadComponent: () =>
+          import('./fonctionnalites/commande/page-retour-paiement/page-retour-paiement').then(
+            (m) => m.PageRetourPaiement,
+          ),
+      },
+      {
         path: 'suivi/:jeton',
         loadComponent: () =>
           import('./fonctionnalites/commande/page-suivi/page-suivi').then((m) => m.PageSuivi),

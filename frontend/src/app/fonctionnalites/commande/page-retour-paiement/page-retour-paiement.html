@@ -1,0 +1,62 @@
+<div class="conteneur retour">
+  @if (introuvable()) {
+    <div class="vide" role="alert">
+      <bi-icone nom="alerte" taille="3rem" />
+      <h1 class="vide__titre">Lien de retour introuvable</h1>
+      <p>Ce lien est incomplet ou n’existe pas. Si vous avez payé, utilisez le lien de suivi reçu par e-mail ou message.</p>
+      <a biBouton variante="principal" routerLink="/">Retour à l’accueil</a>
+    </div>
+  } @else if (retour(); as r) {
+    <h1 class="retour__titre">Commande <span class="mono">{{ r.numero }}</span></h1>
+
+    @switch (r.statut) {
+      @case ('PAYE') {
+        <section class="message message--succes" role="status">
+          <p><strong>Paiement reçu, merci !</strong></p>
+          <p>Nous préparons votre commande.</p>
+        </section>
+      }
+      @case ('A_REMBOURSER') {
+        <section class="message message--info" role="status">
+          <p><strong>Votre paiement va être remboursé.</strong></p>
+          <p>Nous l’avons bien reçu, mais nous ne pouvons pas honorer cette commande (articles épuisés ou paiement en
+             double). Notre équipe vous contacte pour le remboursement.</p>
+        </section>
+      }
+      @case ('ECHEC') {
+        <section class="message message--danger" role="alert">
+          <p><strong>Le paiement n’a pas abouti.</strong></p>
+          <p>Rien n’a été débité. Vous pouvez reprendre le paiement depuis le suivi de commande tant que la commande est
+             réservée, ou repasser commande.</p>
+        </section>
+      }
+      @default {
+        <section class="message message--info" role="status" aria-live="polite">
+          @if (verification()) {
+            <p><strong>Nous vérifions votre paiement…</strong></p>
+            <p>L’opérateur nous confirme le paiement : cela prend quelques secondes. Ne fermez pas cette page.</p>
+          } @else {
+            <p><strong>{{ annule() === '1' ? 'Paiement annulé.' : 'Paiement pas encore confirmé.' }}</strong></p>
+            <p>Si vous avez payé, la confirmation peut arriver dans quelques minutes : vous recevrez un message et le
+               suivi de commande se met à jour. Sinon, vous pouvez reprendre le paiement depuis le suivi.</p>
+          }
+        </section>
+      }
+    }
+
+    @if (lienSuivi(); as lien) {
+      <a biBouton variante="principal" taille="lg" [routerLink]="lien">Suivre ma commande</a>
+    } @else {
+      <p class="retour__aide">Le lien de suivi vous a été envoyé par e-mail ou par message : utilisez-le pour suivre
+         votre commande.</p>
+    }
+  } @else if (erreurReseau()) {
+    <section class="message message--alerte" role="alert">
+      <p><strong>Connexion impossible pour le moment.</strong></p>
+      <p>Rechargez la page. Si vous avez payé, votre paiement n’est pas perdu : la commande se met à jour dès qu’il est
+         confirmé.</p>
+    </section>
+  } @else {
+    <p role="status">Vérification du paiement…</p>
+  }
+</div>

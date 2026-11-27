@@ -112,6 +112,19 @@ renouvelé. Ce jeton ne donne accès qu'au statut du paiement. Il est masqué da
 `GET /api/admin/paiements`. C'est aussi le sort par défaut d'un paiement reçu pour une commande annulée ou expirée :
 la réactivation quand le stock le permet est traitée en 4c.
 
+**Vérification et paiement tardif.** `ConfirmationPaiementService.confirmer` lit le paiement, interroge le
+prestataire **hors transaction**, recontrôle montant, devise et numéro de commande (sinon alerte, rien n'est
+enregistré), puis appelle `ReceptionPaiementService` (transaction courte, commande verrouillée). Un paiement reçu
+pour une commande annulée **par l'expiration** réactive la commande si le stock le permet (stock et code promo
+réservés de nouveau, la libération du stock se compte par réservation) ; sinon, ou si la commande est déjà réglée
+ou annulée par une personne, il est « à rembourser » : alerte, e-mail et message au client, `remboursementEnCours`
+sur la page de suivi. La tâche d'expiration vérifie d'abord le prestataire ; s'il est injoignable, l'annulation est
+reportée jusqu'à `grace-verification-paiement` (2 h). La page de retour `GET /api/commandes/retour/{jeton}` n'ouvre
+que le statut et ne croit jamais le navigateur.
+
+**Reste à faire (documentation du prestataire requise)** : `PaydunyaFournisseur`, réception de la notification,
+tests de contrat. Tant qu'aucun fournisseur n'est disponible, le mobile money est masqué.
+
 ### 8. Suivi par lien, sans compte
 
 `/suivi/{jeton}` : jeton de 256 bits (base64url) créé avec la commande. **Seule son empreinte SHA-256 est

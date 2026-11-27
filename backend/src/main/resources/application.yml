@@ -124,6 +124,14 @@ boutique:
     seuil-meilleures-ventes: 8
     anciennete-nouveautes: 90d
   cors-origines: ${CORS_ORIGINES:http://localhost:4200}
+  # Mentions légales des factures. Peuvent rester vides en développement (avertissement dans les journaux) ;
+  # le démarrage est refusé en production (INDEXATION_AUTORISEE=true ou profil prod) tant qu'elles sont vides.
+  facture:
+    raison-sociale: ${FACTURE_RAISON_SOCIALE:}
+    ninea: ${FACTURE_NINEA:}
+    rccm: ${FACTURE_RCCM:}
+    tva: ${FACTURE_TVA:}
+    mentions-obligatoires: ${FACTURE_MENTIONS_OBLIGATOIRES:true}
   # E-mails transactionnels
   email:
     expediteur: ${EMAIL_EXPEDITEUR:Boutique <no-reply@exemple.sn>}

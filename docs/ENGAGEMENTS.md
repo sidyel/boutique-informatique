@@ -30,22 +30,26 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [x] Panier et commande en `no-store` (règle permanente ci-dessus). — *décision (validation 3a)* (4a, 4b)
 - [ ] Modèle de facture et d'avoir (mentions légales, HT / TVA / TTC ou « TVA non applicable ») **validé par le
   comptable** : modèle Thymeleaf isolé, facile à modifier. — *décision (validation du plan de la phase 4)*
-- [ ] 4c — Reprise du paiement branchée sur PayDunya (la route et le modèle existent depuis 4b, avec un faux
-  prestataire en test) ; carte bancaire proposée dans le tunnel seulement si le prestataire l'indique activée sur
-  le compte ; avant d'annuler une commande échue, rappeler `confirm/{token}` (un paiement tardif ne se perd pas).
+- [ ] 4c — **`PaydunyaFournisseur` (implémentation de `FournisseurPaiement`), notification (webhook) et tests de
+  contrat** : EN ATTENTE de la documentation officielle de PayDunya (création de facture, réponse de `confirm`,
+  format de la notification et `data[hash]`, adresses test et production). Le format n'est pas écrit de mémoire.
+  En attendant, le mobile money reste masqué (aucun fournisseur disponible) et le site fonctionne avec le
+  paiement à la livraison. Carte bancaire proposée seulement si le prestataire l'indique activée.
   — *décision (validation du plan de la phase 4, point 3), ADR 0008 §7*
-- [ ] 4c — Paiement arrivé après l'expiration sans stock : alerte admin **et** information du client (e-mail s'il
-  existe, message sur la page de suivi : « remboursement en cours »). Aujourd'hui, `ReceptionPaiementService`
-  marque tout paiement reçu pour une commande annulée ou expirée « à rembourser » avec alerte : la 4c y ajoute la
-  réactivation de la commande quand le stock le permet, et l'information du client. — *décision (validation du
-  plan, point 15), ADR 0008 §7*
-- [ ] 4c — Le webhook PayDunya appelle `ReceptionPaiementService.enregistrerPaiementRecu` **après** sa vérification
-  serveur à serveur (seul chemin vers `PAYEE`). Un paiement reçu sur une facture déjà `ANNULE` (remplacée) doit
-  être enregistré comme les autres : l'argent est là. — *corrections de la 4b, ADR 0008 §7*
-- [ ] 4c — Client HTTP de PayDunya : délais courts (connexion ~3 s, lecture ~10 s, configurables), **aucun
-  réessai** sur la création de facture, réessais limités sur `confirm` seulement ; `reservation-paiement` doit rester
-  supérieure à ces délais. Régler `boutique.commande.validite-facture` sur la validité réelle d'une facture PayDunya,
-  et au moins sur `delai_paiement_mobile_minutes`. — *validation 4b, ADR 0008 §7*
+- [x] 4c — Vérification serveur à serveur (`ConfirmationPaiementService`), avant toute écriture, hors transaction ;
+  avant d'annuler une commande échue, la tâche d'expiration interroge le prestataire (injoignable : annulation
+  reportée jusqu'à `grace-verification-paiement`). Paiement tardif : commande réactivée si le stock le permet,
+  sinon « à rembourser » avec alerte, e-mail et message au client et mention sur la page de suivi.
+  — *validation du plan, points 3 et 15, ADR 0008 §7*
+- [x] 4c — Page de retour `/commande/retour/:jeton` (noindex, no-referrer) : le statut vient du serveur, jamais de
+  l'adresse. — *ADR 0008 §7*
+- [ ] 4c — Le webhook PayDunya appellera `ConfirmationPaiementService.confirmer` (qui vérifie auprès du
+  prestataire puis appelle `ReceptionPaiementService`, seul chemin vers `PAYEE`), y compris pour une facture déjà
+  `ANNULE` (remplacée) : l'argent est là. Le webhook répond vite et ne fait aucun appel réseau avant d'avoir
+  répondu si le prestataire l'exige. — *corrections de la 4b, ADR 0008 §7*
+- [x] 4c — Client HTTP du prestataire : délais courts (connexion 3 s, lecture 10 s), aucun réessai à la création,
+  2 réessais sur la lecture seulement. À régler à la réception de la documentation : `validite-facture` sur la
+  validité réelle d'une facture PayDunya (au moins `delai_paiement_mobile_minutes`). — *validation 4b, ADR 0008 §7*
 - [x] 4c — Adresse de retour du prestataire indépendante du jeton de suivi (jeton de retour dédié, empreinte
   stockée, masqué dans les journaux). — *validation 4b, ADR 0008 §7* 
 - [ ] 4d — Version texte des e-mails de commande (`commande-recue.html` n'a que le HTML) : même règle que
@@ -122,6 +126,22 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   `ParametresSite.avisReservesAuxAcheteurs` (vrai par défaut) ; sinon ouverts, `achatVerifie` calculé.
   — *ADR 0004 §5, bilan 1*
 - [ ] Publier un avis exige un e-mail vérifié. — *ADR 0003 §7*
+
+## Avant le lancement
+
+À faire avant d'ouvrir le site au public (la liste détaillée de la mise en production est dans la phase 9).
+
+- [ ] **Test de paiement de bout en bout avec les clés de test PayDunya** (compte en attente des documents de
+  l'entreprise) : paiement réussi, annulé, échoué, paiement après expiration ; page de retour ; commande
+  réglée. — *décision (4c)*
+- [ ] **Vérifier une vraie notification PayDunya sur le serveur public** (pas de tunnel en local) : adresse de
+  notification joignable, contrôle d'authenticité, réponse rapide ; puis un paiement réel de faible montant en
+  production. — *décision (4c)*
+- [ ] **Renseigner les mentions légales des factures** : `FACTURE_RAISON_SOCIALE`, `FACTURE_NINEA`,
+  `FACTURE_RCCM`, `FACTURE_TVA` (voir `.env.exemple`). Vides, les factures se génèrent quand même avec un
+  avertissement dans les journaux en développement ; **le démarrage est refusé** si `INDEXATION_AUTORISEE=true`
+  ou en profil `prod` (sauf démonstration) tant qu'une mention manque. À faire valider par le comptable. — *décision (4c)*
+- [ ] Renseigner `PAYDUNYA_*` (clés de production), `EMAIL_ALERTES`, activer le mobile money dans les réglages.
 
 ## Phase 9 — mise en production
 

@@ -15,6 +15,10 @@ public interface PaiementDepot extends JpaRepository<Paiement, Long> {
 
     List<Paiement> findByCommandeIdOrderByDateCreationDesc(Long commandeId);
 
+    /** Numéro de la commande dont une facture porte ce jeton de retour (empreinte SHA-256). */
+    @Query("select p.commande.numero from Paiement p where p.empreinteJetonRetour = :empreinte")
+    Optional<String> numeroParEmpreinteRetour(String empreinte);
+
     Optional<Paiement> findByFournisseurAndReferenceExterne(TypeFournisseurPaiement fournisseur, String referenceExterne);
 
     /** Numéro de la commande d'un paiement, sans charger le paiement (qui doit être lu après le verrou). */

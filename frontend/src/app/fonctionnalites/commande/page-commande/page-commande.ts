@@ -236,6 +236,9 @@ export class PageCommande {
       effacerSession(CLE_BROUILLON);
       this.restaure = false;
       if (commande.urlPaiement) {
+        // Le lien de suivi est gardé le temps du paiement (cet onglet seulement) : au retour, la page de retour,
+        // dont l'adresse ne contient pas ce jeton, peut proposer d'ouvrir le suivi
+        ecrireSession('suivi_dernier', JSON.stringify({ numero: commande.numero, jeton: commande.jetonSuivi }));
         // Page du prestataire : le bouton reste désactivé jusqu'au départ de la page
         this.document.location.assign(commande.urlPaiement);
         return;

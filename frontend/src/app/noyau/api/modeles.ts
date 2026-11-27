@@ -490,4 +490,14 @@ export interface SuiviCommande {
   etapes: { statut: StatutCommande; date: string }[];
   peutReprendrePaiement: boolean;
   achatASuivre: boolean;
+  /** Un paiement reçu ne peut pas être honoré : il sera remboursé. */
+  remboursementEnCours: boolean;
+}
+
+/** Retour de la page de paiement du prestataire : statut vérifié par le serveur, rien d'autre. */
+export interface RetourPaiement {
+  numero: string;
+  statut: 'PAYE' | 'EN_ATTENTE' | 'ECHEC' | 'A_REMBOURSER';
+  /** Faux si le prestataire n'a pas pu être interrogé : la page réessaie. */
+  verifie: boolean;
 }

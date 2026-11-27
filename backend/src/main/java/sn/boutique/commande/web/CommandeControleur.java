@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import sn.boutique.commande.dto.CommandeCreeeReponse;
 import sn.boutique.commande.dto.CreationCommandeRequete;
 import sn.boutique.commande.dto.OptionsCommandeReponse;
+import sn.boutique.commande.dto.RetourPaiementReponse;
+import sn.boutique.commande.service.RetourPaiementService;
 import sn.boutique.commande.dto.SuiviCommandeReponse;
 import sn.boutique.commande.service.CommandeService.ContexteRequete;
 import sn.boutique.commande.service.LimitesCommande;
@@ -48,6 +50,7 @@ public class CommandeControleur {
     private final PriseDeCommandeService priseDeCommande;
     private final SuiviCommandeService suiviService;
     private final OptionsCommandeService optionsService;
+    private final RetourPaiementService retourService;
     private final LimitesCommande limites;
     private final ProprietesPanier proprietesPanier;
 
@@ -67,6 +70,16 @@ public class CommandeControleur {
                 http.getRemoteAddr(), http.getHeader("User-Agent")));
         return ResponseEntity.status(reponse.rejouee() ? HttpStatus.OK : HttpStatus.CREATED)
                 .cacheControl(CacheControl.noStore()).body(reponse);
+    }
+
+    /**
+     * Page de retour du prestataire de paiement. Le jeton de retour n'ouvre que ce statut (jamais le suivi complet).
+     * Le statut annoncé par le navigateur n'est pas cru : la commande est vérifiée auprès du prestataire.
+     */
+    @GetMapping("/retour/{jeton}")
+    public ResponseEntity<RetourPaiementReponse> retour(HttpServletRequest http, @PathVariable String jeton) {
+        limites.suivi(http.getRemoteAddr());
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(retourService.lire(jeton));
     }
 
     @GetMapping("/suivi/{jeton}")

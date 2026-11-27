@@ -18,6 +18,15 @@
       <p class="suivi__statut suivi__statut--{{ c.statut }}">{{ libelles[c.statut] }}</p>
     </header>
 
+    @if (c.remboursementEnCours) {
+      <section class="message message--info" role="status">
+        <p><strong>Votre paiement va être remboursé.</strong></p>
+        <p>Nous avons bien reçu votre paiement, mais nous ne pouvons pas honorer cette commande (articles épuisés ou
+           paiement en double). Notre équipe vous contacte pour le remboursement ; vous pouvez aussi nous écrire en
+           rappelant le numéro {{ c.numero }}.</p>
+      </section>
+    }
+
     <!-- Ce qui se passe maintenant -->
     @switch (c.statut) {
       @case ('EN_ATTENTE_PAIEMENT') {

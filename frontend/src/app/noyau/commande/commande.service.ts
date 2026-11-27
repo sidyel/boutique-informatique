@@ -6,6 +6,7 @@ import {
   CommandeCreee,
   CreationCommande,
   OptionsCommande,
+  RetourPaiement,
   SuiviCommande,
 } from '../api/modeles';
 import { effacerSession, ecrireSession, lireSession } from '../donnees/stockage-session';
@@ -87,6 +88,11 @@ export class CommandeService {
       if (erreur.code === 'CLE_IDEMPOTENCE_REUTILISEE') this.oublierCle();
       throw erreur;
     }
+  }
+
+  /** Retour de la page de paiement : le serveur vérifie auprès du prestataire, le navigateur n'est pas cru. */
+  retour(jeton: string): Promise<RetourPaiement> {
+    return firstValueFrom(this.http.get<RetourPaiement>(`/api/commandes/retour/${encodeURIComponent(jeton)}`));
   }
 
   suivi(jeton: string): Promise<SuiviCommande> {

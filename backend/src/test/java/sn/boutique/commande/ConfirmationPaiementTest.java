@@ -200,4 +200,41 @@ class ConfirmationPaiementTest extends CommandeTestBase {
         assertThat(statut(numero)).isEqualTo("ANNULEE");
         assertThat(stock(variante)).isEqualTo(5);
     }
+
+    // ------------------------------------------------------------------ page de retour
+
+    private String jetonRetour() {
+        String url = fournisseur.demandes().getFirst().urlRetour();
+        return url.substring(url.lastIndexOf('/') + 1);
+    }
+
+    @Test
+    void laPageDeRetourVerifieAupresDuPrestataireEtNeCroitJamaisLeNavigateur() throws Exception {
+        String numero = commandeEnLigne(variante(10_000, 10), 1, 12_000).path("numero").asString();
+        String jeton = jetonRetour();
+
+        // Le client revient mais le prestataire n'a pas encaissé : « en attente », même avec ?statut=PAYE dans l'adresse
+        mockMvc.perform(get("/api/commandes/retour/{jeton}", jeton).param("statut", "PAYE"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.statut").value("EN_ATTENTE"))
+                .andExpect(jsonPath("$.numero").value(numero));
+        assertThat(statut(numero)).isEqualTo("EN_ATTENTE_PAIEMENT");
+
+        fournisseur.repondreALaVerification(reference(numero), Statut.REUSSI);
+        mockMvc.perform(get("/api/commandes/retour/{jeton}", jeton))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.statut").value("PAYE"));
+        assertThat(statut(numero)).isEqualTo("PAYEE");
+    }
+
+    @Test
+    void laPageDeRetourResteUtilisableSiLePrestataireEstInjoignableEtRefuseUnJetonInconnu() throws Exception {
+        commandeEnLigne(variante(10_000, 10), 1, 12_000);
+        fournisseur.verificationEnPanne(true);
+
+        mockMvc.perform(get("/api/commandes/retour/{jeton}", jetonRetour()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.statut").value("EN_ATTENTE"))
+                .andExpect(jsonPath("$.verifie").value(false));
+        mockMvc.perform(get("/api/commandes/retour/{jeton}", "x".repeat(43))).andExpect(status().isNotFound());
+        // Un jeton de suivi n'ouvre pas la page de retour
+        mockMvc.perform(get("/api/commandes/retour/{jeton}", "j".repeat(43))).andExpect(status().isNotFound());
+    }
 }
