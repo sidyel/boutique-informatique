@@ -42,14 +42,12 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] 4c — Le webhook PayDunya appelle `ReceptionPaiementService.enregistrerPaiementRecu` **après** sa vérification
   serveur à serveur (seul chemin vers `PAYEE`). Un paiement reçu sur une facture déjà `ANNULE` (remplacée) doit
   être enregistré comme les autres : l'argent est là. — *corrections de la 4b, ADR 0008 §7*
-- [ ] 4c — Client HTTP de PayDunya avec des **délais courts** (connexion et lecture) : le verrou de la commande est
-  gardé pendant l'appel. Régler `boutique.commande.validite-facture` sur la validité réelle d'une facture PayDunya,
-  et au moins sur `delai_paiement_mobile_minutes` (sinon deux factures payables peuvent coexister). — *corrections
-  de la 4b, ADR 0008 §7*
-- [ ] 4c — Adresses de retour et d'annulation données à PayDunya : **ne pas y mettre le jeton de suivi** (il est
-  renouvelé quand le service client renvoie le lien ou qu'une requête est rejouée : l'adresse mènerait à
-  « lien invalide »). Prévoir un jeton de retour dédié qui ne donne accès qu'au statut de la commande. — *corrections
-  de la 4b, ADR 0008 §8*
+- [ ] 4c — Client HTTP de PayDunya : délais courts (connexion ~3 s, lecture ~10 s, configurables), **aucun
+  réessai** sur la création de facture, réessais limités sur `confirm` seulement ; `reservation-paiement` doit rester
+  supérieure à ces délais. Régler `boutique.commande.validite-facture` sur la validité réelle d'une facture PayDunya,
+  et au moins sur `delai_paiement_mobile_minutes`. — *validation 4b, ADR 0008 §7*
+- [x] 4c — Adresse de retour du prestataire indépendante du jeton de suivi (jeton de retour dédié, empreinte
+  stockée, masqué dans les journaux). — *validation 4b, ADR 0008 §7* 
 - [ ] 4d — Version texte des e-mails de commande (`commande-recue.html` n'a que le HTML) : même règle que
   l'engagement « Sans phase fixée ». — *bilan 1*
 - [ ] Statut `PAYEE` fixé **uniquement** par la vérification serveur à serveur du prestataire (jamais par la page

@@ -34,7 +34,8 @@ class LimitesCommandeTest {
 
     private final LimiteurDebit limiteur = mock(LimiteurDebit.class);
     private final LimitesCommande limites = new LimitesCommande(limiteur,
-            new ProprietesCommande(PAR_IP, PAR_TELEPHONE, SUIVI, Duration.ofHours(24), Duration.ofMinutes(30)));
+            new ProprietesCommande(PAR_IP, PAR_TELEPHONE, SUIVI, Duration.ofHours(24), Duration.ofMinutes(30),
+                    Duration.ofSeconds(30), Duration.ofMillis(200)));
 
     @Test
     void lIpPuisLeTelephoneNormaliseEtHacheSontLimites() {

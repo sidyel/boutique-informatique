@@ -86,11 +86,25 @@ que si un prestataire est configuré (`GET /api/commandes/options`).
 et la reprise du paiement verrouillent la commande (`SELECT ... FOR UPDATE`) pendant toute la démarche : la facture
 encore valide (en attente, créée depuis moins de `boutique.commande.validite-facture`) est **réutilisée** ; une
 nouvelle n'est créée que si la précédente est expirée, annulée ou en échec, et les anciennes factures en attente
-sont alors abandonnées. Deux reprises simultanées s'exécutent l'une après l'autre : la seconde trouve la facture de
-la première (test à 4 appels simultanés : une seule demande au prestataire, une seule ligne `paiement`). Le verrou
-est gardé pendant l'appel au prestataire, qui doit donc avoir un délai court (à fixer en 4c). La validité de la
-facture doit être réglée sur celle du prestataire, et au moins sur le délai de paiement de la commande : une facture
-réputée expirée par la boutique mais encore ouverte chez le prestataire laisserait deux factures payables.
+sont alors abandonnées. La validité de la facture doit être réglée sur celle du prestataire, et au moins sur le
+délai de paiement de la commande : une facture réputée expirée par la boutique mais encore ouverte chez le
+prestataire laisserait deux factures payables.
+
+**Jamais de verrou ni de transaction pendant un appel réseau.** Trois temps, chacun dans sa propre transaction
+courte : (1) *réservation* : verrou bref sur la commande, qui est marquée « facture en cours de création » jusqu'à
+une échéance courte (`commande.paiement_en_cours_jusqua`, `boutique.commande.reservation-paiement`, 30 s), puis
+commit ; (2) *appel au prestataire*, hors transaction ; (3) *enregistrement* de la facture dans une nouvelle
+transaction, qui lève la réservation (levée aussi en cas d'échec de l'appel). Une requête qui trouve la commande
+réservée attend (`pause-attente-paiement`) puis réutilise la facture de la première : 4 appels simultanés = une
+seule demande au prestataire. Une réservation périmée (serveur arrêté pendant l'appel) est reprise par la requête
+suivante ; la durée de réservation doit donc dépasser les délais du client HTTP. Tests : aucun appel fait dans une
+transaction, aucun verrou tenu pendant l'appel (`FOR UPDATE NOWAIT` d'une autre connexion), un prestataire lent ne
+ralentit pas le reste du site. Le même principe vaut pour les appels `confirm` (notification, page de retour, tâche
+d'expiration).
+
+**Adresse de retour** donnée au prestataire : `/commande/retour/{jeton}` avec un jeton de retour propre à chaque
+facture (seule son empreinte est stockée, `paiement.empreinte_jeton_retour`), jamais le jeton de suivi, qui peut être
+renouvelé. Ce jeton ne donne accès qu'au statut du paiement. Il est masqué dans les journaux comme les autres.
 
 **Dernier recours** : si un second paiement arrive quand même pour une commande déjà réglée,
 `ReceptionPaiementService` le marque `A_REMBOURSER` (jamais de seconde vente, la commande reste intacte), journalise
@@ -112,9 +126,7 @@ e-mail, message au client). Conséquences :
   est généré, renvoyé dans la réponse et envoyé au client ; le lien du premier message est mort. Deux rejeux
   simultanés se suivent (verrou) : le dernier jeton est le valable.
 - Les liens déjà émis avant la migration V19 restent valables : leur empreinte y est calculée.
-- Limite connue pour la 4c : l'adresse de retour donnée au prestataire de paiement contient le jeton courant ; si le
-  jeton est renouvelé avant le retour du client, cette adresse mène à une page « lien invalide ». La 4c doit donc
-  utiliser une adresse de retour qui ne dépend pas du jeton (jeton de retour dédié, qui ne donne accès qu'au statut).
+- L'adresse de retour du paiement ne dépend pas du jeton de suivi (voir §7) : renouveler le jeton ne la casse pas.
 
 Le jeton ne protège que des données masquées : prénom, téléphone partiellement masqué (`+221 77 ••• •• 67`), quartier
 et ville sans la rue, ni e-mail, ni adresse IP, ni auteurs des changements de statut, ni attribution marketing.
@@ -168,8 +180,9 @@ Meta, Google Ads), qui couvriront les confirmations faites hors du site, arriven
 
 - `ExpirationCommandes` tourne sur chaque instance (idempotente grâce aux verrous). Si une tâche ne doit tourner
   qu'une fois, il faudra ShedLock.
-- Le verrou de la commande est gardé pendant l'appel au prestataire de paiement (quelques secondes au plus, le
-  temps que le client attend sa page de paiement) : le client HTTP de la 4c doit avoir des délais courts.
+- Si le serveur s'arrête pendant l'appel au prestataire, la facture peut exister chez lui sans être enregistrée
+  chez nous : la réservation expire, une nouvelle facture est créée, et si l'ancienne est payée quand même, le
+  paiement est reconnu par sa référence ou marqué « à rembourser ».
 - La carte bancaire n'est pas proposée dans le tunnel tant que le prestataire n'indique pas qu'elle est activée
   sur le compte (4c).
 - Le modèle de facture (mentions légales, HT/TVA/TTC) sera validé par le comptable (4d).

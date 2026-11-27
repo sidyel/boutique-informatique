@@ -100,6 +100,12 @@ public class Commande extends EntiteAuditee {
     private Instant expireLe;
 
     /**
+     * Une facture est en cours de création chez le prestataire, jusqu'à cette date : une autre requête attend ou
+     * réutilise le résultat au lieu d'en créer une seconde. Null hors création.
+     */
+    private Instant paiementEnCoursJusqua;
+
+    /**
      * Empreinte SHA-256 du jeton du lien de suivi sans compte ({@code /suivi/{jeton}}). Le jeton lui-même n'est
      * jamais stocké : il n'existe qu'au moment où il est généré, puis dans le lien envoyé au client.
      */

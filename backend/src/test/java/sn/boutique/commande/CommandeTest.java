@@ -103,8 +103,10 @@ class CommandeTest extends CommandeTestBase {
         assertThat(fournisseur.demandes()).singleElement().satisfies(demande -> {
             assertThat(demande.montant()).isEqualTo(102_000);
             assertThat(demande.numeroCommande()).isEqualTo(numero);
-            assertThat(demande.urlRetour()).contains("/suivi/" + reponse.path("jetonSuivi").asString())
-                    .endsWith("?retour=paiement");
+            // Adresse de retour indépendante du jeton de suivi (qui peut être renouvelé) : jeton de retour dédié
+            assertThat(demande.urlRetour()).contains("/commande/retour/")
+                    .doesNotContain(reponse.path("jetonSuivi").asString()).doesNotContain("/suivi/");
+            assertThat(demande.urlAnnulation()).isEqualTo(demande.urlRetour() + "?annule=1");
             assertThat(demande.urlNotification()).endsWith("/api/paiements/paydunya/webhook");
         });
         assertThat(compter("select count(*) from paiement p join commande c on c.id = p.commande_id "

@@ -178,6 +178,9 @@ boutique:
     duree-cle-idempotence: 24h
     # Facture du prestataire réutilisée tant qu'elle est valide (au moins le délai de paiement du site, 30 min)
     validite-facture: 30m
+    # Création de facture : réservation de la commande (> délais du client HTTP) et attente des requêtes concurrentes
+    reservation-paiement: 30s
+    pause-attente-paiement: 200ms
   planification:
     expiration-commandes: PT1M
     purge-commandes-cron: "0 50 3 * * *"

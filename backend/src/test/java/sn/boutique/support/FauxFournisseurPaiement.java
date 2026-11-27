@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import sn.boutique.commande.modele.TypeFournisseurPaiement;
 import sn.boutique.commande.paiement.FournisseurPaiement;
 import sn.boutique.commande.paiement.PaiementIndisponibleException;
@@ -20,12 +21,16 @@ public class FauxFournisseurPaiement implements FournisseurPaiement {
     private volatile boolean disponible = true;
     private volatile boolean enPanne;
     private volatile long delaiMs;
+    private volatile Runnable surAppel;
+    private final AtomicInteger appelsEnTransaction = new AtomicInteger();
 
     public void reinitialiser() {
         demandes.clear();
         disponible = true;
         enPanne = false;
         delaiMs = 0;
+        surAppel = null;
+        appelsEnTransaction.set(0);
     }
 
     public void configurer(boolean disponible) {
@@ -40,6 +45,16 @@ public class FauxFournisseurPaiement implements FournisseurPaiement {
     /** Temps de réponse du prestataire : élargit la fenêtre de course des tests de concurrence. */
     public void repondreApres(long millisecondes) {
         this.delaiMs = millisecondes;
+    }
+
+    /** Action exécutée pendant l'appel au prestataire (par exemple vérifier qu'aucun verrou n'est tenu). */
+    public void pendantLAppel(Runnable action) {
+        this.surAppel = action;
+    }
+
+    /** Nombre d'appels faits alors qu'une transaction de base de données était ouverte : doit rester à zéro. */
+    public int appelsEnTransaction() {
+        return appelsEnTransaction.get();
     }
 
     public List<DemandePaiement> demandes() {
@@ -60,6 +75,13 @@ public class FauxFournisseurPaiement implements FournisseurPaiement {
     public SessionPaiement initier(DemandePaiement demande) {
         if (enPanne) {
             throw new PaiementIndisponibleException("Prestataire factice en panne");
+        }
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            appelsEnTransaction.incrementAndGet();
+        }
+        Runnable action = surAppel;
+        if (action != null) {
+            action.run();
         }
         if (delaiMs > 0) {
             try {

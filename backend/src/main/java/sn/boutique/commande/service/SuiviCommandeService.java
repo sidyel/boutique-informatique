@@ -74,7 +74,7 @@ public class SuiviCommandeService {
      * @return page de paiement du prestataire
      */
     public String reprendrePaiement(String jeton) {
-        return paiementService.reprendre(trouver(jeton).getNumero(), jeton);
+        return paiementService.reprendre(trouver(jeton).getNumero());
     }
 
     /**

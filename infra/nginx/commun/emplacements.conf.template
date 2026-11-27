@@ -97,10 +97,10 @@ location /actuator/ {
     return 404;
 }
 
-# --- Suivi d'une commande par son lien -------------------------------
-# Le jeton de suivi est dans l'URL : la page ne doit le transmettre dans aucun en-tête Referer (liens sortants,
+# --- Suivi d'une commande par son lien, retour de paiement ----------------
+# Le jeton (de suivi, ou de retour du prestataire de paiement) est dans l'URL : la page ne doit le transmettre dans aucun en-tête Referer (liens sortants,
 # WhatsApp, réseaux). Un add_header dans un location remplace ceux du niveau supérieur : ils sont répétés ici.
-location /suivi/ {
+location ~ ^/(suivi|commande/retour)/ {
     limit_req zone=pages burst=${NGINX_RAFALE_PAGES} nodelay;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer" always;

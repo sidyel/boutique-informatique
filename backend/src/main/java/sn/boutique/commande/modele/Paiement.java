@@ -48,6 +48,10 @@ public class Paiement extends EntiteAuditee {
     @Column(length = 500)
     private String urlPaiement;
 
+    /** Empreinte SHA-256 du jeton de l'adresse de retour donnée au prestataire (jamais le jeton lui-même). */
+    @Column(length = 64)
+    private String empreinteJetonRetour;
+
     /** Corps JSON brut du dernier webhook reçu (audit). */
     @JdbcTypeCode(SqlTypes.JSON)
     private String donneesBrutes;

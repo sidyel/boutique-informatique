@@ -15,7 +15,7 @@ public final class MasqueJetons {
 
     public static final String MASQUE = "[jeton]";
 
-    private static final Pattern CHEMIN_SUIVI = Pattern.compile("(/suivi/)[^/?#]+");
+    private static final Pattern CHEMIN_SUIVI = Pattern.compile("(/(?:suivi|retour)/)[^/?#]+");
     private static final Pattern PARAMETRE = Pattern.compile("([?&;](?:jeton|token)=)[^&#]*", Pattern.CASE_INSENSITIVE);
 
     private MasqueJetons() {

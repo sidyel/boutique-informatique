@@ -31,8 +31,6 @@ import tools.jackson.databind.JsonNode;
  */
 class PaiementRepriseTest extends CommandeTestBase {
 
-    /** Jeton de suivi factice : le service ne le valide pas, il l'insère seulement dans les URL de retour. */
-    private static final String JETON = "j".repeat(43);
     private static final AtomicLong COMPTEUR = new AtomicLong(System.nanoTime() % 1_000_000 + 8_000_000);
 
     @Autowired
@@ -74,7 +72,7 @@ class PaiementRepriseTest extends CommandeTestBase {
             for (int i = 0; i < appels; i++) {
                 urls.add(pool.submit(() -> {
                     depart.await();
-                    return paiementService.reprendre(numero, JETON);
+                    return paiementService.reprendre(numero);
                 }));
             }
             depart.countDown();
@@ -96,14 +94,14 @@ class PaiementRepriseTest extends CommandeTestBase {
     @Test
     void uneFactureExpireeEstRemplaceeUneFactureValideEstReutilisee() throws Exception {
         String numero = commandeSansFacture();
-        String premiere = paiementService.reprendre(numero, JETON);
-        assertThat(paiementService.reprendre(numero, JETON)).isEqualTo(premiere);
+        String premiere = paiementService.reprendre(numero);
+        assertThat(paiementService.reprendre(numero)).isEqualTo(premiere);
 
         // Validité de la facture (30 min) dépassée alors que la commande tient encore : nouvelle facture
         jdbc.sql("update commande set expire_le = expire_le + interval '2 hours' where numero = :n")
                 .param("n", numero).update();
         horloge.avancer(Duration.ofMinutes(31));
-        String seconde = paiementService.reprendre(numero, JETON);
+        String seconde = paiementService.reprendre(numero);
 
         assertThat(seconde).isNotEqualTo(premiere);
         assertThat(fournisseur.demandes()).hasSize(2);
@@ -114,11 +112,11 @@ class PaiementRepriseTest extends CommandeTestBase {
     @Test
     void uneFactureEchoueeNEstJamaisReutilisee() throws Exception {
         String numero = commandeSansFacture();
-        String premiere = paiementService.reprendre(numero, JETON);
+        String premiere = paiementService.reprendre(numero);
         jdbc.sql("update paiement set statut = 'ECHOUE' where commande_id = (select id from commande where numero = :n)")
                 .param("n", numero).update();
 
-        assertThat(paiementService.reprendre(numero, JETON)).isNotEqualTo(premiere);
+        assertThat(paiementService.reprendre(numero)).isNotEqualTo(premiere);
         assertThat(factures(numero, "ECHOUE")).isEqualTo(1);
         assertThat(factures(numero, "EN_ATTENTE")).isEqualTo(1);
     }
@@ -126,7 +124,7 @@ class PaiementRepriseTest extends CommandeTestBase {
     @Test
     void unSecondPaiementPourUneCommandeDejaReglleEstMarqueARembourserEtSignale() throws Exception {
         String numero = commandeSansFacture();
-        paiementService.reprendre(numero, JETON);
+        paiementService.reprendre(numero);
         // Cas limite : une seconde facture, créée alors que la première était réputée expirée, est payée aussi
         long premier = jdbc.sql("select p.id from paiement p join commande c on c.id = p.commande_id "
                 + "where c.numero = :n").param("n", numero).query(Long.class).single();
@@ -158,5 +156,101 @@ class PaiementRepriseTest extends CommandeTestBase {
                 .andExpect(jsonPath("$.elements[?(@.numeroCommande == '" + numero + "')].statut")
                         .value("A_REMBOURSER"));
         mockMvc.perform(get("/api/admin/paiements")).andExpect(status().isUnauthorized());
+    }
+
+    // ------------------------------------------------------------------ pas de verrou pendant l'appel réseau
+
+    @Test
+    void aucunAppelAuPrestataireNeSeFaitAvecUneTransactionOuUnVerrouOuvert() throws Exception {
+        String numero = commandeSansFacture();
+        java.util.concurrent.atomic.AtomicReference<Throwable> verrou = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<String> etat = new java.util.concurrent.atomic.AtomicReference<>();
+        fournisseur.pendantLAppel(() -> {
+            // Pendant l'appel, une autre connexion doit pouvoir verrouiller la commande tout de suite (NOWAIT : échec
+            // immédiat si un verrou est tenu) ; la commande est marquée « facture en cours »
+            try {
+                jdbc.sql("select id from commande where numero = :n for update nowait").param("n", numero)
+                        .query(Long.class).single();
+                etat.set(jdbc.sql("select paiement_en_cours_jusqua is not null from commande where numero = :n")
+                        .param("n", numero).query(Boolean.class).single().toString());
+            } catch (RuntimeException e) {
+                verrou.set(e);
+            }
+        });
+
+        paiementService.reprendre(numero);
+
+        assertThat(verrou.get()).as("verrou tenu pendant l'appel au prestataire").isNull();
+        assertThat(etat.get()).isEqualTo("true");
+        assertThat(fournisseur.appelsEnTransaction()).isZero();
+        // Réservation levée une fois la facture enregistrée
+        assertThat(jdbc.sql("select paiement_en_cours_jusqua from commande where numero = :n").param("n", numero)
+                .query(java.time.OffsetDateTime.class).optional()).isEmpty();
+    }
+
+    @Test
+    void unPrestataireQuiEchoueLeveLaReservationEtLaRequeteSuivanteReussit() throws Exception {
+        String numero = commandeSansFacture();
+        fournisseur.tomberEnPanne(true);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> paiementService.reprendre(numero))
+                .isInstanceOf(sn.boutique.commande.paiement.PaiementIndisponibleException.class);
+        assertThat(jdbc.sql("select paiement_en_cours_jusqua is null from commande where numero = :n")
+                .param("n", numero).query(Boolean.class).single()).isTrue();
+
+        fournisseur.tomberEnPanne(false);
+        assertThat(paiementService.reprendre(numero)).startsWith("https://paiement.test/");
+        assertThat(factures(numero, "EN_ATTENTE")).isEqualTo(1);
+    }
+
+    @Test
+    void uneReservationPerimeeEstReprise() throws Exception {
+        String numero = commandeSansFacture();
+        // Un serveur s'est arrêté pendant l'appel il y a plus de 30 s : la réservation ne bloque plus personne
+        jdbc.sql("update commande set paiement_en_cours_jusqua = :t where numero = :n")
+                .param("t", java.time.OffsetDateTime.ofInstant(horloge.instant().minusSeconds(1), java.time.ZoneOffset.UTC))
+                .param("n", numero).update();
+
+        assertThat(paiementService.reprendre(numero)).startsWith("https://paiement.test/");
+        assertThat(fournisseur.demandes()).hasSize(1);
+    }
+
+    @Test
+    void unPrestataireLentNeBloquePasLeResteDuSite() throws Exception {
+        String numero = commandeSansFacture();
+        String suivi = "j".repeat(43);
+        fournisseur.repondreApres(2_000);
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try {
+            Future<String> lente = pool.submit(() -> paiementService.reprendre(numero));
+            Thread.sleep(300);
+            assertThat(lente.isDone()).isFalse();
+
+            // Pendant ce temps (prestataire lent), le site répond : options, suivi de la même commande, panier
+            long debut = System.nanoTime();
+            mockMvc.perform(get("/api/commandes/options")).andExpect(status().isOk());
+            mockMvc.perform(get("/api/commandes/suivi/{jeton}", suivi)).andExpect(status().isNotFound());
+            panierAvec(variante(10_000, 5), 1);
+            long ms = (System.nanoTime() - debut) / 1_000_000;
+            assertThat(ms).as("le site doit répondre pendant que PayDunya est lent").isLessThan(1_500);
+            // La commande elle-même reste lisible (aucun verrou tenu)
+            assertThat(statut(numero)).isEqualTo("EN_ATTENTE_PAIEMENT");
+
+            assertThat(lente.get(10, TimeUnit.SECONDS)).startsWith("https://paiement.test/");
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void lAdresseDeRetourPorteUnJetonDeRetourDontSeulLEmpreinteEstStockee() throws Exception {
+        String numero = commandeSansFacture();
+        paiementService.reprendre(numero);
+
+        String retour = fournisseur.demandes().getFirst().urlRetour();
+        String jetonRetour = retour.substring(retour.lastIndexOf('/') + 1);
+        assertThat(jetonRetour).matches("[A-Za-z0-9_-]{43}");
+        assertThat(jdbc.sql("select p.empreinte_jeton_retour from paiement p join commande c on c.id = p.commande_id "
+                + "where c.numero = :n").param("n", numero).query(String.class).single())
+                .isEqualTo(sn.boutique.authentification.securite.GenerateurJetons.empreinte(jetonRetour));
     }
 }
