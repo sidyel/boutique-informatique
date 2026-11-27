@@ -422,7 +422,7 @@ class GestionCommandeTest extends CommandeTestBase {
         // Appel direct : aucune erreur sans adresse, la commande est inchangée
         long id = jdbc.sql("select id from commande where numero = :n").param("n", creee.path("numero").asString())
                 .query(Long.class).single();
-        notificationsCommande.envoyerCommandeRecue(id);
+        notificationsCommande.envoyerCommandeRecue(id, creee.path("jetonSuivi").asString());
         assertThat(statut(creee.path("numero").asString())).isEqualTo("EN_ATTENTE_CONFIRMATION");
     }
 

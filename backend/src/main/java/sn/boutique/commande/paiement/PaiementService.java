@@ -75,19 +75,19 @@ public class PaiementService {
      * Page de paiement d'une commande qui vient d'être créée : celle d'un paiement déjà démarré s'il existe
      * (requête rejouée, double appui), sinon un nouveau.
      */
-    public String demarrer(String numero) {
-        return initier(numero);
+    public String demarrer(String numero, String jetonSuivi) {
+        return initier(numero, jetonSuivi);
     }
 
     /**
      * « Reprendre le paiement » : la facture encore valide si elle existe, sinon une nouvelle facture chez le
      * prestataire pour la même commande, sans nouveau stock.
      */
-    public String reprendre(String numero) {
-        return initier(numero);
+    public String reprendre(String numero, String jetonSuivi) {
+        return initier(numero, jetonSuivi);
     }
 
-    private String initier(String numero) {
+    private String initier(String numero, String jetonSuivi) {
         FournisseurPaiement fournisseur = fournisseurEnLigne()
                 .orElseThrow(() -> new PaiementIndisponibleException("Aucun prestataire de paiement configuré"));
         return transaction.execute(statut -> {
@@ -111,7 +111,7 @@ public class PaiementService {
                 return valide.get().getUrlPaiement();
             }
 
-            SessionPaiement session = fournisseur.initier(demande(commande));
+            SessionPaiement session = fournisseur.initier(demande(commande, jetonSuivi));
             // Les factures précédentes sont expirées : elles ne doivent plus être proposées
             enAttente.forEach(p -> p.setStatut(StatutPaiement.ANNULE));
             Paiement paiement = new Paiement(commande, fournisseur.type(), commande.getTotal());
@@ -123,9 +123,9 @@ public class PaiementService {
         });
     }
 
-    private DemandePaiement demande(Commande commande) {
+    private DemandePaiement demande(Commande commande, String jetonSuivi) {
         String base = proprietesBoutique.urlSiteSansBarre();
-        String suivi = base + "/suivi/" + commande.getJetonSuivi();
+        String suivi = base + "/suivi/" + jetonSuivi;
         return new DemandePaiement(commande.getNumero(), commande.getTotal(), commande.getModePaiement(),
                 commande.getNomClient(), commande.getTelephoneClient(), commande.getEmailClient(),
                 commande.getLignes().stream()

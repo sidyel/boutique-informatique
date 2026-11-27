@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import sn.boutique.catalogue.modele.VarianteProduit;
 import sn.boutique.compte.modele.Utilisateur;
+import sn.boutique.authentification.securite.GenerateurJetons;
 import sn.boutique.noyau.audit.EntiteAuditee;
 import sn.boutique.noyau.telephone.TelephoneSenegal;
 
@@ -98,10 +99,13 @@ public class Commande extends EntiteAuditee {
     /** Fin de la réservation du stock tant que la commande attend un paiement ou une confirmation. */
     private Instant expireLe;
 
-    /** Jeton du lien de suivi sans compte ({@code /suivi/{jeton}}). */
+    /**
+     * Empreinte SHA-256 du jeton du lien de suivi sans compte ({@code /suivi/{jeton}}). Le jeton lui-même n'est
+     * jamais stocké : il n'existe qu'au moment où il est généré, puis dans le lien envoyé au client.
+     */
     @Setter(AccessLevel.NONE)
-    @Column(length = 43)
-    private String jetonSuivi;
+    @Column(length = 64)
+    private String empreinteJetonSuivi;
 
     /** Événement « achat » des régies publicitaires déjà émis. */
     private Instant achatSuiviLe;
@@ -153,8 +157,11 @@ public class Commande extends EntiteAuditee {
         historique.add(new HistoriqueStatutCommande(this, null, statutInitial, auteur, commentaire));
     }
 
-    public void definirJetonSuivi(String jeton) {
-        this.jetonSuivi = jeton;
+    /** Génère un nouveau jeton de suivi, remplace l'ancien (son lien cesse de fonctionner) et le renvoie. */
+    public String renouvelerJetonSuivi() {
+        String jeton = GenerateurJetons.generer();
+        this.empreinteJetonSuivi = GenerateurJetons.empreinte(jeton);
+        return jeton;
     }
 
     /** Vrai tant que la commande réserve du stock sans être réglée ni confirmée. */

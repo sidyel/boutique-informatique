@@ -31,6 +31,8 @@ import tools.jackson.databind.JsonNode;
  */
 class PaiementRepriseTest extends CommandeTestBase {
 
+    /** Jeton de suivi factice : le service ne le valide pas, il l'insère seulement dans les URL de retour. */
+    private static final String JETON = "j".repeat(43);
     private static final AtomicLong COMPTEUR = new AtomicLong(System.nanoTime() % 1_000_000 + 8_000_000);
 
     @Autowired
@@ -72,7 +74,7 @@ class PaiementRepriseTest extends CommandeTestBase {
             for (int i = 0; i < appels; i++) {
                 urls.add(pool.submit(() -> {
                     depart.await();
-                    return paiementService.reprendre(numero);
+                    return paiementService.reprendre(numero, JETON);
                 }));
             }
             depart.countDown();
@@ -94,14 +96,14 @@ class PaiementRepriseTest extends CommandeTestBase {
     @Test
     void uneFactureExpireeEstRemplaceeUneFactureValideEstReutilisee() throws Exception {
         String numero = commandeSansFacture();
-        String premiere = paiementService.reprendre(numero);
-        assertThat(paiementService.reprendre(numero)).isEqualTo(premiere);
+        String premiere = paiementService.reprendre(numero, JETON);
+        assertThat(paiementService.reprendre(numero, JETON)).isEqualTo(premiere);
 
         // Validité de la facture (30 min) dépassée alors que la commande tient encore : nouvelle facture
         jdbc.sql("update commande set expire_le = expire_le + interval '2 hours' where numero = :n")
                 .param("n", numero).update();
         horloge.avancer(Duration.ofMinutes(31));
-        String seconde = paiementService.reprendre(numero);
+        String seconde = paiementService.reprendre(numero, JETON);
 
         assertThat(seconde).isNotEqualTo(premiere);
         assertThat(fournisseur.demandes()).hasSize(2);
@@ -112,11 +114,11 @@ class PaiementRepriseTest extends CommandeTestBase {
     @Test
     void uneFactureEchoueeNEstJamaisReutilisee() throws Exception {
         String numero = commandeSansFacture();
-        String premiere = paiementService.reprendre(numero);
+        String premiere = paiementService.reprendre(numero, JETON);
         jdbc.sql("update paiement set statut = 'ECHOUE' where commande_id = (select id from commande where numero = :n)")
                 .param("n", numero).update();
 
-        assertThat(paiementService.reprendre(numero)).isNotEqualTo(premiere);
+        assertThat(paiementService.reprendre(numero, JETON)).isNotEqualTo(premiere);
         assertThat(factures(numero, "ECHOUE")).isEqualTo(1);
         assertThat(factures(numero, "EN_ATTENTE")).isEqualTo(1);
     }
@@ -124,7 +126,7 @@ class PaiementRepriseTest extends CommandeTestBase {
     @Test
     void unSecondPaiementPourUneCommandeDejaReglleEstMarqueARembourserEtSignale() throws Exception {
         String numero = commandeSansFacture();
-        paiementService.reprendre(numero);
+        paiementService.reprendre(numero, JETON);
         // Cas limite : une seconde facture, créée alors que la première était réputée expirée, est payée aussi
         long premier = jdbc.sql("select p.id from paiement p join commande c on c.id = p.commande_id "
                 + "where c.numero = :n").param("n", numero).query(Long.class).single();

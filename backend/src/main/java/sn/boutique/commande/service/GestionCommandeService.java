@@ -5,6 +5,7 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.commande.depot.CommandeDepot;
@@ -38,6 +39,7 @@ public class GestionCommandeService {
     private final CommandeDepot commandeDepot;
     private final StockService stockService;
     private final ReservationCodePromo reservationCodePromo;
+    private final ApplicationEventPublisher evenements;
 
     /**
      * Le service client a joint le client et validé la commande à la livraison. Le stock reste réservé : il est
@@ -90,6 +92,19 @@ public class GestionCommandeService {
             }
         }
         log.info("Commande {} annulée par {} : {}", commande.getNumero(), auteur, motif);
+    }
+
+    /**
+     * Le client a perdu son lien de suivi (le jeton n'est pas conservé, seul son hash l'est) : un nouveau jeton
+     * remplace l'ancien, dont le lien cesse de fonctionner, et le nouveau lien est envoyé au client (e-mail s'il
+     * en a donné un, message au téléphone). Le lien n'est jamais montré au service client.
+     */
+    @Transactional
+    public void renvoyerLienSuivi(String numero, String auteur) {
+        Commande commande = verrouiller(numero);
+        String jeton = commande.renouvelerJetonSuivi();
+        evenements.publishEvent(new CommandeService.LienSuiviRenouvele(commande.getId(), jeton));
+        log.info("Lien de suivi de la commande {} renouvelé par {}", numero, auteur);
     }
 
     private Commande verrouiller(String numero) {

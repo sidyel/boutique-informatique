@@ -34,7 +34,7 @@ public class PriseDeCommandeService {
             return creee;
         }
         try {
-            return creee.avecPaiement(paiementService.demarrer(creee.numero()), false);
+            return creee.avecPaiement(paiementService.demarrer(creee.numero(), creee.jetonSuivi()), false);
         } catch (PaiementIndisponibleException e) {
             log.warn("Paiement non démarré pour la commande {} : {}", creee.numero(), e.getMessage());
             return creee.avecPaiement(null, true);

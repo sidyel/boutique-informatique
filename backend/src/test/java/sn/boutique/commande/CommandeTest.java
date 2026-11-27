@@ -173,7 +173,9 @@ class CommandeTest extends CommandeTestBase {
                 .andExpect(jsonPath("$.rejouee").value(true)));
 
         assertThat(seconde.path("numero").asString()).isEqualTo(premiere.path("numero").asString());
-        assertThat(seconde.path("jetonSuivi").asString()).isEqualTo(premiere.path("jetonSuivi").asString());
+        // Le jeton n'est pas stocké (seul son hash l'est) : le rejeu renvoie un nouveau jeton qui remplace l'ancien
+        assertThat(seconde.path("jetonSuivi").asString()).matches("[A-Za-z0-9_-]{43}")
+                .isNotEqualTo(premiere.path("jetonSuivi").asString());
         // Même page de paiement, pas de seconde facture ; une seule commande ; stock réservé une seule fois
         assertThat(seconde.path("urlPaiement").asString()).isEqualTo(premiere.path("urlPaiement").asString());
         assertThat(fournisseur.demandes()).hasSize(1);

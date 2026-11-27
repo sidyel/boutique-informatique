@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sn.boutique.authentification.securite.GenerateurJetons;
 import sn.boutique.commande.depot.CommandeDepot;
 import sn.boutique.commande.dto.SuiviCommandeReponse;
 import sn.boutique.commande.dto.SuiviCommandeReponse.Etape;
@@ -25,7 +26,7 @@ import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 /**
  * Page de suivi d'une commande par son lien (sans compte).
  * <p>
- * Le jeton fait 256 bits : introuvable = 404, sans distinguer « jamais existé » de « format invalide ». La réponse
+ * Le jeton fait 256 bits et seule son empreinte SHA-256 est en base : introuvable = 404, sans distinguer « jamais existé » de « format invalide ». La réponse
  * ne contient que ce dont le client a besoin, avec le téléphone et l'adresse partiellement masqués : quelqu'un qui
  * verrait le lien par-dessus l'épaule ou dans un message transféré n'apprend ni le numéro complet ni la rue.
  */
@@ -73,7 +74,7 @@ public class SuiviCommandeService {
      * @return page de paiement du prestataire
      */
     public String reprendrePaiement(String jeton) {
-        return paiementService.reprendre(trouver(jeton).getNumero());
+        return paiementService.reprendre(trouver(jeton).getNumero(), jeton);
     }
 
     /**
@@ -86,11 +87,11 @@ public class SuiviCommandeService {
         trouver(jeton);
         return jdbc.sql("""
                         update commande set achat_suivi_le = :maintenant
-                         where jeton_suivi = :jeton and achat_suivi_le is null
+                         where empreinte_jeton_suivi = :empreinte and achat_suivi_le is null
                            and statut in ('PAYEE', 'CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE')
                         """)
                 .param("maintenant", OffsetDateTime.ofInstant(horloge.instant(), ZoneOffset.UTC))
-                .param("jeton", jeton)
+                .param("empreinte", GenerateurJetons.empreinte(jeton))
                 .update() == 1;
     }
 
@@ -98,7 +99,7 @@ public class SuiviCommandeService {
         if (jeton == null || !FORMAT_JETON.matcher(jeton).matches()) {
             throw new RessourceIntrouvableException("Commande", "suivi");
         }
-        return commandeDepot.findByJetonSuivi(jeton)
+        return commandeDepot.findByEmpreinteJetonSuivi(GenerateurJetons.empreinte(jeton))
                 .orElseThrow(() -> new RessourceIntrouvableException("Commande", "suivi"));
     }
 

@@ -91,6 +91,16 @@ public class AdminCommandeControleur {
                 .body(CommandeAdminResume.de(gestion.annuler(numero, auteur(jwt), requete.motif())));
     }
 
+    /**
+     * Le client a perdu son lien : un nouveau lien lui est envoyé (e-mail et message). L'ancien cesse de
+     * fonctionner ; le lien n'est jamais renvoyé dans la réponse.
+     */
+    @PostMapping("/{numero}/renvoyer-lien-suivi")
+    public ResponseEntity<Void> renvoyerLienSuivi(@AuthenticationPrincipal Jwt jwt, @PathVariable String numero) {
+        gestion.renvoyerLienSuivi(numero, auteur(jwt));
+        return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
+    }
+
     private static String auteur(Jwt jwt) {
         return jwt.getClaimAsString(JetonAccesService.REVENDICATION_EMAIL);
     }

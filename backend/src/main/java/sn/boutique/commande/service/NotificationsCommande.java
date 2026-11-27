@@ -15,6 +15,7 @@ import sn.boutique.commande.modele.Commande;
 import sn.boutique.commande.modele.ModeLivraison;
 import sn.boutique.commande.modele.ModePaiement;
 import sn.boutique.commande.service.CommandeService.CommandeCreee;
+import sn.boutique.commande.service.CommandeService.LienSuiviRenouvele;
 import sn.boutique.noyau.config.ProprietesBoutique;
 import sn.boutique.noyau.email.EmailService;
 import sn.boutique.noyau.email.ProprietesEmail;
@@ -55,13 +56,44 @@ public class NotificationsCommande {
     @Async
     @TransactionalEventListener
     void surCommandeCreee(CommandeCreee evenement) {
-        envoyerCommandeRecue(evenement.commandeId());
+        envoyerCommandeRecue(evenement.commandeId(), evenement.jetonSuivi());
+    }
+
+    @Async
+    @TransactionalEventListener
+    void surLienSuiviRenouvele(LienSuiviRenouvele evenement) {
+        envoyerNouveauLien(evenement.commandeId(), evenement.jetonSuivi());
+    }
+
+    /**
+     * Nouveau lien de suivi : l'ancien ne fonctionne plus. E-mail si le client en a donné un, message au téléphone
+     * dans tous les cas.
+     */
+    public void envoyerNouveauLien(long commandeId, String jetonSuivi) {
+        Optional<Message> message = transaction.execute(statut -> commandeDepot.findById(commandeId)
+                .map(c -> composer(c, jetonSuivi)));
+        message.ifPresent(m -> {
+            try {
+                if (m.email() != null) {
+                    emailService.envoyer(m.email(), "Nouveau lien de suivi : commande " + m.numero(), "lien-suivi",
+                            m.variables());
+                }
+            } catch (RuntimeException e) {
+                log.error("E-mail du nouveau lien de la commande {} non envoyé", m.numero(), e);
+            }
+            try {
+                notificationClient.envoyer(m.telephone(), ("%s : nouveau lien de suivi de la commande %s : %s "
+                        + "(l'ancien lien ne fonctionne plus)").formatted(m.nomSite(), m.numero(), m.lienSuivi()));
+            } catch (RuntimeException e) {
+                log.error("Notification du nouveau lien de la commande {} non envoyée", m.numero(), e);
+            }
+        });
     }
 
     /** Public pour les tests : l'écouteur asynchrone ne se prête pas à l'attente. */
-    public void envoyerCommandeRecue(long commandeId) {
+    public void envoyerCommandeRecue(long commandeId, String jetonSuivi) {
         Optional<Message> message = transaction.execute(statut -> commandeDepot.findById(commandeId)
-                .map(this::composer));
+                .map(c -> composer(c, jetonSuivi)));
         message.ifPresent(m -> {
             try {
                 if (m.email() != null) {
@@ -80,8 +112,8 @@ public class NotificationsCommande {
         });
     }
 
-    private Message composer(Commande commande) {
-        String lien = proprietesBoutique.urlSiteSansBarre() + "/suivi/" + commande.getJetonSuivi();
+    private Message composer(Commande commande, String jetonSuivi) {
+        String lien = proprietesBoutique.urlSiteSansBarre() + "/suivi/" + jetonSuivi;
         boolean aLaLivraison = commande.getModePaiement() == ModePaiement.A_LA_LIVRAISON;
         List<Map<String, Object>> lignes = commande.getLignes().stream()
                 .map(l -> Map.<String, Object>of("nom", l.getNomProduit(), "variante", l.getLibelleVariante(),

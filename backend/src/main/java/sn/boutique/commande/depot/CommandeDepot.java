@@ -21,16 +21,17 @@ public interface CommandeDepot extends JpaRepository<Commande, Long> {
     /** Utilisations d'un code promo par un client connecté (commandes non annulées). */
     long countByUtilisateurIdAndCodePromoAndStatutNot(Long utilisateurId, String codePromo, StatutCommande statut);
 
-    Optional<Commande> findByJetonSuivi(String jetonSuivi);
+    /** Page de suivi : le jeton du lien est cherché par son empreinte SHA-256. */
+    Optional<Commande> findByEmpreinteJetonSuivi(String empreinte);
 
     /** Même chose, avec verrou : annulation, confirmation et expiration ne s'exécutent jamais en double. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select c from Commande c where c.numero = :numero")
-    Optional<Commande> findByNumeroPourMiseAJour(String numero);
+    @Query("select c from Commande c where c.id = :id")
+    Optional<Commande> findByIdPourMiseAJour(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select c from Commande c where c.jetonSuivi = :jeton")
-    Optional<Commande> findByJetonSuiviPourMiseAJour(String jeton);
+    @Query("select c from Commande c where c.numero = :numero")
+    Optional<Commande> findByNumeroPourMiseAJour(String numero);
 
     /** Commandes à la livraison encore à confirmer pour ce numéro (plafond configurable). */
     long countByTelephoneClientAndStatut(String telephoneClient, StatutCommande statut);

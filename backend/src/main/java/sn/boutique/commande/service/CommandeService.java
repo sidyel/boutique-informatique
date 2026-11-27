@@ -91,15 +91,24 @@ public class CommandeService {
     public record ContexteRequete(String adresseIp, String userAgent) {
     }
 
-    /** Commande créée (ou retrouvée par sa clé d'idempotence). */
-    public record Creation(Commande commande, boolean rejouee) {
+    /**
+     * Commande créée (ou retrouvée par sa clé d'idempotence).
+     *
+     * @param jetonSuivi jeton du lien de suivi : n'existe qu'ici, la base n'en garde que l'empreinte
+     */
+    public record Creation(Commande commande, boolean rejouee, String jetonSuivi) {
+
+        @Override
+        public String toString() {
+            return "Creation[commande=" + commande.getNumero() + ", rejouee=" + rejouee + "]";
+        }
     }
 
     @Transactional
     public CommandeCreeeReponse creer(Demandeur demandeur, String cle, CreationCommandeRequete requete,
                                       ContexteRequete contexte) {
         Creation creation = creerCommande(demandeur, cle, requete, contexte);
-        return reponse(creation.commande(), creation.rejouee());
+        return reponse(creation.commande(), creation.rejouee(), creation.jetonSuivi());
     }
 
     Creation creerCommande(Demandeur demandeur, String cle, CreationCommandeRequete requete,
@@ -111,7 +120,12 @@ public class CommandeService {
         String portee = portee(demandeur);
         CleIdempotenceService.Etat etat = cles.reserver(portee, cle, requete.empreinte());
         if (!etat.nouvelle()) {
-            return new Creation(retrouver(etat, requete), true);
+            Commande commande = retrouver(etat, requete);
+            // Le jeton n'est pas stocké : la réponse perdue ne peut pas être redonnée. Un nouveau jeton remplace
+            // l'ancien, et le nouveau lien est renvoyé au client (e-mail, message) puisque l'ancien est mort.
+            String jeton = commande.renouvelerJetonSuivi();
+            evenements.publishEvent(new LienSuiviRenouvele(commande.getId(), jeton));
+            return new Creation(commande, true, jeton);
         }
 
         ParametresSite parametres = parametresDepot.findById(ParametresSite.ID_UNIQUE)
@@ -141,7 +155,7 @@ public class CommandeService {
         commande.setRemise(montants.remise());
         commande.setCodePromo(montants.codePromo() == null ? null : montants.codePromo().code());
         commande.setAttribution(attribution(requete.attribution(), contexte));
-        commande.definirJetonSuivi(GenerateurJetons.generer());
+        String jetonSuivi = commande.renouvelerJetonSuivi();
         for (LignePanier ligne : panier.getLignes()) {
             commande.ajouterLigne(ligne.getVariante(), imagePrincipale(ligne.getVariante().getProduit()),
                     ligne.getQuantite());
@@ -167,10 +181,10 @@ public class CommandeService {
         stockService.reserver(commande);
         panierService.vider(panier);
         cles.lier(portee, cle, commande.getId());
-        evenements.publishEvent(new CommandeCreee(commande.getId()));
+        evenements.publishEvent(new CommandeCreee(commande.getId(), jetonSuivi));
         log.info("Commande {} créée ({} FCFA, {})", commande.getNumero(), commande.getTotal(),
                 commande.getModePaiement());
-        return new Creation(commande, false);
+        return new Creation(commande, false, jetonSuivi);
     }
 
     // ------------------------------------------------------------------ idempotence
@@ -196,7 +210,8 @@ public class CommandeService {
             throw new ConflitException("COMMANDE_EN_COURS",
                     "Votre commande est en cours de traitement : patientez un instant.");
         }
-        return commandeDepot.findById(etat.commandeId())
+        // Verrouillée : deux rejeux simultanés se suivent au lieu de se disputer le jeton
+        return commandeDepot.findByIdPourMiseAJour(etat.commandeId())
                 .orElseThrow(() -> new RessourceIntrouvableException("Commande", etat.commandeId()));
     }
 
@@ -368,12 +383,29 @@ public class CommandeService {
         return texte == null || texte.isBlank();
     }
 
-    private static CommandeCreeeReponse reponse(Commande commande, boolean rejouee) {
-        return new CommandeCreeeReponse(commande.getNumero(), commande.getJetonSuivi(), commande.getStatut(),
+    private static CommandeCreeeReponse reponse(Commande commande, boolean rejouee, String jetonSuivi) {
+        return new CommandeCreeeReponse(commande.getNumero(), jetonSuivi, commande.getStatut(),
                 commande.getModePaiement(), commande.getTotal(), commande.getExpireLe(), null, false, rejouee);
     }
 
-    /** Publié dans la transaction de création ; les écouteurs agissent après le commit. */
-    public record CommandeCreee(long commandeId) {
+    /**
+     * Publié dans la transaction de création ; les écouteurs agissent après le commit. Porte le jeton de suivi en
+     * clair (en mémoire seulement) pour le lien envoyé au client : jamais journalisé.
+     */
+    public record CommandeCreee(long commandeId, String jetonSuivi) {
+
+        @Override
+        public String toString() {
+            return "CommandeCreee[commandeId=" + commandeId + "]";
+        }
+    }
+
+    /** Un nouveau lien de suivi a remplacé l'ancien (requête rejouée, demande du service client). */
+    public record LienSuiviRenouvele(long commandeId, String jetonSuivi) {
+
+        @Override
+        public String toString() {
+            return "LienSuiviRenouvele[commandeId=" + commandeId + "]";
+        }
     }
 }
