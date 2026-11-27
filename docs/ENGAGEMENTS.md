@@ -62,7 +62,20 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Phase 6 — Écrans admin : mentions de facturation, liste des factures et avoirs, bouton « Livrer et encaisser » (montant, moyen, motif d'écart), émission d'un avoir. — *4d*
 - [ ] Phase 6 — Geste « **retour client** » : crée l'avoir ET la remise en stock en une seule action (aujourd'hui l'avoir est une pièce comptable seule). — *décision 3 de la 4d*
 - [ ] Phase 6 — Écran de régularisation des **écarts d'encaissement** (`commande.ecart_encaissement`) : encaissement complémentaire ou avoir, puis `ecart_regularise_le`. — *décision 4 de la 4d*
-- [ ] Fin de la phase 4 — Captures mobile (360/390/768/1440), Lighthouse et poids du premier chargement de l'accueil (< 1 Mo) sur la page de suivi et l'accueil. — *CLAUDE.md*
+- [x] Fin de la phase 4 — Captures mobile (360/390/768/1440) du panier, du tunnel, de la confirmation, du suivi avec facture et du retour de paiement (`docs/captures/phase-4/`, hors Git) ; accueil mobile 364 Ko ; Lighthouse lu. — *CLAUDE.md* (bilan 4)
+- [ ] Phase 4 (bilan) — Pied de page : les pastilles Wave, Orange Money, Free Money et Carte bancaire s'affichent
+  même quand le mode n'est pas activé. À rendre dépendantes des modes réellement proposés (paramètres publics).
+  — *captures de recette*
+- [ ] Phase 4 (bilan) — Le bouton WhatsApp flottant recouvre le lien de suivi (page de suivi, 360 px) : le décaler
+  ou le masquer sur cette page. — *captures de recette*
+- [ ] Phase 4 (bilan) — Ajouter `/suivi/:jeton` et `/commande/retour/:jeton` au workflow Lighthouse (aujourd'hui :
+  accueil, catégorie, fiche, panier, commande). Le SEO à 69 (accueil) et 54 (panier, commande) vient de
+  `noindex` en CI (`INDEXATION_AUTORISEE=false`) : à re-mesurer en production. — *Lighthouse, bilan 4*
+- [ ] Phase 4 (bilan) — Noms en arabe (et autres écritures à mise en forme complexe) : écrits « ? » sur le PDF. Si la
+  clientèle en demande, ajouter un moteur de mise en forme (HarfBuzz) et une police arabe en sous-ensemble. Le nom
+  exact reste dans la facture archivée. — *test de la police, bilan 4*
+- [ ] Rappel de méthode — Tout champ ajouté à un DTO mis en cache impose de monter `CachesPublics.VERSION_FORMAT`
+  et d'ajouter l'empreinte dans `FormatCachesTest` (la CI l'a rappelé : commit « afficherTtc »). — *bilan 4*
 
 ## Phase 5 — compte client
 
