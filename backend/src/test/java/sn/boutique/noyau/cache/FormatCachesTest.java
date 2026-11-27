@@ -37,7 +37,8 @@ class FormatCachesTest {
 
     /** Version du format → empreinte de la forme des DTO. Une ligne par version, jamais modifiée ensuite. */
     private static final Map<Integer, String> EMPREINTES = Map.of(
-            1, "a4b151be420ae3da8ab09cdc");
+            1, "a4b151be420ae3da8ab09cdc",
+            2, "ae2f573e434a4589ab239b60");
 
     @Test
     void laVersionDuFormatSuitLaFormeDesDtoMisEnCache() {
