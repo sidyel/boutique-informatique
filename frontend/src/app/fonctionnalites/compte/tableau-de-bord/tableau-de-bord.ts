@@ -2,15 +2,18 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { Router, RouterLink } from '@angular/router';
 
 import { SessionService } from '../../../noyau/auth/session.service';
-import { Adresse, CompteService } from '../../../noyau/compte/compte.service';
+import { Adresse, CommandeResume, CompteService } from '../../../noyau/compte/compte.service';
 import { PanierService } from '../../../noyau/panier/panier.service';
 import { SeoService } from '../../../noyau/seo/seo.service';
 import { Bouton } from '../../../partage/composants/bouton/bouton';
+import { Squelette } from '../../../partage/composants/squelette/squelette';
+import { PrixFcfaPipe } from '../../../partage/pipes/prix-fcfa.pipe';
+import { LIBELLES_STATUT } from '../../commande/page-suivi/suivi-statuts';
 
 /** Tableau de bord : identité, adresse par défaut, accès rapides. Les commandes arrivent en 5c. */
 @Component({
   selector: 'bi-tableau-de-bord',
-  imports: [Bouton, RouterLink],
+  imports: [Bouton, RouterLink, Squelette, PrixFcfaPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: '../espace.scss',
   template: `
@@ -26,6 +29,8 @@ import { Bouton } from '../../../partage/composants/bouton/bouton';
 
       <section class="espace__section" aria-labelledby="titre-adresse">
         <h2 id="titre-adresse">Adresse de livraison par défaut</h2>
+        <!-- Hauteur réservée (carte d'adresse) : rien ne bouge quand la réponse arrive -->
+        <div class="bloc-adresse">
         @if (chargee()) {
           @if (parDefaut(); as a) {
             <div class="carte-adresse carte-adresse--defaut">
@@ -39,19 +44,37 @@ import { Bouton } from '../../../partage/composants/bouton/bouton';
           } @else {
             <p class="espace__aide">Aucune adresse enregistrée : ajoutez-en une pour commander plus vite.</p>
           }
+        } @else {
+          <bi-squelette hauteur="7.5rem" />
         }
+        </div>
         <a routerLink="/compte/adresses">Gérer mes adresses</a>
       </section>
 
       <section class="espace__section" aria-labelledby="titre-commandes">
-        <h2 id="titre-commandes">Mes commandes</h2>
-        <p class="espace__aide">
-          Retrouvez ici vos commandes passées avec cette adresse e-mail. Pour une commande récente, utilisez le lien de suivi
-          reçu par e-mail.
-        </p>
+        <h2 id="titre-commandes">Dernière commande</h2>
+        <div class="bloc-commandes">
+          @if (commandesChargees()) {
+            @for (c of dernieres(); track c.numero) {
+              <a class="ligne-commande" [routerLink]="['/compte/commandes', c.numero]">
+                <span class="ligne-commande__image" aria-hidden="true"></span>
+                <span class="ligne-commande__corps">
+                  <span class="ligne-commande__numero">{{ c.numero }}</span>
+                  <span class="ligne-commande__meta">{{ c.total | prixFcfa }}</span>
+                </span>
+                <span class="ligne-commande__statut ligne-commande__statut--{{ c.statut }}">{{ libelles[c.statut] }}</span>
+              </a>
+            } @empty {
+              <p class="espace__aide">Aucune commande pour le moment.</p>
+            }
+          } @else {
+            <bi-squelette hauteur="6rem" />
+          }
+        </div>
+        <a routerLink="/compte/commandes">Voir toutes mes commandes</a>
       </section>
 
-      <button biBouton variante="contour" type="button" (click)="deconnecter()">Se déconnecter</button>
+      <button biBouton class="espace__deconnexion" variante="contour" type="button" (click)="deconnecter()">Se déconnecter</button>
     }
   `,
 })
@@ -64,6 +87,9 @@ export class TableauDeBord implements OnInit {
 
   protected readonly parDefaut = signal<Adresse | null>(null);
   protected readonly chargee = signal(false);
+  protected readonly dernieres = signal<CommandeResume[]>([]);
+  protected readonly commandesChargees = signal(false);
+  protected readonly libelles = LIBELLES_STATUT;
 
   ngOnInit(): void {
     this.seo.definirPage({ titre: 'Mon compte', indexable: false });
@@ -72,6 +98,11 @@ export class TableauDeBord implements OnInit {
       .then((liste) => this.parDefaut.set(liste.find((a) => a.parDefaut) ?? null))
       .catch(() => this.parDefaut.set(null))
       .finally(() => this.chargee.set(true));
+    void this.compte
+      .commandes(0, 1)
+      .then((page) => this.dernieres.set(page.content))
+      .catch(() => this.dernieres.set([]))
+      .finally(() => this.commandesChargees.set(true));
   }
 
   protected async deconnecter(): Promise<void> {

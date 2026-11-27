@@ -43,6 +43,9 @@
     <!-- Hydratée à la première interaction (frappe, clic) : l'événement est rejoué ensuite -->
     @defer (hydrate on interaction) {
       <bi-barre-recherche class="principal__recherche" ident="recherche-entete" />
+    } @placeholder {
+      <!-- Même encombrement que la barre : sur une page rendue dans le navigateur, elle apparaît après coup -->
+      <div class="principal__recherche"></div>
     }
 
     <div class="principal__actions">

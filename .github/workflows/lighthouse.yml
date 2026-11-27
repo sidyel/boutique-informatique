@@ -71,7 +71,7 @@ jobs:
           NGINX_MODE: https
           URL_SITE_DOCKER: https://localhost
         run: >-
-          docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci.yml
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci-sans-limitation-debit.yml
           up -d --build --wait --wait-timeout 900
 
       - name: Attente du catalogue de démonstration
@@ -85,7 +85,7 @@ jobs:
           echo "::error::Le catalogue de démonstration n'est pas disponible"; exit 1
 
       # Pages connectées (5b) : compte de test dédié (DEMO_CLIENT_*), une session neuve par passage, limitation du débit
-      # coupée par docker-compose.ci.yml (sinon 7 connexions par page dépasseraient la limite horaire e-mail + IP).
+      # coupée par docker-compose.ci-sans-limitation-debit.yml (sinon 7 connexions par page dépasseraient la limite horaire e-mail + IP).
       # Pages ajoutées au fil des parties : fiche produit en 3c, panier et commande en 4b (mesurés avec un panier
       # de démonstration : le script crée un panier invité et le présente par l'en-tête Cookie).
       # --certificat-autosigne (Chrome --ignore-certificate-errors) : uniquement dans ce job.
@@ -108,6 +108,7 @@ jobs:
           --page-panier commande=/commande
           --compte-email client@exemple.sn
           --page-connectee compte=/compte
+          --page-connectee commandes=/compte/commandes
           --page-connectee-panier commande-connecte=/commande
 
       - name: Rapports Lighthouse
@@ -124,4 +125,4 @@ jobs:
         working-directory: infra
         env:
           NGINX_MODE: https
-        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci.yml logs --no-color --tail=200
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.ci-sans-limitation-debit.yml logs --no-color --tail=200

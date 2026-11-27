@@ -340,3 +340,19 @@
     box-shadow: var(--anneau-focus);
   }
 }
+
+// Pendant le chargement : mêmes libellés et mêmes hauteurs que les vrais champs, pour ne rien décaler ensuite
+.attente-champ {
+  display: grid;
+  gap: var(--espace-1);
+}
+
+.attente-champ__libelle {
+  font-weight: 600;
+  font-size: var(--taille-sm);
+}
+
+.attente-champ__aide {
+  color: var(--couleur-texte-secondaire);
+  font-size: var(--taille-sm);
+}

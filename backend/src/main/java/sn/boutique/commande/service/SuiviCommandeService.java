@@ -49,7 +49,12 @@ public class SuiviCommandeService {
 
     @Transactional(readOnly = true)
     public SuiviCommandeReponse lire(String jeton) {
-        Commande commande = trouver(jeton);
+        return construire(trouver(jeton));
+    }
+
+    /** Même présentation pour le client connecté (détail de commande de l'espace client) : l'appelant a vérifié le droit. */
+    @Transactional(readOnly = true)
+    public SuiviCommandeReponse construire(Commande commande) {
         boolean peutReprendre = commande.getStatut() == StatutCommande.EN_ATTENTE_PAIEMENT
                 && commande.getModePaiement().enLigne()
                 && commande.getExpireLe() != null && commande.getExpireLe().isAfter(horloge.instant())
@@ -81,6 +86,11 @@ public class SuiviCommandeService {
      */
     public String reprendrePaiement(String jeton) {
         return paiementService.reprendre(trouver(jeton).getNumero());
+    }
+
+    /** Reprise pour une commande dont l'appelant a déjà vérifié le droit (client connecté). */
+    public String reprendrePaiementDe(String numero) {
+        return paiementService.reprendre(numero);
     }
 
     /**

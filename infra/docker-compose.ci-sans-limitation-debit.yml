@@ -1,0 +1,20 @@
+# ======================================================================================================
+#  CI LIGHTHOUSE UNIQUEMENT. JAMAIS EN PRODUCTION, JAMAIS EN PRÉPRODUCTION.
+#  Ce fichier COUPE la limitation du débit (connexion, inscription, e-mails).
+# ======================================================================================================
+# À ajouter APRÈS docker-compose.yml et docker-compose.dev.yml, uniquement dans .github/workflows/lighthouse.yml.
+#
+# Pourquoi : la mesure connectée ouvre une session par passage (7 connexions par page, depuis la même IP et avec
+# le même compte de test), ce qui déclencherait la limite « 10 connexions par heure pour un couple e-mail + IP » et
+# fausserait la mesure. Le compte de test est dédié et utilisé avec son bon mot de passe : aucun échec de connexion,
+# donc aucun verrouillage. La limitation reste vérifiée par les tests d'intégration du backend.
+#
+# Garde-fous :
+#   - le backend REFUSE DE DÉMARRER si la limitation est coupée avec le profil prod sans demo, ou avec l'indexation
+#     autorisée (VerificationLimitationDebit) : utilisé par erreur en production, ce fichier fait échouer le démarrage ;
+#   - l'indexation est forcée à « false » ici, pour que ce fichier ne puisse jamais cohabiter avec un site indexable.
+services:
+  backend:
+    environment:
+      BOUTIQUE_LIMITATION_ACTIF: "false"
+      INDEXATION_AUTORISEE: "false"

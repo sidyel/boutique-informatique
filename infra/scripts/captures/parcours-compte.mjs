@@ -61,7 +61,7 @@ await page.getByLabel(/^\s*Mot de passe/).fill(MDP1);
 await page.getByRole('button', { name: /se connecter/i }).click();
 await page.getByRole('heading', { name: /Bonjour Awa/ }).waitFor();
 ok(true, 'connexion et tableau de bord');
-await page.screenshot({ path: `${SORTIE}/compte-tableau-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-tableau-360.png`, fullPage: true });
 await aucunDefilementHorizontal('tableau de bord');
 
 // --- Profil et consentement -------------------------------------------------------------------
@@ -75,14 +75,14 @@ await page.getByLabel(/^\s*Téléphone/).fill('12345');
 await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
 await page.getByRole('alert').first().waitFor();
 ok(/numéro|téléphone/i.test(await page.getByRole('alert').first().innerText().catch(() => '')) || true, 'téléphone invalide refusé');
-await page.screenshot({ path: `${SORTIE}/compte-profil-erreur-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-profil-erreur-360.png`, fullPage: true });
 await page.getByLabel(/^\s*Téléphone/).fill('77 123 45 67');
 await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
 await page.getByText('Profil enregistré.').waitFor();
 await page.getByRole('button', { name: /Ne plus recevoir/ }).click();
 await page.getByText(/Vous ne recevez pas nos offres/).waitFor();
 ok(/depuis votre compte/.test(await texteMain()), 'retrait du consentement en un clic, source « depuis votre compte »');
-await page.screenshot({ path: `${SORTIE}/compte-profil-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-profil-360.png`, fullPage: true });
 await aucunDefilementHorizontal('profil');
 async function texteMain() {
   return page.locator('main, body').first().innerText();
@@ -93,7 +93,7 @@ await page.getByRole('link', { name: 'Adresses' }).click();
 await page.getByRole('heading', { name: 'Adresses', exact: true }).waitFor();
 await page.getByRole('button', { name: 'Ajouter une adresse' }).click();
 await page.getByRole('button', { name: 'Enregistrer l’adresse' }).click();
-await page.screenshot({ path: `${SORTIE}/compte-adresses-erreurs-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-adresses-erreurs-360.png`, fullPage: true });
 await page.getByLabel(/^\s*Nom de l’adresse/).fill('Maison');
 await page.getByLabel(/^\s*Quartier/).fill('Mermoz');
 await page.getByLabel(/^\s*Point de repère/).fill('En face de la pharmacie');
@@ -107,7 +107,7 @@ await page.getByRole('heading', { name: 'Bureau' }).waitFor();
 await page.getByRole('button', { name: 'Définir par défaut' }).click();
 await page.waitForTimeout(600);
 ok((await page.locator('.carte-adresse--defaut h3').innerText()) === 'Bureau', 'adresse par défaut changée, une seule');
-await page.screenshot({ path: `${SORTIE}/compte-adresses-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-adresses-360.png`, fullPage: true });
 await aucunDefilementHorizontal('adresses');
 
 // --- Sécurité : mot de passe ----------------------------------------------------------------
@@ -118,7 +118,7 @@ await page.getByLabel(/^\s*Nouveau mot de passe/).fill(MDP2);
 await page.getByRole('button', { name: 'Changer le mot de passe' }).click();
 await page.getByText('Le mot de passe actuel est incorrect.').waitFor();
 ok(await page.evaluate(() => document.activeElement?.getAttribute('name') === 'motDePasseActuel'), 'focus sur le champ en erreur');
-await page.screenshot({ path: `${SORTIE}/compte-securite-erreur-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-securite-erreur-360.png`, fullPage: true });
 await page.getByLabel(/^\s*Mot de passe actuel/).fill(MDP1);
 await page.getByRole('button', { name: 'Changer le mot de passe' }).click();
 await page.getByText(/Votre mot de passe est modifié/).waitFor();
@@ -131,20 +131,20 @@ await page.getByLabel(/^\s*Nouvelle adresse e-mail/).fill(NOUVEL_EMAIL);
 await page.locator('input[name="motDePasse"]').fill(MDP2);
 await page.getByRole('button', { name: /Envoyer le lien de confirmation/ }).click();
 await page.getByText(/un e-mail de confirmation vient de lui être envoyé/).waitFor();
-await page.screenshot({ path: `${SORTIE}/compte-securite-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-securite-360.png`, fullPage: true });
 await aucunDefilementHorizontal('sécurité');
 const lienConfirm = await dernierLien(NOUVEL_EMAIL, '/compte/confirmer-email');
 const lienSignal = await dernierLien(EMAIL, '/compte/signaler-changement');
 ok(true, 'liens reçus : confirmation sur la nouvelle adresse, signalement sur l’ancienne');
 await page.goto(lienConfirm);
 await page.getByText(/nouvelle adresse e-mail est confirmée/i).waitFor();
-await page.screenshot({ path: `${SORTIE}/compte-email-confirme-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-email-confirme-360.png`, fullPage: true });
 ok(!page.url().includes('jeton='), 'le jeton est retiré de la barre d’adresse');
 await page.goto(`${BASE}/compte`, { waitUntil: 'networkidle' });
 ok(await page.getByText(NOUVEL_EMAIL).first().isVisible(), 'le tableau de bord affiche la nouvelle adresse');
 await page.goto(lienSignal);
 await page.getByText(/changement est annulé|Merci/).first().waitFor();
-await page.screenshot({ path: `${SORTIE}/compte-signalement-360.png`, fullPage: true });
+await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${SORTIE}/compte-signalement-360.png`, fullPage: true });
 await page.goto(`${BASE}/compte`, { waitUntil: 'networkidle' });
 ok(page.url().includes('/connexion'), 'après le signalement, toutes les sessions sont fermées');
 
@@ -159,7 +159,7 @@ for (const [largeur, nom] of [[390, '390'], [1440, '1440']]) {
   await p.getByRole('heading', { name: /Bonjour/ }).waitFor();
   for (const chemin of ['', '/profil', '/adresses', '/securite']) {
     await p.goto(`${BASE}/compte${chemin}`, { waitUntil: 'networkidle' });
-    await p.screenshot({ path: `${SORTIE}/compte${chemin.replace('/', '-') || '-tableau'}-${nom}.png`, fullPage: true });
+    await p.evaluate(() => scrollTo(0, 0)); await p.screenshot({ path: `${SORTIE}/compte${chemin.replace('/', '-') || '-tableau'}-${nom}.png`, fullPage: true });
   }
   await ctx.close();
 }

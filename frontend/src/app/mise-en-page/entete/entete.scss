@@ -105,6 +105,8 @@
 
 .principal__recherche {
   grid-area: recherche;
+  // Hauteur d'un champ tactile : réservée avant l'affichage de la barre (zéro décalage)
+  min-height: 2.75rem;
 
   @media (min-width: pr.$ordinateur) {
     max-width: 40rem;

@@ -2,10 +2,39 @@
   <h1 class="commande__titre">Commander</h1>
 
   @if (!pret()) {
+    <!-- Structure réelle de la page, affichée tout de suite (rendu serveur compris) : titres des étapes et libellés du
+         formulaire sont du texte statique, seuls les champs et le récapitulatif attendent la session et le panier -->
     <div class="commande__grille" aria-busy="true">
       <div class="commande__etapes">
-        @for (i of [1, 2, 3]; track i) {
-          <bi-squelette forme="bloc" hauteur="4.5rem" />
+        <section class="etape etape--ouverte" aria-labelledby="titre-etape-0">
+          <h2 class="etape__entete" id="titre-etape-0">
+            <span class="etape__numero">1</span>
+            <span class="etape__nom">Coordonnées</span>
+          </h2>
+          <div class="etape__corps">
+            <div class="attente-champ">
+              <span class="attente-champ__libelle">Nom complet</span>
+              <bi-squelette forme="bloc" hauteur="2.75rem" />
+            </div>
+            <div class="attente-champ">
+              <span class="attente-champ__libelle">Téléphone</span>
+              <bi-squelette forme="bloc" hauteur="2.75rem" />
+              <span class="attente-champ__aide">Nous vous appelons pour confirmer la livraison.</span>
+            </div>
+            <div class="attente-champ">
+              <span class="attente-champ__libelle">Adresse e-mail (facultatif)</span>
+              <bi-squelette forme="bloc" hauteur="2.75rem" />
+              <span class="attente-champ__aide">Recommandé : pour recevoir le suivi de votre commande et votre facture.</span>
+            </div>
+          </div>
+        </section>
+        @for (titre of ['Livraison', 'Paiement', 'Récapitulatif']; track titre; let i = $index) {
+          <section class="etape etape--attente" [attr.aria-label]="titre">
+            <h2 class="etape__entete">
+              <span class="etape__numero">{{ i + 2 }}</span>
+              <span class="etape__nom">{{ titre }}</span>
+            </h2>
+          </section>
         }
       </div>
       <bi-squelette forme="bloc" hauteur="14rem" />

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
+import { StatutCommande, SuiviCommande } from '../api/modeles';
 import { Profil, SessionService } from '../auth/session.service';
 
 /** Adresse du carnet (miroir de `AdresseReponse`). */
@@ -21,6 +22,24 @@ export type AdresseSaisie = Omit<Adresse, 'id' | 'adresseLigne' | 'pointDeRepere
   adresseLigne: string | null;
   pointDeRepere: string | null;
 };
+
+/** Ligne de « Mes commandes » (miroir de `CommandeResumeReponse`). */
+export interface CommandeResume {
+  numero: string;
+  statut: StatutCommande;
+  dateCreation: string;
+  total: number;
+  nombreArticles: number;
+  premierArticle: string | null;
+  imageUrl: string | null;
+}
+
+export interface PageCommandes {
+  content: CommandeResume[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+}
 
 interface Message {
   message: string;
@@ -75,5 +94,27 @@ export class CompteService {
 
   async supprimerAdresse(id: number): Promise<void> {
     await firstValueFrom(this.http.delete<void>(`/api/compte/adresses/${id}`));
+  }
+
+  commandes(page = 0, taille = 10): Promise<PageCommandes> {
+    return firstValueFrom(this.http.get<PageCommandes>('/api/compte/commandes', { params: { page, taille } }));
+  }
+
+  commande(numero: string): Promise<SuiviCommande> {
+    return firstValueFrom(this.http.get<SuiviCommande>(`/api/compte/commandes/${encodeURIComponent(numero)}`));
+  }
+
+  async reprendrePaiement(numero: string): Promise<string> {
+    const r = await firstValueFrom(
+      this.http.post<{ urlPaiement: string }>(`/api/compte/commandes/${encodeURIComponent(numero)}/reprise-paiement`, {}),
+    );
+    return r.urlPaiement;
+  }
+
+  /** PDF d'une facture ou d'un avoir : le jeton d'accès part dans l'en-tête (pas de lien direct), la réponse n'est jamais mise en cache. */
+  documentPdf(numeroCommande: string, avoir?: string): Promise<Blob> {
+    const base = `/api/compte/commandes/${encodeURIComponent(numeroCommande)}`;
+    const chemin = avoir ? `${base}/avoirs/${encodeURIComponent(avoir)}` : `${base}/facture`;
+    return firstValueFrom(this.http.get(chemin, { responseType: 'blob' }));
   }
 }

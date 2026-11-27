@@ -14,9 +14,9 @@
 
 .espace__nav {
   display: flex;
-  gap: var(--espace-1);
+  gap: 0 var(--espace-1);
+  flex-wrap: wrap;
   justify-content: space-between;
-  overflow-x: auto;
   border-block-end: 1px solid var(--couleur-bordure);
 
   @media (min-width: 48rem) {
@@ -94,6 +94,16 @@
   align-items: center;
 }
 
+.bloc-commandes {
+  min-height: 6rem;
+  margin-block-end: var(--espace-3);
+}
+
+.bloc-adresse {
+  min-height: 7.5rem;
+  margin-block-end: var(--espace-3);
+}
+
 .carte-adresse {
   display: grid;
   gap: var(--espace-1);
@@ -130,4 +140,118 @@
     gap: var(--espace-2);
     margin-block-start: var(--espace-2);
   }
+}
+
+.espace__retour {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-block-end: var(--espace-2);
+  font-size: var(--taille-sm);
+}
+
+.espace__ecart {
+  height: var(--espace-3);
+}
+
+.historique {
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--taille-sm);
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 var(--espace-4);
+  }
+
+  time {
+    color: var(--couleur-texte-secondaire);
+  }
+}
+
+// Une commande dans la liste : toute la ligne est cliquable (zone tactile large)
+.ligne-commande {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: var(--espace-1) var(--espace-3);
+  align-items: center;
+  margin-block-end: var(--espace-3);
+  padding: var(--espace-3);
+  color: inherit;
+  text-decoration: none;
+  background: var(--couleur-surface);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-sm);
+
+  &:hover {
+    border-color: var(--couleur-accent);
+  }
+}
+
+.ligne-commande__image {
+  grid-row: span 2;
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: contain;
+  background: var(--couleur-fond);
+  border-radius: var(--rayon-sm);
+}
+
+.ligne-commande__corps {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--taille-sm);
+}
+
+.ligne-commande__numero {
+  font-family: var(--police-mono);
+  font-weight: 600;
+}
+
+.ligne-commande__resume {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ligne-commande__meta {
+  color: var(--couleur-texte-secondaire);
+}
+
+.ligne-commande__statut {
+  grid-column: 2;
+  justify-self: start;
+  padding: 2px var(--espace-2);
+  font-size: var(--taille-xs);
+  font-weight: 600;
+  color: var(--couleur-texte);
+  background: var(--couleur-fond);
+  border-radius: var(--rayon-sm);
+
+  &--LIVREE,
+  &--PAYEE,
+  &--CONFIRMEE {
+    color: var(--couleur-succes-fonce);
+    background: var(--couleur-succes-leger);
+  }
+
+  &--ANNULEE,
+  &--REMBOURSEE {
+    color: var(--couleur-danger-fonce);
+    background: var(--couleur-danger-leger);
+  }
+}
+
+.suivi--compte {
+  padding-block: 0;
+}
+
+.espace__deconnexion {
+  margin-block-start: var(--espace-8);
 }

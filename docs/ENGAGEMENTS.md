@@ -58,7 +58,7 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   de retour du navigateur ni par le seul corps d'une notification). — *décision (plan de la phase 4)*
 - [ ] Phase 4d — **Comptable** : valider le régime de TVA (défaut « TVA non applicable »), la méthode d'arrondi (ADR 0008 §11), les mentions et le gabarit PDF ; passer le régime à « assujetti » le cas échéant (le « TTC » du site apparaît alors). — *décision 2 de la 4d*
 - [ ] Phase 4d — Renseigner raison sociale, NINEA, RCCM et siège (`PUT /api/admin/parametres/facturation`) avant le lancement : le démarrage en production est refusé sinon. — *décision 1 de la 4d*
-- [ ] Phase 5 — Écran « Mes factures » du compte client (les routes `/api/compte/commandes/{numero}/facture` et `/avoirs/{n}` existent). — *4d*
+- [x] Phase 5 — Écran « Mes factures » du compte client : facture et avoirs depuis le détail de commande. — *4d, 5c*
 - [ ] Phase 6 — Écrans admin : mentions de facturation, liste des factures et avoirs, bouton « Livrer et encaisser » (montant, moyen, motif d'écart), émission d'un avoir. — *4d*
 - [ ] Phase 6 — Geste « **retour client** » : crée l'avoir ET la remise en stock en une seule action (aujourd'hui l'avoir est une pièce comptable seule). — *décision 3 de la 4d*
 - [ ] Phase 6 — Écran de régularisation des **écarts d'encaissement** (`commande.ecart_encaissement`) : encaissement complémentaire ou avoir, puis `ecart_regularise_le`. — *décision 4 de la 4d*
@@ -256,8 +256,17 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   — *décision (validation du plan de la phase 5)*
 - [x] Lighthouse authentifié (espace client) : une connexion par passage avec un compte de test dédié
   (`DEMO_CLIENT_*`, mot de passe jetable généré par le job) ; limitation du débit coupée **en CI seulement**
-  (`infra/docker-compose.ci.yml`), aucun échec de connexion donc aucun verrouillage. Pages mesurées : `/compte` et
-  `/commande` connecté. Les listes et le détail de commande s'ajouteront en 5c. — *5b*
+  (`infra/docker-compose.ci-sans-limitation-debit.yml`), aucun échec de connexion donc aucun verrouillage. Pages mesurées : `/compte`,
+  `/compte/commandes` et `/commande` connecté. — *5b, 5c*
+- [x] Démarrage refusé en production si la limitation de débit est désactivée (`VerificationLimitationDebit`, comme les
+  mentions légales) ; le compose de CI porte un nom explicite et un avertissement. — *retour 5b*
+- [x] « Mes commandes » (liste paginée + détail) : commandes rattachées depuis l'invité incluses ; historique, lignes,
+  totaux, facture et avoirs téléchargés avec le jeton d'accès (no-store), reprise du paiement, WhatsApp avec le
+  numéro de commande prérempli ; commande d'un autre compte = 404. — *5c*
+- [x] Squelettes de dimensions fixes sur `/compte` (CLS 0,0000) et structure de `/commande` affichée sans attendre la
+  session. — *retour 5b, 5c*
+- [ ] « Retrouver ma commande » par code WhatsApp : plus tard. Écran « Mes factures » dédié : couvert par le détail de
+  commande (5c). — *décision (plan 5)*
 - [ ] Scripts de capture : `infra/scripts/captures/` (playwright-core installé à la demande, jamais dans les
   `package.json`). `parcours-auth.mjs` couvre l'authentification (5a) ; étendre à chaque partie. — *décision (plan 5)*
 - [x] Les pages `/compte/**` sont rendues dans le navigateur (`RenderMode.Client`) ; nginx pose `no-store`,

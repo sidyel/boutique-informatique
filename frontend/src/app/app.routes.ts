@@ -99,6 +99,16 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./fonctionnalites/compte/tableau-de-bord/tableau-de-bord').then((m) => m.TableauDeBord),
           },
+          {
+            path: 'commandes',
+            loadComponent: () =>
+              import('./fonctionnalites/compte/commandes/liste-commandes').then((m) => m.ListeCommandes),
+          },
+          {
+            path: 'commandes/:numero',
+            loadComponent: () =>
+              import('./fonctionnalites/compte/commandes/detail-commande').then((m) => m.DetailCommande),
+          },
           { path: 'profil', loadComponent: () => import('./fonctionnalites/compte/profil/profil').then((m) => m.Profil) },
           {
             path: 'adresses',
