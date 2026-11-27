@@ -9,7 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.http.HttpHeaders;
 import sn.boutique.authentification.securite.GenerateurJetons;
 import sn.boutique.compte.modele.Role;
 import sn.boutique.support.ClientMailpit;
@@ -20,6 +24,7 @@ import tools.jackson.databind.JsonNode;
  * Le jeton du lien de suivi n'est jamais stocké : seule son empreinte SHA-256 est en base. Pour renvoyer le lien,
  * un nouveau jeton remplace l'ancien.
  */
+@ExtendWith(OutputCaptureExtension.class)
 class JetonSuiviTest extends CommandeTestBase {
 
     private static final AtomicLong COMPTEUR = new AtomicLong(System.nanoTime() % 1_000_000 + 3_000_000);
@@ -120,6 +125,45 @@ class JetonSuiviTest extends CommandeTestBase {
             assertThat(e.sujet()).isEqualTo("Nouveau lien de suivi : commande " + numero);
             assertThat(e.html()).contains(nouveau);
         });
+    }
+
+    @Test
+    void leJetonDeSuiviNApparaitDansAucunJournalDuBackend(CapturedOutput sortie) throws Exception {
+        String tel = telephone();
+        String panier = panierAvec(variante(10_000, 10), 1);
+        JsonNode creee = corps(commander(panier, null, cle(), requete(tel, "A_LA_LIVRAISON", 12_000))
+                .andExpect(status().isCreated()));
+        String jeton = creee.path("jetonSuivi").asString();
+        String numero = creee.path("numero").asString();
+        attendreEnvoi("+221" + tel, 1);
+
+        suiviAccessible(jeton, true);
+        suiviAccessible("x".repeat(43), false);
+        // Origine refusée : le filtre CSRF écrit l'adresse demandée dans le journal
+        mockMvc.perform(post("/api/commandes/suivi/{jeton}/reprise-paiement", jeton)
+                        .header(HttpHeaders.ORIGIN, "https://autre-site.example"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/commandes/suivi/{jeton}/achat-suivi", jeton)
+                        .header(HttpHeaders.ORIGIN, "https://autre-site.example"))
+                .andExpect(status().isForbidden());
+        // Prestataire de paiement indisponible : le gestionnaire d'erreurs écrit la route dans le journal
+        String panierEnLigne = panierAvec(variante(10_000, 10), 1);
+        fournisseur.tomberEnPanne(true);
+        String jetonEnLigne = corps(commander(panierEnLigne, null, cle(),
+                requete(telephone(), "MOBILE_MONEY", 12_000)).andExpect(status().isCreated())).path("jetonSuivi")
+                .asString();
+        envoyer(post("/api/commandes/suivi/{jeton}/reprise-paiement", jetonEnLigne), null, null, null)
+                .andExpect(status().isServiceUnavailable());
+        // Nouveau lien : le nouveau jeton (envoyé au client) reste lui aussi hors des journaux
+        envoyer(post("/api/admin/commandes/{numero}/renvoyer-lien-suivi", numero), null,
+                acces(utilisateur(Role.SERVICE_CLIENT)), null).andExpect(status().isNoContent());
+        String message = attendreEnvoi("+221" + tel, 2).message();
+        String lien = proprietes.urlSiteSansBarre() + "/suivi/";
+        String nouveau = message.substring(message.indexOf(lien) + lien.length()).substring(0, 43);
+
+        assertThat(sortie.getAll()).as("journaux du backend")
+                .doesNotContain(jeton, jetonEnLigne, nouveau)
+                .contains("/suivi/[jeton]");
     }
 
     @Test

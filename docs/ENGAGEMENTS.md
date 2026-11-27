@@ -35,8 +35,21 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   le compte ; avant d'annuler une commande échue, rappeler `confirm/{token}` (un paiement tardif ne se perd pas).
   — *décision (validation du plan de la phase 4, point 3), ADR 0008 §7*
 - [ ] 4c — Paiement arrivé après l'expiration sans stock : alerte admin **et** information du client (e-mail s'il
-  existe, message sur la page de suivi : « remboursement en cours »). Paiement en double (deux factures créées
-  par une reprise) : à rembourser. — *décision (validation du plan, point 15), ADR 0008 « Limites »*
+  existe, message sur la page de suivi : « remboursement en cours »). Aujourd'hui, `ReceptionPaiementService`
+  marque tout paiement reçu pour une commande annulée ou expirée « à rembourser » avec alerte : la 4c y ajoute la
+  réactivation de la commande quand le stock le permet, et l'information du client. — *décision (validation du
+  plan, point 15), ADR 0008 §7*
+- [ ] 4c — Le webhook PayDunya appelle `ReceptionPaiementService.enregistrerPaiementRecu` **après** sa vérification
+  serveur à serveur (seul chemin vers `PAYEE`). Un paiement reçu sur une facture déjà `ANNULE` (remplacée) doit
+  être enregistré comme les autres : l'argent est là. — *corrections de la 4b, ADR 0008 §7*
+- [ ] 4c — Client HTTP de PayDunya avec des **délais courts** (connexion et lecture) : le verrou de la commande est
+  gardé pendant l'appel. Régler `boutique.commande.validite-facture` sur la validité réelle d'une facture PayDunya,
+  et au moins sur `delai_paiement_mobile_minutes` (sinon deux factures payables peuvent coexister). — *corrections
+  de la 4b, ADR 0008 §7*
+- [ ] 4c — Adresses de retour et d'annulation données à PayDunya : **ne pas y mettre le jeton de suivi** (il est
+  renouvelé quand le service client renvoie le lien ou qu'une requête est rejouée : l'adresse mènerait à
+  « lien invalide »). Prévoir un jeton de retour dédié qui ne donne accès qu'au statut de la commande. — *corrections
+  de la 4b, ADR 0008 §8*
 - [ ] 4d — Version texte des e-mails de commande (`commande-recue.html` n'a que le HTML) : même règle que
   l'engagement « Sans phase fixée ». — *bilan 1*
 - [ ] Statut `PAYEE` fixé **uniquement** par la vérification serveur à serveur du prestataire (jamais par la page
@@ -61,6 +74,9 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 ## Phase 6 — back-office
 
+- [ ] Écrans du service client et du service financier pour les routes existantes : « Renvoyer le lien de suivi »
+  (`POST /api/admin/commandes/{numero}/renvoyer-lien-suivi`), liste des paiements « à rembourser »
+  (`GET /api/admin/paiements`) avec action « marquer remboursé » (statut `REMBOURSE`, à créer). — *corrections de la 4b*
 - [ ] Double authentification TOTP **obligatoire** pour SERVICE_CLIENT, GESTIONNAIRE_STOCK, ADMIN et
   SUPER_ADMIN : connexion en deux temps, enrôlement imposé, secret chiffré, codes de secours, limitation et
   anti-rejeu, réinitialisation par SUPER_ADMIN seulement. — *ADR 0003 « À traiter », section Phase 6*
@@ -131,12 +147,23 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Vérifier la réception d'une **vraie notification PayDunya** (IPN) sur le premier serveur public : en local,
   pas de tunnel, l'IPN n'est testée qu'avec des notifications simulées. — *décision (validation du plan de la
   phase 4)*
-- [ ] Les journaux d'accès de nginx contiennent le jeton des liens `/suivi/{jeton}` : les protéger comme des
-  données personnelles (accès restreint, durée de conservation courte). — *ADR 0008 §8*
+- [x] Les journaux de nginx et du backend ne contiennent aucun jeton secret : format `confidentiel` de nginx,
+  `MasqueJetons` pour le backend, contrôles automatiques (CI et tests). — *ADR 0008 §8* (corrections de la 4b)
+- [ ] Journaux (nginx, backend) : conserver peu de temps et limiter l'accès, ils contiennent des adresses IP.
+  Règle pour tout nouveau code : **toute adresse écrite dans un journal passe par `MasqueJetons.adresse`**, et tout
+  nouveau jeton transmis dans une URL est ajouté au format de journal nginx et à `MasqueJetons`.
+  — *corrections de la 4b*
+- [ ] Journal d'erreurs de nginx réglé sur `crit` : il répète la ligne de requête (jeton compris) et ne peut pas
+  être masqué. En production, surveiller le journal d'accès (statuts 502/504, champ « amont »). À reconsidérer
+  avec un collecteur de journaux qui masque (phase 9). — *corrections de la 4b*
+- [ ] Renseigner `EMAIL_ALERTES` (adresse de l'équipe) dans l'environnement de production, et brancher la
+  supervision sur `ALERTE_ADMIN`. — *corrections de la 4b*
 - [ ] Si le backend tourne en plusieurs instances : `ExpirationCommandes` est idempotente (verrous), mais une
   tâche qui ne doit tourner qu'une fois demandera ShedLock. — *ADR 0008 « Limites »*
 ## Sans phase fixée
 
+- [ ] « Retrouver ma commande » en libre-service pour un invité qui a perdu son lien (numéro de commande +
+  téléphone, nouveau lien envoyé). Aujourd'hui seul le service client peut renvoyer le lien. — *corrections de la 4b*
 - [ ] Version texte des e-mails (HTML seulement aujourd'hui). — *bilan 1*
 - [ ] Envoi vidéo découpé de plus de 50 minutes : Cloudinary peut refuser les derniers morceaux (signature
   valable 1 h au plus). À surveiller. — *bilan 2*
@@ -145,6 +172,9 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 ## Fait
 
+- [x] Corrections de la 4b : une seule facture active par commande (verrou `FOR UPDATE`, réutilisation de la
+  facture valide), paiement en double « à rembourser » avec alerte (V18) ; journaux sans jeton (nginx et backend) ;
+  jeton de suivi stocké sous forme d'empreinte SHA-256 (V19), renvoi du lien par un nouveau jeton. — *validation 4b*
 - [x] Phase 4b : `/panier` (avec un panier de démonstration) et `/commande` ajoutés au workflow Lighthouse.
   — *décision (validation 4a, point 6)*
 - [x] Phase 4b : attribution (UTM, page d'arrivée, référent ; gclid/fbclid/_fbp/_fbc seulement avec consentement,

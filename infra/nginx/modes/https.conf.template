@@ -9,6 +9,10 @@ server {
     server_name _;
     server_tokens off;
 
+    # Journaux sans jeton (voir default.conf.template) : l'adresse demandée en HTTP peut contenir un jeton
+    access_log /var/log/nginx/access.log confidentiel;
+    error_log /var/log/nginx/error.log crit;
+
     # Défi HTTP-01 de Let's Encrypt (phase 9) : fichiers déposés par certbot, servis en HTTP simple
     location /.well-known/acme-challenge/ {
         root /var/www/acme;

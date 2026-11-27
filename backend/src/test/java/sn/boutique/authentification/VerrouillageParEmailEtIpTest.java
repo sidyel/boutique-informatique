@@ -9,7 +9,10 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -23,6 +26,7 @@ import sn.boutique.support.ClientMailpit.Email;
  * Relecture de sécurité I1, M1 et M2 (ADR 0003 §8 et §9) : verrouillage et quotas par couple (e-mail, IP),
  * lien de déverrouillage, chemin identique pour un e-mail inconnu, quota par e-mail sans 429.
  */
+@ExtendWith(OutputCaptureExtension.class)
 class VerrouillageParEmailEtIpTest extends AuthentificationTestBase {
 
     private static final String MAUVAIS = "mauvais-mot-de-passe";
@@ -62,7 +66,7 @@ class VerrouillageParEmailEtIpTest extends AuthentificationTestBase {
     }
 
     @Test
-    void leTitulaireRecoitUnSeulLienQuiLeveTousLesVerrouillages() throws Exception {
+    void leTitulaireRecoitUnSeulLienQuiLeveTousLesVerrouillages(CapturedOutput sortie) throws Exception {
         String email = emailDuCompte(creerEtConnecter(Role.CLIENT));
         String autreIpAttaquant = ipAttaquant.replace("196.207.", "196.209.");
         for (String ip : new String[] {ipAttaquant, autreIpAttaquant}) {
@@ -85,6 +89,7 @@ class VerrouillageParEmailEtIpTest extends AuthentificationTestBase {
         // Usage unique
         deverrouiller(recu.jeton()).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("JETON_INVALIDE"));
+        assertThat(sortie.getAll()).as("journaux du backend").doesNotContain(recu.jeton());
     }
 
     @Test

@@ -10,7 +10,10 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +23,11 @@ import sn.boutique.compte.modele.Role;
 import sn.boutique.support.ClientMailpit;
 import sn.boutique.support.ClientMailpit.Email;
 
-/** Vérification de l'e-mail et mot de passe oublié, avec les vrais e-mails reçus par Mailpit. */
+/**
+ * Vérification de l'e-mail et mot de passe oublié, avec les vrais e-mails reçus par Mailpit. Les jetons des liens
+ * ne doivent jamais apparaître dans les journaux du backend.
+ */
+@ExtendWith(OutputCaptureExtension.class)
 class EmailsAuthentificationTest extends AuthentificationTestBase {
 
     @Value("${test.mailpit.url}")
@@ -40,7 +47,7 @@ class EmailsAuthentificationTest extends AuthentificationTestBase {
     // ------------------------------------------------------------------
 
     @Test
-    void lInscriptionEnvoieUnLienQuiVerifieLAdresse() throws Exception {
+    void lInscriptionEnvoieUnLienQuiVerifieLAdresse(CapturedOutput sortie) throws Exception {
         String email = emailUnique();
         inscrire(email, MOT_DE_PASSE).andExpect(status().isAccepted());
 
@@ -64,6 +71,7 @@ class EmailsAuthentificationTest extends AuthentificationTestBase {
 
         // Usage unique
         verifier(recu.jeton()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("JETON_INVALIDE"));
+        assertThat(sortie.getAll()).as("journaux du backend").doesNotContain(recu.jeton());
     }
 
     @Test
@@ -127,7 +135,7 @@ class EmailsAuthentificationTest extends AuthentificationTestBase {
     // ------------------------------------------------------------------
 
     @Test
-    void motDePasseOubliePuisReinitialisation() throws Exception {
+    void motDePasseOubliePuisReinitialisation(CapturedOutput sortie) throws Exception {
         MvcResult connexion = creerEtConnecter(Role.CLIENT);
         String email = corps(connexion).get("utilisateur").get("email").asString();
         String ancienneSession = jetonRafraichissement(connexion);
@@ -157,6 +165,7 @@ class EmailsAuthentificationTest extends AuthentificationTestBase {
         // Usage unique, et alerte envoyée au titulaire
         reinitialiser(recu.jeton(), "Encore-un-autre-2026").andExpect(status().isBadRequest());
         assertThat(mailpit.attendre(email, 3).getFirst().sujet()).isEqualTo("Votre mot de passe a été modifié");
+        assertThat(sortie.getAll()).as("journaux du backend").doesNotContain(recu.jeton());
     }
 
     @Test

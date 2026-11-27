@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
+import sn.boutique.noyau.journal.MasqueJetons;
 
 /**
  * Protection CSRF des routes qui reposent sur un cookie : jeton de rafraîchissement ({@code /api/auth/rafraichir},
@@ -66,7 +67,7 @@ public class VerificationOrigineFiltre extends OncePerRequestFilter {
             throws ServletException, IOException {
         String origine = requete.getHeader(HttpHeaders.ORIGIN);
         if (origine == null || !originesAutorisees.contains(normaliser(origine))) {
-            log.warn("Origine refusée sur {} : {}", requete.getRequestURI(), origine);
+            log.warn("Origine refusée sur {} : {}", MasqueJetons.adresse(requete.getRequestURI()), origine);
             reponses.ecrire(reponse, reponses.problemes().creer(HttpStatus.FORBIDDEN, "ORIGINE_REFUSEE",
                     "Requête refusée : origine non autorisée.", requete.getRequestURI()));
             return;

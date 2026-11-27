@@ -12,6 +12,13 @@ resolver_timeout 5s;
 set $backend  backend:8080;
 set $frontend frontend:4000;
 
+# Journaux : format « confidentiel » (jetons masqués, voir default.conf.template). Le journal d'erreurs répète la
+# ligne de requête telle quelle (jeton compris) et nginx ne permet pas de la masquer : il ne garde donc que les
+# erreurs critiques. Les échecs vers le backend ou le SSR restent visibles dans le journal d'accès (statut 502/504,
+# « amont »). Pour déboguer, passer temporairement à « error » en sachant que des jetons peuvent y apparaître.
+access_log /var/log/nginx/access.log confidentiel;
+error_log /var/log/nginx/error.log crit;
+
 # Corps de requête : 1 Mo partout (JSON de l'API, formulaires). Seules les routes d'envoi de médias du
 # back-office acceptent 55 Mo (voir plus bas). Les vidéos vont directement du navigateur à Cloudinary.
 client_max_body_size 1m;

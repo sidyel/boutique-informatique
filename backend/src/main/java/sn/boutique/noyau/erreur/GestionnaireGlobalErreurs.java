@@ -24,6 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import sn.boutique.commande.paiement.PaiementIndisponibleException;
 import sn.boutique.media.StockageIndisponibleException;
 import sn.boutique.media.YoutubeIndisponibleException;
+import sn.boutique.noyau.journal.MasqueJetons;
 import sn.boutique.noyau.limitation.TropDeRequetesException;
 
 /**
@@ -90,7 +91,8 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     /** Cloudinary injoignable ou refus : détail technique dans le journal seulement (il peut citer un idPublic). */
     @ExceptionHandler(StockageIndisponibleException.class)
     ProblemDetail gererStockageIndisponible(StockageIndisponibleException ex, HttpServletRequest requete) {
-        log.error("Stockage des médias indisponible sur {} {} : {}", requete.getMethod(), requete.getRequestURI(),
+        log.error("Stockage des médias indisponible sur {} {} : {}", requete.getMethod(),
+                MasqueJetons.adresse(requete.getRequestURI()),
                 ex.getMessage());
         return construire(HttpStatus.SERVICE_UNAVAILABLE, "STOCKAGE_INDISPONIBLE",
                 "Le stockage des images est momentanément indisponible. Réessayez dans quelques instants.", requete);
@@ -99,7 +101,8 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     /** YouTube injoignable : détail dans le journal, message clair pour l'administrateur. */
     @ExceptionHandler(YoutubeIndisponibleException.class)
     ProblemDetail gererYoutubeIndisponible(YoutubeIndisponibleException ex, HttpServletRequest requete) {
-        log.warn("YouTube indisponible sur {} {} : {}", requete.getMethod(), requete.getRequestURI(), ex.getMessage());
+        log.warn("YouTube indisponible sur {} {} : {}", requete.getMethod(),
+                MasqueJetons.adresse(requete.getRequestURI()), ex.getMessage());
         return construire(HttpStatus.BAD_GATEWAY, "YOUTUBE_INDISPONIBLE",
                 "YouTube ne répond pas pour le moment : la vidéo n'a pas pu être vérifiée. Réessayez dans quelques "
                         + "instants.", requete);
@@ -108,7 +111,8 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     /** Prestataire de paiement injoignable : détail technique dans le journal seulement. */
     @ExceptionHandler(PaiementIndisponibleException.class)
     ProblemDetail gererPaiementIndisponible(PaiementIndisponibleException ex, HttpServletRequest requete) {
-        log.warn("Paiement en ligne indisponible sur {} {} : {}", requete.getMethod(), requete.getRequestURI(),
+        log.warn("Paiement en ligne indisponible sur {} {} : {}", requete.getMethod(),
+                MasqueJetons.adresse(requete.getRequestURI()),
                 ex.getMessage(), ex.getCause());
         return construire(HttpStatus.SERVICE_UNAVAILABLE, "PAIEMENT_INDISPONIBLE",
                 "Le paiement en ligne est momentanément indisponible. Réessayez dans quelques instants ou payez "
@@ -131,7 +135,7 @@ public class GestionnaireGlobalErreurs extends ResponseEntityExceptionHandler {
     /** Filet de sécurité : jamais de pile d'appels ni de message technique renvoyé au client. */
     @ExceptionHandler(Exception.class)
     ProblemDetail gererErreurInattendue(Exception ex, HttpServletRequest requete) {
-        log.error("Erreur inattendue sur {} {}", requete.getMethod(), requete.getRequestURI(), ex);
+        log.error("Erreur inattendue sur {} {}", requete.getMethod(), MasqueJetons.adresse(requete.getRequestURI()), ex);
         return construire(HttpStatus.INTERNAL_SERVER_ERROR, "ERREUR_INTERNE", DETAILS_PAR_DEFAUT.get(500), requete);
     }
 

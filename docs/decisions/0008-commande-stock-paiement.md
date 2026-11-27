@@ -123,6 +123,18 @@ Protections : 404 sans distinguer format invalide et inconnu, limite de débit p
 `<meta name="referrer" content="no-referrer">` et `Referrer-Policy: no-referrer` posé par nginx sur `/suivi/`
 (le jeton ne part dans aucun en-tête Referer), `Disallow: /suivi` dans `robots.txt`.
 
+**Aucun jeton dans les journaux** (suivi, vérification d'e-mail, réinitialisation, déverrouillage) :
+
+- nginx : format `confidentiel` (`default.conf.template`) utilisé par tous les serveurs. Le chemin `/suivi/{jeton}` et
+  `/api/commandes/suivi/{jeton}/…` devient `…/[jeton]/…`, les paramètres des pages à jeton sont supprimés, tout paramètre
+  `jeton` ou `token` est masqué, et le `Referer` est réduit au site d'origine. Le journal d'erreurs de nginx, qui répète la
+  ligne de requête sans qu'on puisse la masquer, est limité aux erreurs critiques ; les échecs restent visibles dans le
+  journal d'accès (statut, champ « amont »). Contrôlé par `infra/scripts/verifier_journaux_nginx.sh` (CI, job infra).
+- Backend : toute adresse écrite dans un journal passe par `MasqueJetons.adresse` (filtre d'origine, gestionnaire
+  d'erreurs). Les jetons de vérification, de réinitialisation et de déverrouillage voyagent dans le corps des requêtes
+  de l'API, jamais dans son adresse. Contrôlé par des tests qui capturent la sortie du backend pendant les parcours
+  complets et vérifient qu'aucun jeton n'y figure.
+
 À la création : le lien est affiché sur la page de confirmation, envoyé par e-mail s'il existe, et une
 notification (`NotificationClient`, journal seulement pour l'instant : WhatsApp/SMS) est émise.
 

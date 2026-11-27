@@ -37,5 +37,33 @@ limit_req_zone $cle_pages zone=pages:10m rate=${NGINX_DEBIT_PAGES};
 limit_req_status 429;
 limit_req_log_level warn;
 
+# --- Journaux sans jeton secret -----------------------------------------------
+# Les adresses de suivi de commande contiennent un jeton secret (/suivi/{jeton}, /api/commandes/suivi/{jeton}/…),
+# celles des e-mails de compte aussi (/compte/verifier-email?jeton=…, /compte/nouveau-mot-de-passe?jeton=…,
+# /compte/deverrouiller?jeton=…). Quiconque lit un journal d'accès ne doit pas pouvoir s'en servir : le format
+# « confidentiel » remplace le jeton par [jeton], supprime les paramètres des pages à jeton et ne garde du Referer
+# que le site d'origine (une page à jeton envoie son adresse complète comme Referer aux fichiers qu'elle charge).
+# Les mêmes règles sont appliquées aux journaux du backend (noyau/journal/MasqueJetons).
+# Ce format est utilisé par TOUS les serveurs (access_log dans chaque bloc server, qui remplace celui de nginx.conf).
+map $uri $chemin_journal {
+    ~^(?<debut>/suivi/)[^/]+(?<fin>.*)$                   "${debut}[jeton]${fin}";
+    ~^(?<debut>/api/commandes/suivi/)[^/]+(?<fin>.*)$     "${debut}[jeton]${fin}";
+    default                                               $uri;
+}
+map "$uri?$args" $args_journal {
+    "~^/compte/(?:verifier-email|nouveau-mot-de-passe|deverrouiller)\?"   "";
+    "~^/(?:suivi|api/commandes/suivi)/"                                    "";
+    "~*[?&;](?:jeton|token)(?:=|&|;|$)"                                    "?[parametres masques]";
+    "~\?$"                                                                 "";
+    "~\?(?<reste>.+)$"                                                     "?$reste";
+}
+map $http_referer $referer_journal {
+    ~^(?<origine>https?://[^/]+)    $origine;
+    default                         "-";
+}
+log_format confidentiel '$remote_addr [$time_local] "$request_method $chemin_journal$args_journal" '
+                        '$status $body_bytes_sent "$referer_journal" "$http_user_agent" rt=$request_time '
+                        'amont=$upstream_status';
+
 # Serveurs du mode choisi (HTTPS ou HTTP simple), qui incluent les routes communes
 include /etc/nginx/conf.d/mode/serveurs.conf;
