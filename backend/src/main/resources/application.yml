@@ -181,6 +181,14 @@ boutique:
     # Création de facture : réservation de la commande (> délais du client HTTP) et attente des requêtes concurrentes
     reservation-paiement: 30s
     pause-attente-paiement: 200ms
+  # Prestataire de paiement : délais courts (le client attend sa page de paiement). La somme connexion + lecture doit
+  # rester sous boutique.commande.reservation-paiement. Aucun réessai à la création d'une facture (risque de doublon).
+  paiement:
+    http:
+      delai-connexion: 3s
+      delai-lecture: 10s
+      reessais-lecture: 2
+      pause-reessai: 300ms
   planification:
     expiration-commandes: PT1M
     purge-commandes-cron: "0 50 3 * * *"
