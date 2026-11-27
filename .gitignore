@@ -30,3 +30,6 @@ Thumbs.db
 infra/certificats/
 *.pem
 *.key
+
+# Captures d'écran de recette (lourdes, régénérables)
+/docs/captures/

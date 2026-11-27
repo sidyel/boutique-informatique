@@ -75,7 +75,19 @@
   }
 }
 
+.barre-mobile > .bouton {
+  // À 360 px, « Confirmer la commande » à côté du total ne tient pas sur une ligne : le texte passe à la ligne
+  // plutôt que d'être coupé
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: var(--espace-3);
+  white-space: normal;
+  text-align: center;
+  line-height: var(--interligne-serre);
+}
+
 .barre-mobile__total {
+  flex: none;
   display: grid;
   line-height: var(--interligne-serre);
 }

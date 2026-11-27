@@ -38,7 +38,8 @@ export function parcours(
   return ordre.map((etape, i) => ({
     statut: etape,
     libelle: libelleEtape(etape, modeLivraison),
-    etat: i < courant ? 'faite' : i === courant ? 'courante' : 'a-venir',
+    // Livrée est l'aboutissement : une fois atteinte, plus rien n'est « en cours »
+    etat: i < courant || statut === 'LIVREE' ? 'faite' : i === courant ? 'courante' : 'a-venir',
   }));
 }
 

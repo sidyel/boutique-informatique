@@ -22,10 +22,10 @@ describe('parcours', () => {
     expect(libelles.at(-1)).toBe('Retirée');
   });
 
-  it('une commande livrée a toutes ses étapes faites sauf la dernière, courante', () => {
+  it('une commande livrée a toutes ses étapes faites, aucune n est en cours', () => {
     const etats = parcours('LIVREE', 'MOBILE_MONEY', 'DOMICILE').map((e) => e.etat);
 
-    expect(etats).toEqual(['faite', 'faite', 'faite', 'faite', 'courante']);
+    expect(etats).toEqual(['faite', 'faite', 'faite', 'faite', 'faite']);
   });
 
   it('annulée ou remboursée : pas de parcours', () => {
