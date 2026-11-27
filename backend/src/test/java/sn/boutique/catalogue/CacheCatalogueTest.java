@@ -61,6 +61,8 @@ class CacheCatalogueTest extends CatalogueTestBase {
             Banniere banniere = new Banniere(EmplacementBanniere.ENTETE_CATEGORIE, "https://exemple.sn/o.jpg",
                     "https://exemple.sn/m.jpg", "Cartes graphiques en promotion");
             banniere.setCategorie(em.getReference(Categorie.class, categorie.getId()));
+            // Horloge réinitialisée : une classe exécutée avant (ordre aléatoire) a pu la laisser avancée
+            horloge.reinitialiser();
             banniere.setDateDebut(horloge.instant().plus(Duration.ofHours(1)));
             em.persist(banniere);
             return banniere;
