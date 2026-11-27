@@ -8,5 +8,7 @@ public enum StatutPaiement {
     REUSSI,
     ECHOUE,
     ANNULE,
+    /** Argent encaissé qui ne correspond à aucune vente (doublon, paiement tardif) : à rendre au client. */
+    A_REMBOURSER,
     REMBOURSE
 }

@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p><strong th:text="${titre}">Paiement à rembourser</strong></p>
+    <p th:text="${detail}">Détail de l'alerte.</p>
+    <p>Action requise : traiter ce cas depuis l'administration.</p>
+</div>
+</body>
+</html>

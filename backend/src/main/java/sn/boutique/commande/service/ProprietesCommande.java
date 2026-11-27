@@ -17,6 +17,9 @@ import sn.boutique.noyau.limitation.ProprietesLimitation.Regle;
  * @param limiteTelephone    créations de commande par numéro de téléphone (le même client ne spamme pas)
  * @param limiteSuiviIp      lectures de pages de suivi par IP
  * @param dureeCleIdempotence durée de vie d'une clé {@code Idempotency-Key}
+ * @param validiteFacture    durée pendant laquelle une facture du prestataire est réutilisée par « Reprendre le
+ *                           paiement » ; à régler sur la validité réelle de la facture chez le prestataire
+ *                           (au moins le délai de paiement de la commande, sinon deux factures payables coexistent)
  */
 @Validated
 @ConfigurationProperties(prefix = "boutique.commande")
@@ -24,5 +27,6 @@ public record ProprietesCommande(
         @Valid @NotNull Regle limiteIp,
         @Valid @NotNull Regle limiteTelephone,
         @Valid @NotNull Regle limiteSuiviIp,
-        @NotNull Duration dureeCleIdempotence) {
+        @NotNull Duration dureeCleIdempotence,
+        @NotNull Duration validiteFacture) {
 }

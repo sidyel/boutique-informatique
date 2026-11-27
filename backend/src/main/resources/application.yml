@@ -129,6 +129,9 @@ boutique:
     expediteur: ${EMAIL_EXPEDITEUR:Boutique <no-reply@exemple.sn>}
     nom-site: ${NOM_SITE:Boutique informatique}
     tentatives: 3
+  # Alertes à l'équipe (paiement à rembourser…) : adresse facultative ; sans elle, l'alerte reste dans les journaux
+  alertes:
+    destinataire: ${EMAIL_ALERTES:}
   # Authentification (ADR 0003)
   authentification:
     # Clé HMAC en Base64, 32 octets minimum : openssl rand -base64 48
@@ -173,6 +176,8 @@ boutique:
     limite-telephone: { limite: 8, fenetre: 1h }
     limite-suivi-ip: { limite: 120, fenetre: 10m }
     duree-cle-idempotence: 24h
+    # Facture du prestataire réutilisée tant qu'elle est valide (au moins le délai de paiement du site, 30 min)
+    validite-facture: 30m
   planification:
     expiration-commandes: PT1M
     purge-commandes-cron: "0 50 3 * * *"

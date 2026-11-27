@@ -151,12 +151,12 @@ class CommandeTest extends CommandeTestBase {
         assertThat(stock(variante)).isEqualTo(4);
         assertThat(compter("select count(*) from mouvement_stock m join commande c on c.id = m.commande_id "
                 + "where c.numero = ?", numero)).isEqualTo(1);
-        // Une seconde reprise crée une nouvelle facture pour la même commande
+        // Une seconde reprise retrouve la facture encore valide : jamais deux factures payables
         envoyer(MockMvcRequestBuilders.post("/api/commandes/suivi/{jeton}/reprise-paiement", suivi), null, null, null)
                 .andExpect(status().isOk());
         assertThat(compter("select count(*) from paiement p join commande c on c.id = p.commande_id "
-                + "where c.numero = ? and p.fournisseur = 'PAYDUNYA'", numero)).isEqualTo(2);
-        assertThat(fournisseur.demandes()).hasSize(2);
+                + "where c.numero = ? and p.fournisseur = 'PAYDUNYA'", numero)).isEqualTo(1);
+        assertThat(fournisseur.demandes()).hasSize(1);
     }
 
     // ------------------------------------------------------------------ idempotence

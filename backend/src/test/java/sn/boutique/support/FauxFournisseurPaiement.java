@@ -19,11 +19,13 @@ public class FauxFournisseurPaiement implements FournisseurPaiement {
     private final List<DemandePaiement> demandes = new CopyOnWriteArrayList<>();
     private volatile boolean disponible = true;
     private volatile boolean enPanne;
+    private volatile long delaiMs;
 
     public void reinitialiser() {
         demandes.clear();
         disponible = true;
         enPanne = false;
+        delaiMs = 0;
     }
 
     public void configurer(boolean disponible) {
@@ -33,6 +35,11 @@ public class FauxFournisseurPaiement implements FournisseurPaiement {
     /** Le prestataire ne répond plus : {@link #initier} lève {@link PaiementIndisponibleException}. */
     public void tomberEnPanne(boolean enPanne) {
         this.enPanne = enPanne;
+    }
+
+    /** Temps de réponse du prestataire : élargit la fenêtre de course des tests de concurrence. */
+    public void repondreApres(long millisecondes) {
+        this.delaiMs = millisecondes;
     }
 
     public List<DemandePaiement> demandes() {
@@ -53,6 +60,13 @@ public class FauxFournisseurPaiement implements FournisseurPaiement {
     public SessionPaiement initier(DemandePaiement demande) {
         if (enPanne) {
             throw new PaiementIndisponibleException("Prestataire factice en panne");
+        }
+        if (delaiMs > 0) {
+            try {
+                Thread.sleep(delaiMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         demandes.add(demande);
         String reference = "faux-" + compteur.incrementAndGet() + "-" + demande.numeroCommande();
