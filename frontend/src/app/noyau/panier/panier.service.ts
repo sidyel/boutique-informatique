@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
 
 import { Panier } from '../api/modeles';
+import { SessionService } from '../auth/session.service';
 import { PlateformeService } from '../plateforme.service';
 import { SuiviService } from '../suivi/suivi.service';
 
@@ -27,6 +28,7 @@ const ERREUR_GENERIQUE = 'Impossible de mettre à jour le panier. Vérifiez votr
 export class PanierService {
   private readonly http = inject(HttpClient);
   private readonly suivi = inject(SuiviService);
+  private readonly session = inject(SessionService);
   private readonly navigateur = inject(PlateformeService).estNavigateur;
 
   /** Dernier panier reçu du serveur ; null tant qu'il n'est pas chargé. */
@@ -52,7 +54,14 @@ export class PanierService {
     this.initialise = true;
     const zone = Number(localStorage.getItem(CLE_ZONE));
     if (Number.isInteger(zone) && zone > 0) this.zoneId.set(zone);
-    if (localStorage.getItem(CLE_PANIER_ACTIF) === '1') void this.charger();
+    if (localStorage.getItem(CLE_PANIER_ACTIF) === '1') {
+      void this.charger();
+    } else {
+      // Un client connecté a peut-être un panier de compte, même sans panier de visiteur sur cet appareil
+      void this.session.restaurer().then(() => {
+        if (this.session.connecte()) void this.charger();
+      });
+    }
   }
 
   /** Recharge le panier (page panier, ouverture du tiroir). */
@@ -61,6 +70,9 @@ export class PanierService {
     this.initialise = true;
     this.chargement.set(this.panier() === null);
     try {
+      // Le jeton d'accès n'existe qu'une fois la session restaurée : sans cette attente, un client connecté qui
+      // recharge la page lirait le panier d'un visiteur (vide) au lieu de celui de son compte
+      if (!this.session.prete()) await this.session.restaurer();
       this.recevoir(await firstValueFrom(this.http.get<Panier>('/api/panier', { params: this.parametres() })));
     } catch {
       this.erreur.set('Impossible de charger le panier. Vérifiez votre connexion et réessayez.');
@@ -154,6 +166,7 @@ export class PanierService {
     this.enCours.set(true);
     this.erreur.set(null);
     try {
+      if (!this.session.prete()) await this.session.restaurer();
       const panier = await firstValueFrom(requete);
       this.recevoir(panier);
       return panier;
@@ -167,6 +180,13 @@ export class PanierService {
     } finally {
       this.enCours.set(false);
     }
+  }
+
+  /** Après une déconnexion : le panier affiché n'est plus celui du compte (le panier invité repart de zéro). */
+  reinitialiserLocalement(): void {
+    this.panier.set(null);
+    this.tiroirOuvert.set(false);
+    if (this.navigateur) localStorage.removeItem(CLE_PANIER_ACTIF);
   }
 
   private recevoir(panier: Panier): void {

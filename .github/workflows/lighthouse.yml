@@ -94,6 +94,8 @@ jobs:
           --page accueil=/
           --page categorie=/categorie/pc-portables
           --page fiche=/produit/apple-macbook-air-13-m2
+          --page connexion=/connexion
+          --page inscription=/inscription
           --variante-demo apple-macbook-air-13-m2
           --page-panier panier=/panier
           --page-panier commande=/commande

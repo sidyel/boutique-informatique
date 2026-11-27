@@ -9,5 +9,8 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 export const serverRoutes: ServerRoute[] = [
   { path: 'admin', renderMode: RenderMode.Client },
   { path: 'admin/**', renderMode: RenderMode.Client },
+  // Espace client et liens d'e-mail : privés (jeton en mémoire dans le navigateur), rien à indexer
+  { path: 'compte', renderMode: RenderMode.Client },
+  { path: 'compte/**', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server },
 ];

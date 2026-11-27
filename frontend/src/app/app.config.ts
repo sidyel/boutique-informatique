@@ -1,10 +1,12 @@
 import { registerLocaleData } from '@angular/common';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import localeFr from '@angular/common/locales/fr';
 import {
   ApplicationConfig,
   DEFAULT_CURRENCY_CODE,
   LOCALE_ID,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import {
@@ -19,6 +21,8 @@ import {
 } from '@angular/router';
 
 import { routes } from './app.routes';
+import { intercepteurAuth } from './noyau/auth/intercepteur-auth';
+import { SessionService } from './noyau/auth/session.service';
 import { fournirChargeurImages } from './noyau/images/chargeur-cloudinary';
 
 registerLocaleData(localeFr);
@@ -36,7 +40,12 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay(), withIncrementalHydration()),
     // Le transfer cache (activé par provideClientHydration) réutilise dans le navigateur les réponses
     // obtenues pendant le SSR : voir BackendServeur pour la réécriture des URL côté serveur
-    provideHttpClient(withFetch()),
+    // L'intercepteur joint le jeton d'accès (navigateur seulement : au rendu serveur il n'y a jamais de session)
+    provideHttpClient(withFetch(), withInterceptors([intercepteurAuth])),
+    // Retrouve la session (cookie de rafraîchissement) sans bloquer l'affichage : les gardes attendent ce résultat
+    provideAppInitializer(() => {
+      void inject(SessionService).restaurer();
+    }),
     // NgOptimizedImage : largeur adaptée à l'écran (srcset) sur les URL Cloudinary
     fournirChargeurImages(),
     { provide: LOCALE_ID, useValue: 'fr' },

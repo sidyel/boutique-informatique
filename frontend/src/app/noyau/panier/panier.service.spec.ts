@@ -3,6 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { SessionService } from '../auth/session.service';
+import { sessionDeTest } from '../auth/session.donnees-test';
 import { SuiviService } from '../suivi/suivi.service';
 import { ligne, panier } from './panier.donnees-test';
 import { PanierService } from './panier.service';
@@ -11,7 +13,7 @@ describe('PanierService', () => {
   let http: HttpTestingController;
   let suivi: { ajouterAuPanier: ReturnType<typeof vi.fn> };
 
-  function creer(plateforme: 'browser' | 'server' = 'browser'): PanierService {
+  function creer(plateforme: 'browser' | 'server' = 'browser', session = sessionDeTest()): PanierService {
     suivi = { ajouterAuPanier: vi.fn() };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -20,6 +22,7 @@ describe('PanierService', () => {
         provideHttpClientTesting(),
         { provide: PLATFORM_ID, useValue: plateforme },
         { provide: SuiviService, useValue: suivi },
+        { provide: SessionService, useValue: session },
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -45,6 +48,20 @@ describe('PanierService', () => {
     expect(service.tiroirOuvert()).toBe(true);
     expect(suivi.ajouterAuPanier).toHaveBeenCalledWith('ASUS-TUF-A15-16-512', 445_000, 2);
     expect(localStorage.getItem('panier_actif')).toBe('1');
+  });
+
+  it('attend la restauration de la session avant de lire le panier : un client connecté ne voit pas un panier de visiteur', async () => {
+    let restaurée!: () => void;
+    const session = { ...sessionDeTest(), restaurer: () => new Promise<void>((r) => (restaurée = r)) };
+    session.prete.set(false);
+    const service = creer('browser', session);
+    const chargement = service.charger();
+    http.expectNone('/api/panier');
+    restaurée();
+    await Promise.resolve();
+    http.expectOne('/api/panier').flush(panier([ligne()]));
+    await chargement;
+    expect(service.nombreArticles()).toBeGreaterThan(0);
   });
 
   it("n'envoie pas d'événement de suivi quand rien n'a été ajouté", async () => {

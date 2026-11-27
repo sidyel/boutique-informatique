@@ -3,6 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { sessionDeTest } from '../../../noyau/auth/session.donnees-test';
+import { SessionService } from '../../../noyau/auth/session.service';
+
 import { PageRetourPaiement } from './page-retour-paiement';
 
 const JETON = 'r'.repeat(43);
@@ -13,7 +16,12 @@ describe('PageRetourPaiement', () => {
 
   function monter(annule?: string) {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: SessionService, useValue: sessionDeTest() },
+      ],
     });
     http = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(PageRetourPaiement);

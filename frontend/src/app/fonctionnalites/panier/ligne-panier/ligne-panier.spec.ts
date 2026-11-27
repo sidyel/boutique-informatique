@@ -4,13 +4,20 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { LignePanier as Ligne } from '../../../noyau/api/modeles';
+import { sessionDeTest } from '../../../noyau/auth/session.donnees-test';
+import { SessionService } from '../../../noyau/auth/session.service';
 import { ligne, panier } from '../../../noyau/panier/panier.donnees-test';
 import { LignePanier } from './ligne-panier';
 
 describe('LignePanier', () => {
   function afficher(valeurs: Partial<Ligne>) {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: SessionService, useValue: sessionDeTest() },
+      ],
     });
     const fixture = TestBed.createComponent(LignePanier);
     fixture.componentRef.setInput('ligne', ligne(valeurs));

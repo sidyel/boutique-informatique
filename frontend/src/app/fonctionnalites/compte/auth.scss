@@ -1,0 +1,75 @@
+// Pages d'authentification : une colonne étroite, formulaire dense, tout en variables de design.
+:host {
+  display: block;
+}
+
+.auth {
+  max-width: 26rem;
+  margin-inline: auto;
+  padding-block: var(--espace-8);
+}
+
+.auth__titre {
+  margin: 0 0 var(--espace-2);
+  font-size: var(--taille-2xl);
+}
+
+.auth__intro {
+  margin: 0 0 var(--espace-6);
+  color: var(--couleur-texte-secondaire);
+}
+
+.auth__formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+}
+
+.auth__erreur,
+.auth__succes {
+  margin: 0;
+  padding: var(--espace-3) var(--espace-4);
+  border-radius: var(--rayon-sm);
+  border-inline-start: 4px solid;
+}
+
+.auth__erreur {
+  color: var(--couleur-danger-fonce);
+  background: var(--couleur-danger-leger);
+  border-color: var(--couleur-danger);
+}
+
+.auth__succes {
+  color: var(--couleur-succes-fonce);
+  background: var(--couleur-succes-leger);
+  border-color: var(--couleur-succes);
+}
+
+.auth__case {
+  display: flex;
+  gap: var(--espace-3);
+  align-items: flex-start;
+  min-height: 2.75rem;
+  font-size: var(--taille-sm);
+
+  input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-block-start: 0.125rem;
+  }
+}
+
+.auth__liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2) var(--espace-6);
+  margin-block-start: var(--espace-6);
+  font-size: var(--taille-sm);
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+}

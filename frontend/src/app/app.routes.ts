@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { gardeConnecte, gardeVisiteur } from './noyau/auth/gardes';
 import { MiseEnPagePublique } from './mise-en-page/mise-en-page-publique';
 
 /**
@@ -44,15 +45,43 @@ export const routes: Routes = [
           import('./fonctionnalites/guide-style/guide-style').then((m) => m.GuideStyle),
       },
       {
-        path: 'compte',
+        path: 'connexion',
+        canActivate: [gardeVisiteur],
+        loadComponent: () => import('./fonctionnalites/compte/connexion/connexion').then((m) => m.Connexion),
+      },
+      {
+        path: 'inscription',
+        canActivate: [gardeVisiteur],
+        loadComponent: () => import('./fonctionnalites/compte/inscription/inscription').then((m) => m.Inscription),
+      },
+      {
+        path: 'mot-de-passe-oublie',
         loadComponent: () =>
-          import('./fonctionnalites/page-a-venir/page-a-venir').then((m) => m.PageAVenir),
-        data: {
-          titre: 'Mon compte',
-          texte:
-            'Le compte client (suivi des commandes, adresses, factures) sera bientôt disponible. ' +
-            'En attendant, vous pouvez commander par WhatsApp ou par téléphone.',
-        },
+          import('./fonctionnalites/compte/mot-de-passe-oublie/mot-de-passe-oublie').then((m) => m.MotDePasseOublie),
+      },
+      // Pages ouvertes par un lien d'e-mail : jeton renvoyé en POST, jamais de Referer (nginx + balise meta)
+      {
+        path: 'compte/verifier-email',
+        data: { action: 'verifier-email' },
+        loadComponent: () =>
+          import('./fonctionnalites/compte/liens-email/page-lien-email').then((m) => m.PageLienEmail),
+      },
+      {
+        path: 'compte/deverrouiller',
+        data: { action: 'deverrouiller' },
+        loadComponent: () =>
+          import('./fonctionnalites/compte/liens-email/page-lien-email').then((m) => m.PageLienEmail),
+      },
+      {
+        path: 'compte/nouveau-mot-de-passe',
+        loadComponent: () =>
+          import('./fonctionnalites/compte/liens-email/nouveau-mot-de-passe').then((m) => m.NouveauMotDePasse),
+      },
+      {
+        path: 'compte',
+        canActivate: [gardeConnecte],
+        loadComponent: () =>
+          import('./fonctionnalites/compte/tableau-de-bord/tableau-de-bord').then((m) => m.TableauDeBord),
       },
       {
         path: 'panier',

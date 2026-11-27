@@ -86,13 +86,13 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 ## Phase 5 — compte client
 
-- [ ] Un seul rafraîchissement de session à la fois entre onglets (Web Locks / BroadcastChannel) : deux
+- [x] Un seul rafraîchissement de session à la fois entre onglets (Web Locks / BroadcastChannel) : deux
   rafraîchissements simultanés déconnectent l'utilisateur. — *ADR 0003 §4, bilan 1*
-- [ ] Jeton d'accès gardé en mémoire uniquement ; rafraîchir après la vérification de l'e-mail (le JWT garde
+- [x] Jeton d'accès gardé en mémoire uniquement ; rafraîchir après la vérification de l'e-mail (le JWT garde
   `emailVerifie=false` jusque-là). — *ADR 0003, bilan 1*
-- [ ] Pages `compte/verifier-email` et `compte/nouveau-mot-de-passe` : renvoient le jeton en POST et servent
+- [x] Pages `compte/verifier-email` et `compte/nouveau-mot-de-passe` : renvoient le jeton en POST et servent
   `Referrer-Policy: no-referrer`. — *ADR 0003 §12, bilan 1*
-- [ ] Le SSR ne relaie pas `X-Forwarded-For`. — *bilan 1*
+- [x] Le SSR ne relaie pas `X-Forwarded-For`. — *bilan 1*
 - [ ] Suppression de compte = anonymisation partielle des commandes (garder la facture ; effacer IP, user agent,
   `fbp`, `fbc`, `gclid`, `fbclid`, `utm…`, `premiere_*`, `jeton_suivi`, `nom_client`, e-mail et téléphone selon
   la durée de conservation). Durée de conservation (10 ans OHADA ?) à confirmer avec le comptable.
@@ -245,3 +245,19 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   (`571e066`)
 - [x] Phase 2 : relecture du produit après modification des variantes dans le back-office. — *ADR 0004 §2*
   (`6d6899b`)
+
+### Ajoutés pendant la phase 5
+
+- [ ] **Sans phase fixée** : « Retrouver ma commande » par code envoyé sur WhatsApp, avec SMS en secours, après la
+  vérification Meta Business (bloquée tant que les documents de l'entreprise ne sont pas prêts). Connexion complète par
+  téléphone (e-mail facultatif, téléphone unique et vérifié, limites anti-fraude au SMS) seulement si l'usage le justifie.
+  — *décision (validation du plan de la phase 5)*
+- [ ] Lighthouse authentifié (espace client) : une connexion par passage avec un compte de test dédié ; limitation de
+  débit et verrouillage adaptés au profil CI seulement. À faire avec la partie 5b. — *décision (plan 5)*
+- [ ] Scripts de capture : `infra/scripts/captures/` (playwright-core installé à la demande, jamais dans les
+  `package.json`). `parcours-auth.mjs` couvre l'authentification (5a) ; étendre à chaque partie. — *décision (plan 5)*
+- [x] Les pages `/compte/**` sont rendues dans le navigateur (`RenderMode.Client`) ; nginx pose `no-store`,
+  `noindex` et `no-referrer` sur `/compte*`. — *5a*
+- [x] Le panier attend la restauration de la session avant de lire ou modifier (sinon un client connecté qui recharge
+  la page voyait un panier de visiteur vide) ; la fusion du panier invité est faite par le serveur à la première lecture
+  du client connecté, vérifiée de bout en bout. — *5a*

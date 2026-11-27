@@ -109,6 +109,23 @@ location ~ ^/(suivi|commande/retour)/ {
     proxy_pass http://$frontend;
 }
 
+# --- Espace client et liens d'e-mail (/compte/…) -------------------------
+# Pages privées : jamais mises en cache ni indexées. Les liens d'e-mail (vérification, réinitialisation,
+# déverrouillage) portent un jeton dans l'URL : aucun Referer ne doit en sortir (ADR 0003 §12). Cache-Control
+# du SSR est remplacé (proxy_hide_header) pour ne pas envoyer deux valeurs ; les add_header du niveau supérieur
+# sont répétés (un add_header dans un location remplace les autres).
+location ^~ /compte {
+    limit_req zone=pages burst=${NGINX_RAFALE_PAGES} nodelay;
+    proxy_hide_header Cache-Control;
+    add_header Cache-Control "no-store" always;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    proxy_pass http://$frontend;
+}
+
 # --- Pages rendues côté serveur (SSR) et fichiers statiques -------------
 # Le serveur SSR (Express) pose lui-même Cache-Control : un an, immuable,
 # pour les fichiers JS/CSS à empreinte et les polices.
