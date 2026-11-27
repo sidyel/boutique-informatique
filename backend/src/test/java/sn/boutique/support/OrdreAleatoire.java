@@ -1,9 +1,7 @@
 package sn.boutique.support;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 import org.junit.jupiter.api.ClassOrderer;
 import org.junit.jupiter.api.ClassDescriptor;
@@ -35,19 +33,15 @@ public class OrdreAleatoire implements MethodOrderer, ClassOrderer {
 
     @Override
     public void orderMethods(MethodOrdererContext contexte) {
-        List<MethodDescriptor> methodes = new ArrayList<>(contexte.getMethodDescriptors());
-        methodes.sort(Comparator.comparing(MethodDescriptor::getDisplayName));
-        Collections.shuffle(methodes, new java.util.Random(GRAINE ^ contexte.getTestClass().getName().hashCode()));
-        contexte.getMethodDescriptors().clear();
-        contexte.getMethodDescriptors().addAll(methodes);
+        // Tri par nom puis mélange, sur place (la liste du contexte est modifiable)
+        contexte.getMethodDescriptors().sort(Comparator.comparing(MethodDescriptor::getDisplayName));
+        Collections.shuffle(contexte.getMethodDescriptors(),
+                new java.util.Random(GRAINE ^ contexte.getTestClass().getName().hashCode()));
     }
 
     @Override
     public void orderClasses(ClassOrdererContext contexte) {
-        List<ClassDescriptor> classes = new ArrayList<>(contexte.getClassDescriptors());
-        classes.sort(Comparator.comparing(c -> c.getTestClass().getName()));
-        Collections.shuffle(classes, new java.util.Random(GRAINE));
-        contexte.getClassDescriptors().clear();
-        contexte.getClassDescriptors().addAll(classes);
+        contexte.getClassDescriptors().sort(Comparator.comparing(c -> c.getTestClass().getName()));
+        Collections.shuffle(contexte.getClassDescriptors(), new java.util.Random(GRAINE));
     }
 }
