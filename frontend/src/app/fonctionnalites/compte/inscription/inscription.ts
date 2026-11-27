@@ -1,18 +1,21 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { lireErreur } from '../../../noyau/auth/erreurs-api';
+import { focaliserPremiereErreur } from '../../../noyau/auth/focus-erreur';
+import { messageMotDePasse, motDePasseValide } from '../../../noyau/auth/mot-de-passe';
 import { SeoService } from '../../../noyau/seo/seo.service';
 import { normaliserTelephone } from '../../../noyau/telephone-senegal';
 import { Bouton } from '../../../partage/composants/bouton/bouton';
 import { Champ } from '../../../partage/composants/champ/champ';
+import { ReglesMotDePasse } from '../../../partage/composants/regles-mot-de-passe/regles-mot-de-passe';
 
 @Component({
   selector: 'bi-inscription',
-  imports: [ReactiveFormsModule, RouterLink, Bouton, Champ],
+  imports: [ReactiveFormsModule, RouterLink, Bouton, Champ, ReglesMotDePasse],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: '../auth.scss',
   template: `
@@ -42,8 +45,9 @@ import { Champ } from '../../../partage/composants/champ/champ';
                     autocomplete="tel-national" modeSaisie="tel" aide="Utile pour la livraison."
                     formControlName="telephone" [erreur]="erreurChamp('telephone')" />
           <bi-champ libelle="Mot de passe" type="password" nom="motDePasse" autocomplete="new-password"
-                    aide="10 caractères au minimum." requis formControlName="motDePasse"
-                    [erreur]="erreurChamp('motDePasse')" />
+                    requis formControlName="motDePasse" [erreur]="erreurChamp('motDePasse')">
+            <bi-regles-mot-de-passe [motDePasse]="formulaire.controls.motDePasse.value" />
+          </bi-champ>
           <label class="auth__case">
             <input type="checkbox" formControlName="consentementMarketing" />
             <span>J’accepte de recevoir des offres par e-mail (facultatif, désinscription à tout moment).</span>
@@ -64,6 +68,8 @@ export class Inscription implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
   private readonly seo = inject(SeoService);
+  private readonly racine = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly injector = inject(Injector);
 
   protected readonly envoi = signal(false);
   protected readonly termine = signal(false);
@@ -76,7 +82,7 @@ export class Inscription implements OnInit {
     nom: ['', [Validators.required, Validators.maxLength(80)]],
     email: ['', [Validators.required, Validators.email]],
     telephone: [''],
-    motDePasse: ['', [Validators.required, Validators.minLength(10)]],
+    motDePasse: ['', [Validators.required, motDePasseValide]],
     consentementMarketing: [false],
   });
 
@@ -94,11 +100,13 @@ export class Inscription implements OnInit {
       case 'nom':
         return v.nom.trim() ? null : 'Saisissez votre nom.';
       case 'email':
-        return this.formulaire.controls.email.valid ? null : 'Saisissez une adresse e-mail valide.';
+        return this.formulaire.controls.email.valid
+          ? null
+          : 'Saisissez une adresse e-mail valide, par exemple nom@exemple.sn.';
       case 'telephone':
         return !v.telephone.trim() || normaliserTelephone(v.telephone) ? null : 'Numéro invalide (ex. 77 123 45 67).';
       case 'motDePasse':
-        return v.motDePasse.length >= 10 ? null : 'Au moins 10 caractères.';
+        return messageMotDePasse(v.motDePasse);
       default:
         return null;
     }
@@ -109,7 +117,11 @@ export class Inscription implements OnInit {
     this.erreur.set(null);
     this.erreursServeur.set({});
     const v = this.formulaire.getRawValue();
-    if (['prenom', 'nom', 'email', 'telephone', 'motDePasse'].some((c) => this.erreurChamp(c)) || this.envoi()) return;
+    if (['prenom', 'nom', 'email', 'telephone', 'motDePasse'].some((c) => this.erreurChamp(c))) {
+      focaliserPremiereErreur(this.racine, this.injector);
+      return;
+    }
+    if (this.envoi()) return;
     this.envoi.set(true);
     try {
       await firstValueFrom(
@@ -127,6 +139,7 @@ export class Inscription implements OnInit {
       const lue = lireErreur(e);
       this.erreursServeur.set(lue.champs);
       this.erreur.set(Object.keys(lue.champs).length ? null : lue.message);
+      focaliserPremiereErreur(this.racine, this.injector);
     } finally {
       this.envoi.set(false);
     }

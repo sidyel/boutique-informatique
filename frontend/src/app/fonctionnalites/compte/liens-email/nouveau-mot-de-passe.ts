@@ -1,20 +1,23 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { lireErreur } from '../../../noyau/auth/erreurs-api';
+import { focaliserPremiereErreur } from '../../../noyau/auth/focus-erreur';
+import { messageMotDePasse, motDePasseValide } from '../../../noyau/auth/mot-de-passe';
 import { SessionService } from '../../../noyau/auth/session.service';
 import { SeoService } from '../../../noyau/seo/seo.service';
 import { Bouton } from '../../../partage/composants/bouton/bouton';
 import { Champ } from '../../../partage/composants/champ/champ';
+import { ReglesMotDePasse } from '../../../partage/composants/regles-mot-de-passe/regles-mot-de-passe';
 import { lireJetonDuLien } from './jeton-lien';
 
 /** Page ouverte par le lien « mot de passe oublié » : le jeton reste en mémoire et part en POST avec le nouveau mot de passe. */
 @Component({
   selector: 'bi-nouveau-mot-de-passe',
-  imports: [ReactiveFormsModule, RouterLink, Bouton, Champ],
+  imports: [ReactiveFormsModule, RouterLink, Bouton, Champ, ReglesMotDePasse],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: '../auth.scss',
   template: `
@@ -29,7 +32,7 @@ import { lireJetonDuLien } from './jeton-lien';
         <p class="auth__erreur" role="alert">Ce lien est incomplet. Demandez un nouveau lien de réinitialisation.</p>
         <nav class="auth__liens" aria-label="Suite"><a routerLink="/mot-de-passe-oublie">Mot de passe oublié</a></nav>
       } @else {
-        <p class="auth__intro">Choisissez un mot de passe d’au moins 10 caractères.</p>
+        <p class="auth__intro">Choisissez votre nouveau mot de passe.</p>
         <form class="auth__formulaire" [formGroup]="formulaire" (ngSubmit)="envoyer()" novalidate>
           <bi-champ
             libelle="Nouveau mot de passe"
@@ -38,8 +41,10 @@ import { lireJetonDuLien } from './jeton-lien';
             autocomplete="new-password"
             requis
             formControlName="motDePasse"
-            [erreur]="soumis() && formulaire.invalid ? 'Au moins 10 caractères.' : erreurServeur()"
-          />
+            [erreur]="erreurMotDePasse()"
+          >
+            <bi-regles-mot-de-passe [motDePasse]="formulaire.controls.motDePasse.value" />
+          </bi-champ>
           @if (erreur()) {
             <p class="auth__erreur" role="alert">{{ erreur() }}</p>
           }
@@ -57,6 +62,8 @@ export class NouveauMotDePasse implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly seo = inject(SeoService);
   private readonly session = inject(SessionService);
+  private readonly racine = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly injector = inject(Injector);
   protected readonly jeton = lireJetonDuLien();
 
   protected readonly envoi = signal(false);
@@ -66,8 +73,15 @@ export class NouveauMotDePasse implements OnInit {
   protected readonly erreur = signal<string | null>(null);
   protected readonly erreurServeur = signal<string | null>(null);
   protected readonly formulaire = this.fb.nonNullable.group({
-    motDePasse: ['', [Validators.required, Validators.minLength(10)]],
+    motDePasse: ['', [Validators.required, motDePasseValide]],
   });
+
+  protected erreurMotDePasse(): string | null {
+    if (this.erreurServeur()) return this.erreurServeur();
+    return this.soumis() && this.formulaire.invalid
+      ? messageMotDePasse(this.formulaire.controls.motDePasse.value)
+      : null;
+  }
 
   ngOnInit(): void {
     this.seo.definirPage({ titre: 'Nouveau mot de passe', indexable: false });
@@ -77,7 +91,11 @@ export class NouveauMotDePasse implements OnInit {
     this.soumis.set(true);
     this.erreur.set(null);
     this.erreurServeur.set(null);
-    if (this.formulaire.invalid || this.envoi() || !this.jeton) return;
+    if (this.formulaire.invalid) {
+      focaliserPremiereErreur(this.racine, this.injector);
+      return;
+    }
+    if (this.envoi() || !this.jeton) return;
     this.envoi.set(true);
     try {
       await firstValueFrom(
@@ -93,6 +111,7 @@ export class NouveauMotDePasse implements OnInit {
         this.lienExpire.set(true);
       } else if (lue.champs['motDePasse']) {
         this.erreurServeur.set(lue.champs['motDePasse']);
+        focaliserPremiereErreur(this.racine, this.injector);
       } else {
         this.erreur.set(lue.message);
       }

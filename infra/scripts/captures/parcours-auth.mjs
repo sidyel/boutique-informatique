@@ -37,7 +37,7 @@ async function dernierLien(destinataire, chemin) {
 }
 
 const navigateur = await chromium.launch({ executablePath: CHROME, headless: true });
-const contexte = await navigateur.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true });
+const contexte = await navigateur.newContext({ viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true });
 const page = await contexte.newPage();
 const texte = () => page.locator('main, body').first().innerText();
 
@@ -61,7 +61,7 @@ ok(/no-store/.test(enTetes['cache-control'] ?? ''), `lien de vérification : Cac
 await page.getByText(/adresse e-mail est vérifiée/i).waitFor();
 ok(!page.url().includes('jeton='), 'le jeton est retiré de la barre d’adresse');
 ok((await page.locator('meta[name=referrer]').getAttribute('content')) === 'no-referrer', 'balise meta referrer posée');
-await page.screenshot({ path: `${SORTIE}/verification-390.png`, fullPage: true });
+await page.screenshot({ path: `${SORTIE}/verification-360.png`, fullPage: true });
 await page.goto(lienVerif);
 await page.getByText(/n’est plus valide/i).waitFor();
 ok(true, 'le lien déjà utilisé est refusé');
@@ -117,8 +117,10 @@ await page.getByText(/Si un compte existe/i).waitFor();
 const lienMdp = await dernierLien(EMAIL, '/compte/nouveau-mot-de-passe');
 await page.goto(lienMdp, { waitUntil: 'networkidle' });
 ok(!page.url().includes('jeton='), 'réinitialisation : jeton retiré de la barre d’adresse');
+ok((await page.locator('input[name=motDePasse]').getAttribute('autocomplete')) === 'new-password', 'nouveau mot de passe : autocomplete = new-password');
+ok(/au moins 10 caractères/i.test(await texte()), 'nouveau mot de passe : règles affichées');
 await page.getByLabel(/^\s*Nouveau mot de passe/).fill(MDP2);
-await page.screenshot({ path: `${SORTIE}/nouveau-mot-de-passe-390.png`, fullPage: true });
+await page.screenshot({ path: `${SORTIE}/nouveau-mot-de-passe-360.png`, fullPage: true });
 await page.getByRole('button', { name: /enregistrer/i }).click();
 await page.getByText(/mot de passe est modifié/i).waitFor();
 await page.goto(`${BASE}/connexion`, { waitUntil: 'networkidle' });
@@ -129,6 +131,61 @@ await page.getByRole('heading', { name: /Bonjour Awa/ }).waitFor();
 ok(true, 'connexion avec le nouveau mot de passe');
 await page.getByRole('button', { name: /se déconnecter/i }).click();
 await page.waitForURL(`${BASE}/`);
+
+
+// --- Confort des formulaires sur mobile (360 px) ---------------------------------------------------------------
+const actif = () => page.evaluate(() => document.activeElement?.getAttribute('name') ?? document.activeElement?.tagName);
+const attribut = (sel, nom) => page.locator(sel).first().getAttribute(nom);
+await page.goto(`${BASE}/connexion`, { waitUntil: 'networkidle' });
+ok((await attribut('input[name=email]', 'autocomplete')) === 'username', 'connexion : autocomplete e-mail = username (gestionnaires de mots de passe)');
+ok((await attribut('input[name=motDePasse]', 'autocomplete')) === 'current-password', 'connexion : autocomplete mot de passe = current-password');
+ok((await attribut('input[name=email]', 'type')) === 'email' && (await attribut('input[name=email]', 'inputmode')) === 'email', 'connexion : clavier e-mail');
+await page.getByRole('button', { name: /se connecter/i }).click();
+await page.waitForTimeout(300);
+ok((await actif()) === 'email', `connexion vide : focus sur le premier champ en erreur (${await actif()})`);
+await page.screenshot({ path: `${SORTIE}/connexion-erreurs-360.png`, fullPage: true });
+await page.getByLabel(/^\s*Adresse e-mail/).fill('inconnu@exemple.sn');
+await page.getByLabel(/^\s*Mot de passe/).fill('un-mot-de-passe-faux');
+await page.getByRole('button', { name: /se connecter/i }).click();
+await page.getByRole('alert').first().waitFor();
+await page.waitForTimeout(300);
+ok((await actif()) === 'motDePasse', `mauvais identifiants : focus sur le mot de passe (${await actif()})`);
+await page.screenshot({ path: `${SORTIE}/connexion-refusee-360.png`, fullPage: true });
+
+await page.goto(`${BASE}/inscription`, { waitUntil: 'networkidle' });
+ok((await attribut('input[name=email]', 'autocomplete')) === 'email', 'inscription : autocomplete e-mail = email');
+ok((await attribut('input[name=motDePasse]', 'autocomplete')) === 'new-password', 'inscription : autocomplete mot de passe = new-password');
+ok((await attribut('input[name=prenom]', 'autocomplete')) === 'given-name' && (await attribut('input[name=nom]', 'autocomplete')) === 'family-name', 'inscription : autocomplete prénom et nom');
+ok(/au moins 10 caractères/i.test(await texte()) && /72 octets/i.test(await texte()), 'inscription : règles du mot de passe affichées avant toute saisie');
+await page.screenshot({ path: `${SORTIE}/inscription-regles-360.png`, fullPage: true });
+await page.getByRole('button', { name: /créer mon compte/i }).click();
+await page.waitForTimeout(300);
+ok((await actif()) === 'prenom', `inscription vide : focus sur le premier champ en erreur (${await actif()})`);
+await page.screenshot({ path: `${SORTIE}/inscription-erreurs-360.png`, fullPage: true });
+await page.getByLabel(/^\s*Mot de passe/).fill('court');
+const champMdp = page.locator('input[name=motDePasse]');
+ok((await champMdp.getAttribute('type')) === 'password', 'mot de passe masqué par défaut');
+await page.getByRole('button', { name: /^Afficher$/ }).click();
+ok((await champMdp.getAttribute('type')) === 'text', 'bouton Afficher : mot de passe visible');
+ok((await page.getByRole('button', { name: /^Masquer$/ }).getAttribute('aria-pressed')) === 'true', 'bouton Masquer : état annoncé (aria-pressed)');
+const bascule = await page.locator('.champ__bascule').first().boundingBox();
+ok(bascule.height >= 43.5 && bascule.width >= 43.5, `bouton Afficher/Masquer : zone tactile ${Math.round(bascule.width)}×${Math.round(bascule.height)} px`);
+await page.getByRole('button', { name: /^Masquer$/ }).click();
+ok((await champMdp.getAttribute('type')) === 'password', 'bouton Masquer : mot de passe de nouveau masqué');
+await page.getByLabel(/^\s*Prénom/).fill('Awa');
+await page.getByLabel(/^\s*Nom/).fill('Diop');
+await page.getByLabel(/^\s*Adresse e-mail/).fill('pas-un-email');
+await page.getByRole('button', { name: /créer mon compte/i }).click();
+await page.waitForTimeout(300);
+ok((await actif()) === 'email', `e-mail invalide : focus sur le champ e-mail, pas sur le premier (${await actif()})`);
+ok(/trop court/i.test(await texte()), 'mot de passe trop court : message clair en français');
+await page.screenshot({ path: `${SORTIE}/inscription-erreurs-2-360.png`, fullPage: true });
+
+await page.goto(`${BASE}/mot-de-passe-oublie`, { waitUntil: 'networkidle' });
+await page.getByRole('button', { name: /envoyer le lien/i }).click();
+await page.waitForTimeout(300);
+ok((await actif()) === 'email', `mot de passe oublié vide : focus sur le champ e-mail (${await actif()})`);
+await page.screenshot({ path: `${SORTIE}/mot-de-passe-oublie-erreur-360.png`, fullPage: true });
 
 // --- Captures à 360, 390 et 1440 px, défilement horizontal compris -----------------------------------
 for (const largeur of [360, 390, 1440]) {

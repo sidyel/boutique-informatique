@@ -44,7 +44,7 @@ let compteur = 0;
       <input
         class="champ__saisie"
         [id]="identifiant"
-        [type]="type()"
+        [type]="type() === 'password' && visible() ? 'text' : type()"
         [value]="valeur()"
         [disabled]="desactive()"
         [required]="requis()"
@@ -60,12 +60,26 @@ let compteur = 0;
       @if (suffixe()) {
         <span class="champ__affixe" aria-hidden="true">{{ suffixe() }}</span>
       }
+      @if (type() === 'password') {
+        <!-- Texte plutôt qu'une icône : sans ambiguïté, et zone tactile de 44 px -->
+        <button
+          type="button"
+          class="champ__bascule"
+          [attr.aria-pressed]="visible()"
+          [attr.aria-controls]="identifiant"
+          (click)="visible.set(!visible())"
+        >
+          {{ visible() ? 'Masquer' : 'Afficher' }}
+        </button>
+      }
     </div>
 
-    @if (erreur()) {
-      <p class="champ__erreur" [id]="identifiant + '-erreur'">{{ erreur() }}</p>
-    } @else if (aide()) {
+    @if (aide()) {
       <p class="champ__aide" [id]="identifiant + '-aide'">{{ aide() }}</p>
+    }
+    <ng-content />
+    @if (erreur()) {
+      <p class="champ__erreur" [id]="identifiant + '-erreur'" role="alert">{{ erreur() }}</p>
     }
   `,
   styles: `
@@ -117,6 +131,22 @@ let compteur = 0;
       &::placeholder {
         color: var(--couleur-texte-secondaire);
       }
+    }
+
+    .champ__bascule {
+      flex: none;
+      align-self: stretch;
+      min-width: 5rem;
+      // Recouvre la bordure de la zone : 44 px de haut au toucher, comme le champ
+      margin-block: calc(var(--epaisseur-bordure) * -1);
+      padding-inline: var(--espace-3);
+      font-size: var(--taille-sm);
+      font-weight: var(--graisse-semi-gras);
+      color: var(--couleur-accent);
+      background: transparent;
+      border: 0;
+      border-inline-start: var(--epaisseur-bordure) solid var(--couleur-bordure);
+      cursor: pointer;
     }
 
     .champ__affixe {
@@ -187,12 +217,12 @@ export class Champ implements ControlValueAccessor {
   protected readonly identifiant = `champ-${++compteur}`;
   protected readonly valeur = signal('');
   protected readonly desactive = signal(false);
+  /** Mot de passe affiché en clair (bouton Afficher / Masquer). */
+  protected readonly visible = signal(false);
 
   protected readonly descriptions = computed(() => {
-    if (this.erreur()) {
-      return `${this.identifiant}-erreur`;
-    }
-    return this.aide() ? `${this.identifiant}-aide` : null;
+    const ids = [this.aide() ? `${this.identifiant}-aide` : null, this.erreur() ? `${this.identifiant}-erreur` : null];
+    return ids.filter(Boolean).join(' ') || null;
   });
 
   private notifierChangement: (valeur: string) => void = () => {};

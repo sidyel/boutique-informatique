@@ -62,7 +62,7 @@ describe('Champ', () => {
     expect(fixture.componentInstance.telephone.touched).toBe(true);
   });
 
-  it("affiche l'aide puis l'erreur, reliées au champ par aria-describedby", () => {
+  it("garde l'aide visible et ajoute l'erreur, les deux reliées au champ par aria-describedby", () => {
     const { fixture, element, saisie } = creer();
     const aide = element.querySelector('.champ__aide');
     expect(saisie.getAttribute('aria-describedby')).toBe(aide?.id);
@@ -73,9 +73,10 @@ describe('Champ', () => {
 
     const erreur = element.querySelector('.champ__erreur');
     expect(erreur?.textContent).toBe('Numéro de téléphone invalide');
-    expect(saisie.getAttribute('aria-describedby')).toBe(erreur?.id);
+    expect(saisie.getAttribute('aria-describedby')).toBe(`${aide?.id} ${erreur?.id}`);
     expect(saisie.getAttribute('aria-invalid')).toBe('true');
-    expect(element.querySelector('.champ__aide')).toBeNull();
+    // Les règles restent lisibles pendant l'erreur : on ne les découvre pas seulement après s'être trompé
+    expect(element.querySelector('.champ__aide')).not.toBeNull();
   });
 
   it('se désactive avec le contrôle de formulaire', () => {

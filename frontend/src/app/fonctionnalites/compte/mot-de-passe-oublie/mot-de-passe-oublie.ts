@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { lireErreur } from '../../../noyau/auth/erreurs-api';
+import { focaliserPremiereErreur } from '../../../noyau/auth/focus-erreur';
 import { SeoService } from '../../../noyau/seo/seo.service';
 import { Bouton } from '../../../partage/composants/bouton/bouton';
 import { Champ } from '../../../partage/composants/champ/champ';
@@ -35,7 +36,7 @@ import { Champ } from '../../../partage/composants/champ/champ';
             modeSaisie="email"
             requis
             formControlName="email"
-            [erreur]="soumis() && formulaire.invalid ? 'Saisissez une adresse e-mail valide.' : null"
+            [erreur]="soumis() && formulaire.invalid ? 'Saisissez une adresse e-mail valide, par exemple nom@exemple.sn.' : null"
           />
           @if (erreur()) {
             <p class="auth__erreur" role="alert">{{ erreur() }}</p>
@@ -53,6 +54,8 @@ export class MotDePasseOublie implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
   private readonly seo = inject(SeoService);
+  private readonly racine = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly injector = inject(Injector);
 
   protected readonly envoi = signal(false);
   protected readonly termine = signal(false);
@@ -67,7 +70,11 @@ export class MotDePasseOublie implements OnInit {
   protected async envoyer(): Promise<void> {
     this.soumis.set(true);
     this.erreur.set(null);
-    if (this.formulaire.invalid || this.envoi()) return;
+    if (this.formulaire.invalid) {
+      focaliserPremiereErreur(this.racine, this.injector);
+      return;
+    }
+    if (this.envoi()) return;
     this.envoi.set(true);
     try {
       await firstValueFrom(

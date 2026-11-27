@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { lireErreur, retourSur } from '../../../noyau/auth/erreurs-api';
+import { focaliserPremiereErreur } from '../../../noyau/auth/focus-erreur';
 import { SessionService } from '../../../noyau/auth/session.service';
 import { PanierService } from '../../../noyau/panier/panier.service';
 import { SeoService } from '../../../noyau/seo/seo.service';
@@ -58,6 +59,8 @@ export class Connexion implements OnInit {
   private readonly panier = inject(PanierService);
   private readonly router = inject(Router);
   private readonly seo = inject(SeoService);
+  private readonly racine = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly injector = inject(Injector);
   protected readonly retour = inject(ActivatedRoute).snapshot.queryParamMap.get('retour');
 
   protected readonly envoi = signal(false);
@@ -76,13 +79,19 @@ export class Connexion implements OnInit {
   protected erreurChamp(nom: 'email' | 'motDePasse'): string | null {
     const c = this.formulaire.controls[nom];
     if (!this.soumis() || c.valid) return null;
-    return nom === 'email' ? 'Saisissez une adresse e-mail valide.' : 'Saisissez votre mot de passe.';
+    return nom === 'email'
+      ? 'Saisissez votre adresse e-mail, par exemple nom@exemple.sn.'
+      : 'Saisissez votre mot de passe.';
   }
 
   protected async envoyer(): Promise<void> {
     this.soumis.set(true);
     this.erreur.set(null);
-    if (this.formulaire.invalid || this.envoi()) return;
+    if (this.formulaire.invalid) {
+      focaliserPremiereErreur(this.racine, this.injector);
+      return;
+    }
+    if (this.envoi()) return;
     this.envoi.set(true);
     try {
       const { email, motDePasse } = this.formulaire.getRawValue();
@@ -92,6 +101,10 @@ export class Connexion implements OnInit {
       await this.router.navigateByUrl(retourSur(this.retour));
     } catch (e) {
       this.erreur.set(lireErreur(e).message);
+      // Identifiants refusés : le focus revient sur le mot de passe, prêt à être ressaisi
+      const champ = this.racine.querySelector<HTMLInputElement>('input[name=motDePasse]');
+      champ?.focus();
+      champ?.select();
     } finally {
       this.envoi.set(false);
     }
