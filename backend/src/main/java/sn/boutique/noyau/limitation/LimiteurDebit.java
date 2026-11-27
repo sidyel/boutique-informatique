@@ -3,7 +3,10 @@ package sn.boutique.noyau.limitation;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -11,6 +14,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -102,6 +107,30 @@ public class LimiteurDebit {
             return secours.compter(nom, regle, cle);
         }
         return new Comptage(((Number) resultat.get(0)).longValue(), ((Number) resultat.get(1)).longValue());
+    }
+
+    /**
+     * Droit à l'effacement : supprime les compteurs (Redis et limiteur de secours) dont la clé contient l'un des
+     * fragments, par exemple l'empreinte de l'e-mail ou du téléphone d'un compte supprimé. Parcours par {@code SCAN}
+     * (jamais {@code KEYS}, qui bloquerait Redis). Les fragments sont des empreintes hexadécimales ou des nombres :
+     * aucun caractère spécial de motif.
+     */
+    public void oublier(Collection<String> fragments) {
+        secours.oublier(fragments);
+        try {
+            Set<String> cles = new HashSet<>();
+            for (String fragment : fragments) {
+                ScanOptions options = ScanOptions.scanOptions().match(PREFIXE + "*" + fragment + "*").count(500).build();
+                try (Cursor<String> curseur = redis.scan(options)) {
+                    curseur.forEachRemaining(cles::add);
+                }
+            }
+            if (!cles.isEmpty()) {
+                redis.delete(cles);
+            }
+        } catch (DataAccessException e) {
+            signalerPanne(e);
+        }
     }
 
     private void signalerPanne(DataAccessException e) {

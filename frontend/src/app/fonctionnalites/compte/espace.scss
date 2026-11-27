@@ -255,3 +255,49 @@
 .espace__deconnexion {
   margin-block-start: var(--espace-8);
 }
+
+// Zone de suppression du compte : sobre, sans rouge criard
+.espace__danger {
+  border-block-start-color: var(--couleur-danger);
+}
+
+.espace__liste {
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0 0 var(--espace-4);
+  padding-inline-start: var(--espace-5);
+  font-size: var(--taille-sm);
+  color: var(--couleur-texte-secondaire);
+}
+
+.avis-client {
+  margin-block-end: var(--espace-4);
+  padding: var(--espace-4);
+  background: var(--couleur-surface);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-sm);
+
+  p {
+    margin: 0 0 var(--espace-2);
+  }
+}
+
+.avis-client__produit {
+  margin: 0 0 var(--espace-2);
+  font-size: var(--taille-base);
+}
+
+.avis-client__note {
+  font-family: var(--police-mono);
+  font-weight: 600;
+}
+
+.avis-client__titre {
+  font-weight: 600;
+}
+
+.avis-client__reponse {
+  padding-inline-start: var(--espace-3);
+  border-inline-start: 3px solid var(--couleur-bordure);
+  font-size: var(--taille-sm);
+}

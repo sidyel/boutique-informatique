@@ -32,6 +32,14 @@ public final class EvenementsCompte {
         }
     }
 
+    /** Compte supprimé : un e-mail de confirmation part vers l'ancienne adresse (seul moment où elle est encore utilisée). */
+    public record CompteSupprime(String prenom, String email) {
+        @Override
+        public String toString() {
+            return "CompteSupprime[***]";
+        }
+    }
+
     /** Commandes passées en invité rattachées au compte : récapitulatif envoyé au titulaire. */
     public record CommandesRattachees(Long utilisateurId, String prenom, String email, List<String> numeros) {
         @Override

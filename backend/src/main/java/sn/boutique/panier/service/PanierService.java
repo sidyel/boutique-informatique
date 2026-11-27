@@ -232,6 +232,10 @@ public class PanierService {
     }
 
     private Panier nouveauPanierClient(long utilisateurId) {
+        if (!utilisateurDepot.existsById(utilisateurId)) {
+            // Jeton d'accès encore valide (15 min) d'un compte supprimé entre-temps
+            throw new RegleMetierException("COMPTE_SUPPRIME", "Ce compte n'existe plus : reconnectez-vous ou continuez sans compte.");
+        }
         return panierDepot.save(Panier.pourUtilisateur(utilisateurDepot.getReferenceById(utilisateurId)));
     }
 

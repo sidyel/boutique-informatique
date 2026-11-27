@@ -66,6 +66,11 @@ public class LimiteurLocal {
         return new Comptage(compteur.nombre, Duration.between(maintenant, compteur.fin).toMillis());
     }
 
+    /** Oublie les compteurs dont la clé contient l'un des fragments (voir {@link LimiteurDebit#oublier}). */
+    public synchronized void oublier(java.util.Collection<String> fragments) {
+        compteurs.keySet().removeIf(cle -> fragments.stream().anyMatch(cle::contains));
+    }
+
     synchronized int taille() {
         return compteurs.size();
     }

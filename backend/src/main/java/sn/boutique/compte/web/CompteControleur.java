@@ -26,9 +26,16 @@ import sn.boutique.compte.dto.AdresseRequete;
 import sn.boutique.compte.dto.ChangementEmailRequete;
 import sn.boutique.compte.dto.ChangementMotDePasseRequete;
 import sn.boutique.compte.dto.ConsentementRequete;
+import sn.boutique.compte.dto.MesDonneesReponse;
 import sn.boutique.compte.dto.ModificationProfilRequete;
+import sn.boutique.compte.dto.MotDePasseRequete;
+import sn.boutique.compte.dto.SuppressionCompteRequete;
 import sn.boutique.compte.dto.ProfilReponse;
 import sn.boutique.compte.service.AdresseService;
+import sn.boutique.compte.service.AvisCompteService;
+import sn.boutique.compte.service.AvisCompteService.MonAvis;
+import sn.boutique.compte.service.ExportDonneesService;
+import sn.boutique.compte.service.SuppressionCompteService;
 import sn.boutique.compte.service.ChangementEmailService;
 import sn.boutique.compte.service.CompteService;
 import sn.boutique.noyau.config.OpenApiConfig;
@@ -49,6 +56,9 @@ public class CompteControleur {
     private final CompteService compteService;
     private final ChangementEmailService changementEmailService;
     private final AdresseService adresseService;
+    private final SuppressionCompteService suppressionService;
+    private final ExportDonneesService exportService;
+    private final AvisCompteService avisService;
 
     @Operation(summary = "Profil de l'utilisateur connecté", security = @SecurityRequirement(name = OpenApiConfig.SCHEMA_JWT))
     @GetMapping("/profil")
@@ -128,6 +138,38 @@ public class CompteControleur {
     public ResponseEntity<Void> supprimerAdresse(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
         adresseService.supprimer(id(jwt), id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ------------------------------------------------------------------ avis, données personnelles, suppression
+
+    @Operation(summary = "Mes avis (vide tant qu'aucun avis n'a été publié)",
+            security = @SecurityRequirement(name = OpenApiConfig.SCHEMA_JWT))
+    @GetMapping("/avis")
+    public List<MonAvis> avis(@AuthenticationPrincipal Jwt jwt) {
+        return avisService.lister(id(jwt));
+    }
+
+    @Operation(summary = "Télécharger mes données personnelles (fichier JSON, mot de passe exigé)",
+            description = "Droit d'accès : profil, adresses, commandes, consentements, changements d'e-mail et avis. "
+                    + "En POST pour ne pas mettre le mot de passe dans l'URL ; jamais mis en cache.",
+            security = @SecurityRequirement(name = OpenApiConfig.SCHEMA_JWT))
+    @PostMapping("/mes-donnees")
+    public ResponseEntity<MesDonneesReponse> mesDonnees(@AuthenticationPrincipal Jwt jwt,
+                                                        @Valid @RequestBody MotDePasseRequete requete) {
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"mes-donnees.json\"")
+                .cacheControl(org.springframework.http.CacheControl.noStore())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(exportService.exporter(id(jwt), requete.motDePasse()));
+    }
+
+    @Operation(summary = "Supprimer mon compte (mot de passe et mot SUPPRIMER exigés)",
+            description = "Anonymisation partielle (ADR 0004 §3). Refusée tant qu'une commande est en cours : 422 COMMANDE_EN_COURS.",
+            security = @SecurityRequirement(name = OpenApiConfig.SCHEMA_JWT))
+    @PostMapping("/suppression")
+    public MessageReponse supprimer(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody SuppressionCompteRequete requete) {
+        suppressionService.supprimer(id(jwt), requete.motDePasse(), requete.confirmation());
+        return new MessageReponse("Votre compte est supprimé. Un e-mail de confirmation vous a été envoyé.");
     }
 
     private static Long id(Jwt jwt) {

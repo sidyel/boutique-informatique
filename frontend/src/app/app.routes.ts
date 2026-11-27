@@ -45,6 +45,11 @@ export const routes: Routes = [
           import('./fonctionnalites/guide-style/guide-style').then((m) => m.GuideStyle),
       },
       {
+        path: 'compte-supprime',
+        loadComponent: () =>
+          import('./fonctionnalites/compte/compte-supprime/compte-supprime').then((m) => m.CompteSupprime),
+      },
+      {
         path: 'connexion',
         canActivate: [gardeVisiteur],
         loadComponent: () => import('./fonctionnalites/compte/connexion/connexion').then((m) => m.Connexion),
@@ -108,6 +113,10 @@ export const routes: Routes = [
             path: 'commandes/:numero',
             loadComponent: () =>
               import('./fonctionnalites/compte/commandes/detail-commande').then((m) => m.DetailCommande),
+          },
+          {
+            path: 'avis',
+            loadComponent: () => import('./fonctionnalites/compte/avis/liste-avis').then((m) => m.ListeAvis),
           },
           { path: 'profil', loadComponent: () => import('./fonctionnalites/compte/profil/profil').then((m) => m.Profil) },
           {

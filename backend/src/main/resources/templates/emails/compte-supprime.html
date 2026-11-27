@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>Votre compte vient d'être supprimé, comme vous l'avez demandé. Vos adresses, votre panier et vos connexions
+       sont effacés ; vos préférences e-mail ne sont plus conservées avec votre identité.</p>
+    <p>Les factures de vos commandes sont gardées pendant la durée que la loi nous impose, sans vos données de
+       suivi publicitaire. Vous ne recevrez plus d'e-mail de notre part à ce sujet.</p>
+    <p><strong>Ce n'était pas vous ?</strong> Écrivez-nous sans attendre via la page contact.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lienSite}, 'Retourner sur la boutique')}"></th:block>
+</div>
+</body>
+</html>

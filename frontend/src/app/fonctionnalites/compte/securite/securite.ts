@@ -10,13 +10,15 @@ import { SeoService } from '../../../noyau/seo/seo.service';
 import { Bouton } from '../../../partage/composants/bouton/bouton';
 import { Champ } from '../../../partage/composants/champ/champ';
 import { ReglesMotDePasse } from '../../../partage/composants/regles-mot-de-passe/regles-mot-de-passe';
+import { MesDonnees } from './mes-donnees';
+import { SuppressionCompte } from './suppression-compte';
 
 const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** Mot de passe et adresse e-mail : le mot de passe actuel est exigé pour les deux. */
 @Component({
   selector: 'bi-securite',
-  imports: [ReactiveFormsModule, Bouton, Champ, ReglesMotDePasse],
+  imports: [ReactiveFormsModule, Bouton, Champ, ReglesMotDePasse, MesDonnees, SuppressionCompte],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: '../espace.scss',
   template: `
@@ -64,6 +66,9 @@ const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
         <button biBouton type="submit" [chargement]="envoiEmail()">Envoyer le lien de confirmation</button>
       </form>
     </section>
+
+    <bi-mes-donnees />
+    <bi-suppression-compte />
   `,
 })
 export class Securite implements OnInit {

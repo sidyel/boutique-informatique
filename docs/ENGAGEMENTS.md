@@ -93,15 +93,27 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [x] Pages `compte/verifier-email` et `compte/nouveau-mot-de-passe` : renvoient le jeton en POST et servent
   `Referrer-Policy: no-referrer`. — *ADR 0003 §12, bilan 1*
 - [x] Le SSR ne relaie pas `X-Forwarded-For`. — *bilan 1*
-- [ ] Suppression de compte = anonymisation partielle des commandes (garder la facture ; effacer IP, user agent,
-  `fbp`, `fbc`, `gclid`, `fbclid`, `utm…`, `premiere_*`, `jeton_suivi`, `nom_client`, e-mail et téléphone selon
-  la durée de conservation). Durée de conservation (10 ans OHADA ?) à confirmer avec le comptable.
-  — *ADR 0004 §3, bilan 1, ADR 0008 §8*
+- [x] Suppression de compte = anonymisation partielle (V23) : refusée tant qu'une commande n'est pas livrée,
+  annulée ou remboursée (ni remboursement à faire, ni SAV ouvert) ; confirmation par mot de passe + mot SUPPRIMER ;
+  factures et coordonnées qu'elles exigent conservées, suivi publicitaire effacé, commandes sans facture sans
+  coordonnées ; adresses, panier, sessions, jetons, alertes supprimés ; consentements et changements d'e-mail
+  anonymisés ; compteurs Redis de l'e-mail et du téléphone oubliés ; e-mail de confirmation. Testé de bout en bout
+  (base, Redis, Mailpit). — *ADR 0004 §3, 5d*
+- [ ] Durée de conservation des factures et de leurs coordonnées (10 ans OHADA ?) à confirmer avec le comptable ;
+  purge automatique à écrire une fois la durée fixée. — *ADR 0004 §3, ADR 0008 §8, 5d*
+- [ ] Redis : les clés de limitation par adresse IP (hors identité du compte) expirent seules en quelques minutes ;
+  vérifier leur durée de vie maximale avant la mise en production. — *5d*
+- [ ] Jeton d'accès déjà émis : valable jusqu'à 15 minutes après la suppression (la session et le compte n'existent
+  plus, les routes du compte répondent 404). Acceptable ; à réexaminer si la durée augmente. — *5d*
+- [x] « Télécharger mes données » (droit d'accès) : JSON lisible (profil, adresses, commandes, consentements, avis),
+  mot de passe exigé, `no-store`, sans secret ni suivi publicitaire. — *5d*
+- [ ] Phase 8 : la liste « Mes avis » du compte est prête mais vide ; elle se remplit quand les avis existeront
+  (modération, réponse de la boutique). — *5d*
 - [x] Rattacher à son compte les commandes passées en invité : **e-mail identique (sans casse) ET vérifié, jamais par
   le téléphone seul**, idempotent, journalisé (`rattachement_commande`), e-mail récapitulatif ; déclenché à la
   vérification de l'e-mail, à la réinitialisation, au changement d'e-mail confirmé et à la connexion. Le lien de suivi
   invité reste valable. Risque résiduel accepté (décision 1). — *ADR 0008, 5b*
-- [ ] Avis d'un compte supprimé signés « Client vérifié » si `achatVerifie`, « Client » sinon. — *ADR 0004 §3*
+- [x] Avis d'un compte supprimé signés « Client vérifié » si `achatVerifie`, « Client » sinon, et restent publiés. — *ADR 0004 §3, 5d*
 
 ## Phase 6 — back-office
 

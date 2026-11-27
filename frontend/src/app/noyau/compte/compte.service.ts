@@ -41,6 +41,20 @@ export interface PageCommandes {
   number: number;
 }
 
+/** Un avis du client (« Mes avis »). */
+export interface MonAvis {
+  id: number;
+  produit: string;
+  slugProduit: string;
+  note: number;
+  titre: string | null;
+  commentaire: string | null;
+  statut: 'EN_ATTENTE' | 'APPROUVE' | 'REJETE';
+  achatVerifie: boolean;
+  date: string;
+  reponseBoutique: string | null;
+}
+
 interface Message {
   message: string;
 }
@@ -94,6 +108,20 @@ export class CompteService {
 
   async supprimerAdresse(id: number): Promise<void> {
     await firstValueFrom(this.http.delete<void>(`/api/compte/adresses/${id}`));
+  }
+
+  avis(): Promise<MonAvis[]> {
+    return firstValueFrom(this.http.get<MonAvis[]>('/api/compte/avis'));
+  }
+
+  /** Droit d'accès : toutes les données du client (mot de passe exigé). Le fichier est fabriqué par l'appelant. */
+  mesDonnees(motDePasse: string): Promise<unknown> {
+    return firstValueFrom(this.http.post<unknown>('/api/compte/mes-donnees', { motDePasse }));
+  }
+
+  /** Suppression définitive du compte (mot de passe et mot SUPPRIMER). 422 COMMANDE_EN_COURS si une commande n'est pas terminée. */
+  async supprimerCompte(motDePasse: string, confirmation: string): Promise<void> {
+    await firstValueFrom(this.http.post<Message>('/api/compte/suppression', { motDePasse, confirmation }));
   }
 
   commandes(page = 0, taille = 10): Promise<PageCommandes> {

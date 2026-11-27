@@ -12,6 +12,7 @@ import sn.boutique.authentification.service.EmailsCompteService;
 import sn.boutique.compte.evenement.EvenementsCompte.ChangementEmailConfirme;
 import sn.boutique.compte.evenement.EvenementsCompte.ChangementEmailDemande;
 import sn.boutique.compte.evenement.EvenementsCompte.CommandesRattachees;
+import sn.boutique.compte.evenement.EvenementsCompte.CompteSupprime;
 import sn.boutique.noyau.config.ProprietesBoutique;
 import sn.boutique.noyau.email.EmailService;
 
@@ -65,6 +66,14 @@ class EnvoiEmailsEspaceClient {
                 "commandes-rattachees",
                 Map.of("prenom", e.prenom(), "numeros", numeros, "pluriel", numeros.size() > 1,
                         "lienCompte", lien(CHEMIN_COMPTE)));
+    }
+
+    /** Confirmation de la suppression : envoyée une fois la transaction validée, à l'adresse qui vient d'être effacée. */
+    @Async
+    @TransactionalEventListener
+    void surCompteSupprime(CompteSupprime e) {
+        emailService.envoyer(e.email(), "Votre compte a été supprimé", "compte-supprime",
+                Map.of("prenom", e.prenom(), "lienSite", lien("/")));
     }
 
     private String lien(String chemin) {
