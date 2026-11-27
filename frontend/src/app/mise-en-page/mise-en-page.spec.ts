@@ -91,6 +91,48 @@ describe('MiseEnPagePublique', () => {
     expect(avec).not.toContain('Carte bancaire');
   });
 
+  it('le bouton WhatsApp s’efface quand un champ de saisie a le focus, et pendant le défilement vers le bas', async () => {
+    const fixture = await rendre(MiseEnPagePublique);
+    const page: HTMLElement = fixture.nativeElement;
+    const bouton = () => page.querySelector('.whatsapp');
+    await fixture.whenStable();
+    expect(bouton()?.classList.contains('whatsapp--efface')).toBe(false);
+
+    // Champ de saisie : clavier ouvert
+    const champ = document.createElement('input');
+    champ.type = 'text';
+    document.body.appendChild(champ);
+    champ.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    fixture.detectChanges();
+    expect(bouton()?.classList.contains('whatsapp--efface')).toBe(true);
+    expect(bouton()?.getAttribute('tabindex')).toBe('-1');
+    champ.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    fixture.detectChanges();
+    expect(bouton()?.classList.contains('whatsapp--efface')).toBe(false);
+    champ.remove();
+
+    // Un bouton radio ou une case à cocher n'ouvre pas le clavier
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    document.body.appendChild(radio);
+    radio.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    fixture.detectChanges();
+    expect(bouton()?.classList.contains('whatsapp--efface')).toBe(false);
+    radio.remove();
+
+    // Défilement vers le bas : effacé ; vers le haut : de retour
+    const defiler = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      window.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+    };
+    defiler(600);
+    expect(bouton()?.classList.contains('whatsapp--efface')).toBe(true);
+    defiler(500);
+    expect(bouton()?.classList.contains('whatsapp--efface')).toBe(false);
+    defiler(0);
+  });
+
   it('n’écrit aucune promesse ni bouton WhatsApp quand les paramètres sont vides', async () => {
     const fixture = await rendre(MiseEnPagePublique, {
       ...PARAMETRES,

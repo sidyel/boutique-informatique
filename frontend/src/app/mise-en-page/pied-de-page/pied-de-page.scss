@@ -100,7 +100,7 @@
 }
 
 .pied__bas {
-  padding-block: var(--espace-4);
+  padding-block: var(--espace-4) calc(var(--espace-4) + var(--reserve-whatsapp));
   font-size: var(--taille-xs);
   border-block-start: var(--epaisseur-bordure) solid var(--gris-800);
 }

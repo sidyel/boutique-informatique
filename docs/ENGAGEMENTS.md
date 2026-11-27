@@ -68,8 +68,10 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   avec les clés, carte jamais tant qu'elle n'est pas activée), pied de page et bandeau de confiance dynamiques.
   — *captures de recette*
 - [x] Phase 4 (bilan) — Le bouton WhatsApp flottant recouvre le lien de suivi (page de suivi, 360 px) : le décaler
-  ou le masquer sur cette page. Corrigé : bouton flottant masqué sous 64 rem (à 360 px il recouvrait un lien sur
-  toutes les pages au défilement) ; reste visible sur grand écran. — *captures de recette*
+  ou le masquer sur cette page. Corrigé : le bouton reste visible sur mobile (canal de vente majeur) avec espace réservé
+  sous le pied de page (`--reserve-whatsapp`), absent des pages à barre fixe (fiche, panier, commande), effacé quand un
+  champ a le focus et pendant le défilement vers le bas. Critère : chaque élément reste atteignable (audit Playwright
+  à 360/390/768/1440 px, 0 inatteignable). — *captures de recette, validation des correctifs*
 - [ ] Phase 4 (bilan) — Ajouter `/suivi/:jeton` et `/commande/retour/:jeton` au workflow Lighthouse (aujourd'hui :
   accueil, catégorie, fiche, panier, commande). Le SEO à 69 (accueil) et 54 (panier, commande) vient de
   `noindex` en CI (`INDEXATION_AUTORISEE=false`) : à re-mesurer en production. — *Lighthouse, bilan 4*
@@ -81,8 +83,6 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Phase 6 — Textes saisis par l'admin (bannières, éléments de confiance, pages) : avertir quand un texte cite Wave,
   Orange Money, Free Money ou la carte alors que ce moyen n'est pas actif (aujourd'hui seul l'élément « paiement » du
   bandeau est recalculé automatiquement ; les bannières et pages sont du texte libre). — *correctifs post-phase 4*
-- [ ] Bouton WhatsApp flottant sur grand écran : recouvre parfois une carte produit à 1440 px (accueil). Le déplacer
-  hors de la grille ou le réserver à des pages sans grille. — *audit de recouvrement, correctifs post-phase 4*
 
 ## Phase 5 — compte client
 

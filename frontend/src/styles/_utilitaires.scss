@@ -38,6 +38,16 @@
   gap: var(--espace-3);
 }
 
+// Bouton WhatsApp flottant : absent des pages qui ont déjà une barre fixe en bas ou un accès WhatsApp à l'écran (fiche
+// produit, panier, commande) ; elles n'ont donc pas besoin de l'espace réservé sous le pied de page.
+body:has(.barre-mobile, bi-bloc-achat) bi-bouton-whatsapp {
+  display: none;
+}
+
+body:has(.barre-mobile, bi-bloc-achat) .pied .pied__bas {
+  padding-block-end: var(--espace-4);
+}
+
 // Barre d'action fixée en bas de l'écran sur mobile (panier, commande) : total et bouton principal à portée du pouce.
 .barre-mobile {
   position: fixed;

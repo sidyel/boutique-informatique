@@ -145,6 +145,9 @@
   --hauteur-barre-superieure: 2rem;
   --largeur-tiroir: min(22rem, 88vw);
   --largeur-tiroir-panier: 26rem;
+  // Espace réservé en bas de page pour le bouton WhatsApp flottant (3,5 rem + marges + zone de sécurité de l'iPhone) :
+  // tout lien ou bouton peut être amené au-dessus du bouton en faisant défiler
+  --reserve-whatsapp: calc(3.5rem + var(--espace-4) * 2 + env(safe-area-inset-bottom, 0px));
   --hauteur-barre-mobile: 4.5rem; // barre « Commander » fixée en bas des pages panier et commande
   --taille-icone: 1.25rem;
 
