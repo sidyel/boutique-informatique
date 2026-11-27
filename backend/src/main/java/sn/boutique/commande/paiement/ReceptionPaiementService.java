@@ -9,6 +9,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import sn.boutique.commande.depot.CommandeDepot;
 import sn.boutique.commande.depot.PaiementDepot;
+import sn.boutique.commande.facture.EmissionFactureService;
 import sn.boutique.commande.modele.Commande;
 import sn.boutique.commande.modele.HistoriqueStatutCommande;
 import sn.boutique.commande.modele.Paiement;
@@ -51,11 +52,14 @@ public class ReceptionPaiementService {
     private final AlerteAdminService alertes;
     private final ApplicationEventPublisher evenements;
     private final TransactionTemplate transaction;
+    private final EmissionFactureService emissionFacture;
 
     public ReceptionPaiementService(CommandeDepot commandeDepot, PaiementDepot paiementDepot,
                                     StockService stockService, ReservationCodePromo reservationCodePromo,
                                     AlerteAdminService alertes, ApplicationEventPublisher evenements,
-                                    PlatformTransactionManager gestionnaireTransactions) {
+                                    PlatformTransactionManager gestionnaireTransactions,
+                                    EmissionFactureService emissionFacture) {
+        this.emissionFacture = emissionFacture;
         this.commandeDepot = commandeDepot;
         this.paiementDepot = paiementDepot;
         this.stockService = stockService;
@@ -123,6 +127,8 @@ public class ReceptionPaiementService {
             paiement.setStatut(StatutPaiement.REUSSI);
             commande.changerStatut(StatutCommande.PAYEE, AUTEUR_PAIEMENT, "Paiement reçu");
             commande.setExpireLe(null);
+            // Même transaction : jamais de commande payée sans facture, jamais de numéro perdu
+            emissionFacture.emettre(commande, null);
             log.info("Commande {} réglée", commande.getNumero());
             return Issue.COMMANDE_REGLEE;
         }
@@ -137,6 +143,7 @@ public class ReceptionPaiementService {
             commande.changerStatut(StatutCommande.PAYEE, AUTEUR_PAIEMENT,
                     "Paiement reçu après l'expiration : commande réactivée, stock réservé de nouveau");
             commande.setExpireLe(null);
+            emissionFacture.emettre(commande, null);
             log.info("Commande {} réactivée par un paiement tardif", commande.getNumero());
             return Issue.COMMANDE_REACTIVEE;
         }

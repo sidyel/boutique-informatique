@@ -113,6 +113,15 @@ public class Commande extends EntiteAuditee {
     @Column(length = 64)
     private String empreinteJetonSuivi;
 
+    /**
+     * Écart d'encaissement à régulariser (FCFA) : total de la commande moins le montant réellement encaissé à la
+     * livraison. 0 : rien à régulariser. Régularisé plus tard par un avoir ou un encaissement complémentaire.
+     */
+    private long ecartEncaissement;
+
+    /** Date de la régularisation de l'écart (phase 6). */
+    private Instant ecartRegulariseLe;
+
     /** Événement « achat » des régies publicitaires déjà émis. */
     private Instant achatSuiviLe;
 

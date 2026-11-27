@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import sn.boutique.authentification.service.JetonAccesService;
 import sn.boutique.catalogue.dto.PageReponse;
 import sn.boutique.commande.depot.CommandeDepot;
+import sn.boutique.commande.facture.EncaissementService;
+import sn.boutique.commande.facture.EncaissementService.LivraisonRequete;
+import sn.boutique.commande.facture.EncaissementService.LivraisonResultat;
 import sn.boutique.commande.modele.Commande;
 import sn.boutique.commande.modele.ModeLivraison;
 import sn.boutique.commande.modele.ModePaiement;
@@ -43,6 +46,7 @@ public class AdminCommandeControleur {
 
     private final CommandeDepot commandeDepot;
     private final GestionCommandeService gestion;
+    private final EncaissementService encaissement;
 
     /**
      * @param telephone numéro complet : le service client doit pouvoir rappeler le client
@@ -89,6 +93,18 @@ public class AdminCommandeControleur {
                                                        @Valid @RequestBody AnnulationRequete requete) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
                 .body(CommandeAdminResume.de(gestion.annuler(numero, auteur(jwt), requete.motif())));
+    }
+
+    /**
+     * La commande est livrée. Paiement à la livraison : corps obligatoire (montant encaissé, moyen, motif de l'écart
+     * si le montant est inférieur au total) ; la facture est émise à ce moment. Commande déjà payée en ligne : pas de
+     * corps. Un montant supérieur au total est refusé (422).
+     */
+    @PostMapping("/{numero}/livrer")
+    public ResponseEntity<LivraisonResultat> livrer(@AuthenticationPrincipal Jwt jwt, @PathVariable String numero,
+                                                    @RequestBody(required = false) LivraisonRequete requete) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(encaissement.livrer(numero, auteur(jwt), Long.valueOf(jwt.getSubject()), requete));
     }
 
     /**

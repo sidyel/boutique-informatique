@@ -82,7 +82,7 @@ CREATE TABLE ligne_facture (
     designation         varchar(300) NOT NULL,
     quantite            integer      NOT NULL,
     prix_unitaire_ttc   bigint       NOT NULL,
-    -- Brut, part de la remise du code promo (répartie au prorata sur les articles), net
+    -- Brut, part de la remise du code promo (au prorata sur les articles, l'excédent éventuel sur la livraison), net
     total_brut_ttc      bigint       NOT NULL,
     remise_ttc          bigint       NOT NULL DEFAULT 0,
     total_ttc           bigint       NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE ligne_facture (
     CONSTRAINT uk_ligne_facture_rang UNIQUE (facture_id, rang),
     CONSTRAINT ck_ligne_facture_type CHECK (type IN ('ARTICLE', 'LIVRAISON')),
     CONSTRAINT ck_ligne_facture_quantite CHECK (quantite >= 1),
-    CONSTRAINT ck_ligne_facture_remise CHECK (remise_ttc >= 0 AND (type = 'ARTICLE' OR remise_ttc = 0)),
+    CONSTRAINT ck_ligne_facture_remise CHECK (remise_ttc >= 0),
     CONSTRAINT ck_ligne_facture_net CHECK (total_ttc >= 0 AND total_brut_ttc - remise_ttc = total_ttc),
     CONSTRAINT ck_ligne_facture_ht CHECK (total_ht + montant_tva = total_ttc)
 );
