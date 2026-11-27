@@ -237,4 +237,26 @@ class ConfirmationPaiementTest extends CommandeTestBase {
         // Un jeton de suivi n'ouvre pas la page de retour
         mockMvc.perform(get("/api/commandes/retour/{jeton}", "j".repeat(43))).andExpect(status().isNotFound());
     }
+
+    // ------------------------------------------------------------------ mobile money masqué sans clés
+
+    @Autowired
+    java.util.List<sn.boutique.commande.paiement.FournisseurPaiement> fournisseurs;
+
+    @Test
+    void sansClesPayDunyaLeMobileMoneyEstMasqueEtLePaiementALaLivraisonFonctionne() throws Exception {
+        // Le vrai fournisseur est dans le contexte, sans clés (les tests n'en ont jamais) : il n'est pas disponible
+        assertThat(fournisseurs).anyMatch(f -> f instanceof sn.boutique.commande.paiement.PaydunyaFournisseur
+                && !f.disponible());
+        fournisseur.configurer(false);
+
+        mockMvc.perform(get("/api/commandes/options"))
+                .andExpect(jsonPath("$.paiementEnLigne").value(false))
+                .andExpect(jsonPath("$.paiementLivraison").value(true));
+        String jeton = panierAvec(variante(10_000, 5), 1);
+        commander(jeton, null, cle(), requete(telephone(), "MOBILE_MONEY", 12_000))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value("MODE_PAIEMENT_INDISPONIBLE"));
+        commander(jeton, null, cle(), requete(telephone(), "A_LA_LIVRAISON", 12_000)).andExpect(status().isCreated());
+    }
 }

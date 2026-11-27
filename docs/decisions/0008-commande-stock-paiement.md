@@ -122,8 +122,46 @@ sur la page de suivi. La tâche d'expiration vérifie d'abord le prestataire ; s
 reportée jusqu'à `grace-verification-paiement` (2 h). La page de retour `GET /api/commandes/retour/{jeton}` n'ouvre
 que le statut et ne croit jamais le navigateur.
 
-**Reste à faire (documentation du prestataire requise)** : `PaydunyaFournisseur`, réception de la notification,
-tests de contrat. Tant qu'aucun fournisseur n'est disponible, le mobile money est masqué.
+**PayDunya** (`PaydunyaFournisseur`, d'après developers.paydunya.com/doc/FR/http_json, lue par le propriétaire du
+projet : résumé, pas le texte intégral). Adresses : test `https://app.paydunya.com/sandbox-api/v1/`, production
+`.../api/v1/` ; en-têtes `PAYDUNYA-MASTER-KEY`, `-PRIVATE-KEY`, `-TOKEN`. Création `POST checkout-invoice/create`
+(`invoice.total_amount`, `store.name`, `custom_data`, `actions.*_url` ; aucun canal imposé : le client choisit sur la
+page PayDunya, aucune donnée personnelle du client envoyée) ; réponse : `response_code "00"`, `response_text` =
+adresse de paiement, `token`. Vérification `GET checkout-invoice/confirm/{token}` : `status` parmi `pending`,
+`completed`, `cancelled`, `failed` (casse ignorée), `invoice.total_amount`, `custom_data`. Les clés ne sont jamais
+dans un journal ni un `toString`. Sans les trois clés, `disponible()` est faux : **le mobile money est masqué** et le
+site fonctionne avec le paiement à la livraison (testé).
+
+*Notification (IPN)* : `POST /api/paiements/paydunya/webhook`, `application/x-www-form-urlencoded`, champs
+`data[...]`. `data[hash]` = SHA-512 de la clé principale, comparé en temps constant ; il est **fixe** et ne signe pas
+le contenu. La notification n'est donc qu'un signal : après le hash, `confirm/{token}` est **toujours** rappelé, et
+seuls son statut, son montant et son numéro de commande comptent (un corps « completed » contredit par `confirm` ne
+règle rien : testé). Réponses : 401 hash invalide, 400 jeton absent, 503 PayDunya injoignable, 200 sinon.
+
+*Validité d'une facture* : une facture `pending` peut rester payable 24 h chez PayDunya, alors que la commande
+expire après `delai_paiement_mobile_minutes` (30 min) ; aucun appel pour l'annuler n'est documenté. Un paiement entre
+30 minutes et 24 h suit donc le chemin « paiement tardif » (réactivation si le stock le permet, sinon « à
+rembourser », alerte et information du client ; testé à 22 h et 20 h). Le client est averti que le paiement doit être
+fait dans le délai (tunnel de commande et page de retour). `boutique.commande.validite-facture` (30 min) est la
+durée pendant laquelle *nous* réutilisons une facture ; elle n'annule rien chez PayDunya.
+
+**Points supposés, à vérifier au premier test réel** (marqués `SUPPOSE` dans `PaydunyaFournisseur`) :
+1. format d'une réponse de refus à la création (seul `response_code "00"` = succès est documenté) : tout autre code ou
+   HTTP non 2xx est un échec, le texte est journalisé sans les clés ;
+2. la devise n'est pas dans `confirm` : XOF supposée ;
+3. le numéro de commande est relu dans `custom_data.numero_commande` ;
+4. le jeton est un segment de chemin de l'adresse `confirm` ;
+5. comportement de PayDunya face à un 503 sur la notification (renvoie-t-il ?) et délai maximal qu'il tolère pour la
+   réponse ;
+6. une facture déjà payée puis réinterrogée après 24 h, et une facture `cancelled` qui serait payée ensuite ;
+7. option carte : seul l'identifiant `card` est documenté (`invoice.channels`) ; savoir si le compte l'a activée
+   n'est pas documenté. La carte reste donc **non proposée** tant que ce point n'est pas éclairci.
+Identifiants de canaux de Wave Sénégal et Free Money : non documentés sur la page lue (liste externe) : sans objet
+tant qu'aucun canal n'est imposé.
+
+**Évolution prévue** : un fournisseur **Wave Business** direct (demande de compte en cours) pourra être ajouté plus
+tard comme une autre implémentation de `FournisseurPaiement` (nouvelle valeur de `TypeFournisseurPaiement`, sa propre
+vérification serveur à serveur) sans toucher au tunnel, à `ConfirmationPaiementService` ni à `ReceptionPaiementService`.
 
 ### 8. Suivi par lien, sans compte
 

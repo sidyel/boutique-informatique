@@ -30,12 +30,12 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [x] Panier et commande en `no-store` (règle permanente ci-dessus). — *décision (validation 3a)* (4a, 4b)
 - [ ] Modèle de facture et d'avoir (mentions légales, HT / TVA / TTC ou « TVA non applicable ») **validé par le
   comptable** : modèle Thymeleaf isolé, facile à modifier. — *décision (validation du plan de la phase 4)*
-- [ ] 4c — **`PaydunyaFournisseur` (implémentation de `FournisseurPaiement`), notification (webhook) et tests de
-  contrat** : EN ATTENTE de la documentation officielle de PayDunya (création de facture, réponse de `confirm`,
-  format de la notification et `data[hash]`, adresses test et production). Le format n'est pas écrit de mémoire.
-  En attendant, le mobile money reste masqué (aucun fournisseur disponible) et le site fonctionne avec le
-  paiement à la livraison. Carte bancaire proposée seulement si le prestataire l'indique activée.
-  — *décision (validation du plan de la phase 4, point 3), ADR 0008 §7*
+- [x] 4c — `PaydunyaFournisseur`, notification (webhook) et tests de contrat (`MockRestServiceServer`), d'après la
+  documentation HTTP/JSON résumée par le propriétaire. Mobile money masqué sans les trois clés ; paiement à la
+  livraison inchangé. Points supposés listés dans l'ADR 0008 §7. — *ADR 0008 §7*
+- [ ] 4c — **Option carte bancaire** : non proposée. Seul l'identifiant `card` est documenté ; on ne sait pas
+  savoir si le compte l'a activée. À reprendre après le premier test réel. — *décision (plan, point 3)*
+- [ ] Wave Business direct : ajouter un `FournisseurPaiement` quand le compte est ouvert. — *ADR 0008 §7*
 - [x] 4c — Vérification serveur à serveur (`ConfirmationPaiementService`), avant toute écriture, hors transaction ;
   avant d'annuler une commande échue, la tâche d'expiration interroge le prestataire (injoignable : annulation
   reportée jusqu'à `grace-verification-paiement`). Paiement tardif : commande réactivée si le stock le permet,
@@ -134,6 +134,9 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] **Test de paiement de bout en bout avec les clés de test PayDunya** (compte en attente des documents de
   l'entreprise) : paiement réussi, annulé, échoué, paiement après expiration ; page de retour ; commande
   réglée. — *décision (4c)*
+- [ ] **Vérifier les points supposés de l'ADR 0008 §7** au premier test réel (format d'un refus de création,
+  devise, `custom_data`, jeton dans l'adresse `confirm`, renvoi de notification après un 503, comportement après
+  24 h, canal carte). Corriger `PaydunyaFournisseur` et ses tests de contrat selon les réponses réelles.
 - [ ] **Vérifier une vraie notification PayDunya sur le serveur public** (pas de tunnel en local) : adresse de
   notification joignable, contrôle d'authenticité, réponse rapide ; puis un paiement réel de faible montant en
   production. — *décision (4c)*

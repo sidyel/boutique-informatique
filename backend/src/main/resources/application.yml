@@ -199,6 +199,13 @@ boutique:
       delai-lecture: 10s
       reessais-lecture: 2
       pause-reessai: 300ms
+    # PayDunya (https://developers.paydunya.com). Sans les trois clés, le mobile money n'est pas proposé.
+    paydunya:
+      cle-maitre: ${PAYDUNYA_CLE_MAITRE:}
+      cle-privee: ${PAYDUNYA_CLE_PRIVEE:}
+      jeton: ${PAYDUNYA_JETON:}
+      mode: ${PAYDUNYA_MODE:test}
+      nom-boutique: ${PAYDUNYA_NOM_BOUTIQUE:Boutique informatique}
   planification:
     expiration-commandes: PT1M
     purge-commandes-cron: "0 50 3 * * *"

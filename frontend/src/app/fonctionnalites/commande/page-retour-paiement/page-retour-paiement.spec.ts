@@ -44,21 +44,21 @@ describe('PageRetourPaiement', () => {
 
   it('affiche le paiement reçu seulement quand le serveur le confirme', async () => {
     const fixture = monter();
-    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'PAYE', verifie: true });
+    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'PAYE', expireLe: null, verifie: true });
 
     expect(fixture.nativeElement.textContent).toContain('Paiement reçu, merci');
   });
 
   it('un paiement annulé ou échoué est présenté sans attente', async () => {
     const fixture = monter('1');
-    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'ECHEC', verifie: true });
+    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'ECHEC', expireLe: null, verifie: true });
 
     expect(fixture.nativeElement.textContent).toContain('Le paiement n’a pas abouti');
   });
 
   it('annonce un remboursement quand la commande ne peut pas être honorée', async () => {
     const fixture = monter();
-    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'A_REMBOURSER', verifie: true });
+    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'A_REMBOURSER', expireLe: null, verifie: true });
 
     expect(fixture.nativeElement.textContent).toContain('va être remboursé');
   });
@@ -66,7 +66,7 @@ describe('PageRetourPaiement', () => {
   it('propose le lien de suivi gardé par cet onglet seulement pour la même commande', async () => {
     sessionStorage.setItem('suivi_dernier', JSON.stringify({ numero: 'CMD-2026-000001', jeton: 'j'.repeat(43) }));
     const fixture = monter();
-    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'PAYE', verifie: true });
+    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'PAYE', expireLe: null, verifie: true });
 
     expect(fixture.nativeElement.querySelector('a[href^="/suivi/"]')).not.toBeNull();
   });
@@ -74,7 +74,7 @@ describe('PageRetourPaiement', () => {
   it("n'affiche pas le lien de suivi d'une autre commande", async () => {
     sessionStorage.setItem('suivi_dernier', JSON.stringify({ numero: 'CMD-2026-000099', jeton: 'j'.repeat(43) }));
     const fixture = monter();
-    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'PAYE', verifie: true });
+    await repondre(fixture, { numero: 'CMD-2026-000001', statut: 'PAYE', expireLe: null, verifie: true });
 
     expect(fixture.nativeElement.querySelector('a[href^="/suivi/"]')).toBeNull();
   });

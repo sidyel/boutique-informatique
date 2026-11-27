@@ -1,17 +1,19 @@
 package sn.boutique.commande.paiement;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
+import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 /**
  * Client HTTP vers un prestataire de paiement : délais courts et réessais strictement encadrés.
@@ -24,11 +26,15 @@ import org.springframework.stereotype.Component;
  * </ul>
  * Toute défaillance devient une {@link PaiementIndisponibleException} : le reste du site continue de répondre, et
  * l'appelant n'est jamais dans une transaction (voir {@link PaiementService}). Les corps de requête et de réponse ne
- * sont jamais journalisés (données personnelles, clés).
+ * sont jamais journalisés (données personnelles, clés). Un statut HTTP d'erreur n'est pas une exception : il est
+ * renvoyé tel quel à l'appelant, qui décide.
  */
 @Slf4j
 @Component
 public class ClientHttpPrestataire {
+
+    /** Une réponse plus grosse est un signe d'anomalie : on ne la lit pas en entier. */
+    private static final int TAILLE_MAX_REPONSE = 1_000_000;
 
     /** Réponse du prestataire. */
     public record Reponse(int statut, String corps) {
@@ -39,42 +45,51 @@ public class ClientHttpPrestataire {
     }
 
     private final ProprietesClientPaiement proprietes;
-    private final HttpClient client;
+    private final RestClient client;
 
+    @Autowired
     public ClientHttpPrestataire(ProprietesClientPaiement proprietes) {
+        this(proprietes, RestClient.builder().requestFactory(fabrique(proprietes)));
+    }
+
+    /** Pour les tests de contrat : le constructeur de requêtes est lié à un faux serveur. */
+    public ClientHttpPrestataire(ProprietesClientPaiement proprietes, RestClient.Builder constructeur) {
         this.proprietes = proprietes;
-        this.client = HttpClient.newBuilder()
+        this.client = constructeur.build();
+    }
+
+    private static JdkClientHttpRequestFactory fabrique(ProprietesClientPaiement proprietes) {
+        HttpClient http = HttpClient.newBuilder()
                 .connectTimeout(proprietes.delaiConnexion())
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
+        JdkClientHttpRequestFactory fabrique = new JdkClientHttpRequestFactory(http);
+        fabrique.setReadTimeout(proprietes.delaiLecture());
+        return fabrique;
     }
 
     /** POST d'un corps JSON, un seul essai. */
     public Reponse creer(String url, Map<String, String> entetes, String corpsJson) {
-        HttpRequest.Builder requete = HttpRequest.newBuilder(URI.create(url))
-                .timeout(proprietes.delaiLecture())
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(corpsJson));
-        entetes.forEach(requete::header);
-        return envoyer(requete.build());
+        return echanger(() -> client.post().uri(URI.create(url))
+                .headers(h -> entetes.forEach(h::set))
+                .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .body(corpsJson)
+                .exchange((requete, reponse) -> new Reponse(reponse.getStatusCode().value(), lire(reponse.getBody()))));
     }
 
     /** GET avec réessais limités. */
     public Reponse lire(String url, Map<String, String> entetes) {
-        HttpRequest.Builder requete = HttpRequest.newBuilder(URI.create(url))
-                .timeout(proprietes.delaiLecture())
-                .header("Accept", "application/json")
-                .GET();
-        entetes.forEach(requete::header);
-        HttpRequest construite = requete.build();
         PaiementIndisponibleException derniere = null;
         for (int essai = 0; essai <= proprietes.reessaisLecture(); essai++) {
             if (essai > 0) {
                 pause(proprietes.pauseReessai().toMillis() * essai);
             }
             try {
-                Reponse reponse = envoyer(construite);
+                Reponse reponse = echanger(() -> client.get().uri(URI.create(url))
+                        .headers(h -> entetes.forEach(h::set))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .exchange((requete, reponseHttp) ->
+                                new Reponse(reponseHttp.getStatusCode().value(), lire(reponseHttp.getBody()))));
                 if (reponse.statut() < 500) {
                     return reponse;
                 }
@@ -88,25 +103,42 @@ public class ClientHttpPrestataire {
         throw derniere;
     }
 
-    /** Un échange complet (connexion, envoi, réponse) borné dans le temps ; une erreur 5xx est renvoyée telle quelle. */
-    private Reponse envoyer(HttpRequest requete) {
-        long totalMs = proprietes.delaiConnexion().toMillis() + proprietes.delaiLecture().toMillis();
-        var futur = client.sendAsync(requete, HttpResponse.BodyHandlers.ofString());
+    private interface Appel {
+        Reponse faire();
+    }
+
+    private Reponse echanger(Appel appel) {
         try {
-            HttpResponse<String> reponse = futur.get(totalMs, TimeUnit.MILLISECONDS);
-            return new Reponse(reponse.statusCode(), reponse.body());
-        } catch (TimeoutException e) {
-            futur.cancel(true);
-            throw new PaiementIndisponibleException("Le prestataire n'a pas répondu à temps (" + totalMs + " ms)");
-        } catch (ExecutionException e) {
-            futur.cancel(true);
-            Throwable cause = e.getCause();
-            throw new PaiementIndisponibleException("Le prestataire est injoignable : "
-                    + (cause instanceof IOException ? cause.getClass().getSimpleName() : String.valueOf(cause)));
-        } catch (InterruptedException e) {
-            futur.cancel(true);
-            Thread.currentThread().interrupt();
-            throw new PaiementIndisponibleException("Appel au prestataire interrompu");
+            return appel.faire();
+        } catch (RestClientException e) {
+            if (delaiDepasse(e)) {
+                throw new PaiementIndisponibleException("Le prestataire n'a pas répondu à temps");
+            }
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            throw new PaiementIndisponibleException("Le prestataire est injoignable : " + cause.getClass().getSimpleName());
+        } catch (IllegalStateException e) {
+            throw new PaiementIndisponibleException("Réponse du prestataire illisible : " + e.getMessage());
+        }
+    }
+
+    private static boolean delaiDepasse(Throwable erreur) {
+        for (Throwable t = erreur; t != null; t = t.getCause()) {
+            if (t instanceof HttpTimeoutException || t instanceof SocketTimeoutException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String lire(java.io.InputStream flux) {
+        try {
+            byte[] octets = flux.readNBytes(TAILLE_MAX_REPONSE + 1);
+            if (octets.length > TAILLE_MAX_REPONSE) {
+                throw new IllegalStateException("réponse trop volumineuse");
+            }
+            return new String(octets, StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("lecture impossible", e);
         }
     }
 

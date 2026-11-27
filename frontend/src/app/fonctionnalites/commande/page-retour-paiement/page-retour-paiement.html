@@ -39,6 +39,11 @@
             <p><strong>{{ annule() === '1' ? 'Paiement annulé.' : 'Paiement pas encore confirmé.' }}</strong></p>
             <p>Si vous avez payé, la confirmation peut arriver dans quelques minutes : vous recevrez un message et le
                suivi de commande se met à jour. Sinon, vous pouvez reprendre le paiement depuis le suivi.</p>
+            @if (r.expireLe; as limite) {
+              <p><strong>Le paiement doit être fait avant <time [attr.datetime]="limite">{{ limite | date: 'HH:mm' }}</time></strong> :
+                 passé ce délai, la commande est annulée. Si vous payez quand même après, nous la réactivons tant que les
+                 articles sont disponibles ; sinon vous êtes remboursé.</p>
+            }
           }
         </section>
       }

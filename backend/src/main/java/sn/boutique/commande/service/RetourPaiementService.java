@@ -49,15 +49,22 @@ public class RetourPaiementService {
             verifie = false;
             log.warn("Retour de paiement de la commande {} : prestataire injoignable", numero);
         }
-        return new RetourPaiementReponse(numero, statut(numero, resultat), verifie);
+        var lu = statut(numero, resultat);
+        return new RetourPaiementReponse(numero, lu.statut(), lu.expireLe(), verifie);
     }
 
-    private String statut(String numero, Resultat resultat) {
-        return transaction.execute(t -> statutLu(numero, resultat));
+    private record Lu(String statut, java.time.Instant expireLe) {
     }
 
-    private String statutLu(String numero, Resultat resultat) {
-        var commande = commandeDepot.findByNumero(numero).orElseThrow();
+    private Lu statut(String numero, Resultat resultat) {
+        return transaction.execute(t -> {
+            var commande = commandeDepot.findByNumero(numero).orElseThrow();
+            return new Lu(statutLu(commande, resultat), commande.getStatut() == StatutCommande.EN_ATTENTE_PAIEMENT
+                    ? commande.getExpireLe() : null);
+        });
+    }
+
+    private String statutLu(sn.boutique.commande.modele.Commande commande, Resultat resultat) {
         if (commande.getPaiements().stream().anyMatch(p -> p.getStatut() == StatutPaiement.A_REMBOURSER)) {
             return "A_REMBOURSER";
         }

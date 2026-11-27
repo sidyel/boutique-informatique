@@ -192,7 +192,8 @@
                       <span class="choix__texte"><strong>Mobile money</strong>
                         <span>Wave · Orange Money · Free Money</span>
                         <span class="choix__detail">Vous payez avec votre application, sur la page sécurisée de notre
-                          prestataire. Votre commande est réservée {{ options()?.delaiPaiementMinutes }} minutes.</span></span>
+                          prestataire. Le paiement doit être fait dans les {{ options()?.delaiPaiementMinutes }} minutes
+                          qui suivent la commande, sinon elle est annulée.</span></span>
                     </label>
                   }
                   @if (options()?.paiementLivraison) {

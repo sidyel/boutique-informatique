@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, afterNextRender, inject, input, signal } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
@@ -22,7 +23,7 @@ const VERIFICATIONS_MAX = 30;
  */
 @Component({
   selector: 'bi-page-retour-paiement',
-  imports: [Bouton, Icone, RouterLink],
+  imports: [Bouton, DatePipe, Icone, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './page-retour-paiement.html',
   styleUrl: './page-retour-paiement.scss',

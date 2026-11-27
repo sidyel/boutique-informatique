@@ -498,6 +498,8 @@ export interface SuiviCommande {
 export interface RetourPaiement {
   numero: string;
   statut: 'PAYE' | 'EN_ATTENTE' | 'ECHEC' | 'A_REMBOURSER';
+  /** Date limite de paiement (absente une fois la commande payée ou annulée). */
+  expireLe: string | null;
   /** Faux si le prestataire n'a pas pu être interrogé : la page réessaie. */
   verifie: boolean;
 }
