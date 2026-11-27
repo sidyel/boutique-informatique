@@ -1,6 +1,6 @@
 # ADR 0008 — Commande : réservation du stock, idempotence, paiement à la livraison, suivi par lien
 
-- **Statut** : accepté (parties 4a et 4b ; les paiements PayDunya et les factures complètent ce document en 4c et 4d)
+- **Statut** : accepté (parties 4a à 4d : commande, paiements PayDunya, factures et avoirs)
 - **Date** : 2026-11-26
 - **Phase** : 4
 
@@ -220,6 +220,82 @@ seul l'appelant qui reçoit `emettre: true` pousse l'événement. Une commande �
 pas une vente** : pas d'événement avant l'appel du service client. Les conversions côté serveur (API Conversions
 Meta, Google Ads), qui couvriront les confirmations faites hors du site, arrivent en phase 7.
 
+### 11. Factures, avoirs et encaissement à la livraison (4d)
+
+**Pièces immuables.** À l'émission, tout est copié dans la facture : vendeur (raison sociale, NINEA, RCCM, adresse du
+siège), régime et taux de TVA, client (nom, téléphone, e-mail, adresse), lignes, montants, et **le PDF lui-même** (octets
+conservés avec leur SHA-256). Modifier ensuite `parametres_site`, le catalogue ou le client ne change rien : la page de
+suivi et l'e-mail servent le PDF stocké, on ne le régénère jamais. La base l'impose : un déclencheur
+(`interdire_modification_piece`) refuse tout `UPDATE` et `DELETE` sur `facture`, `ligne_facture`, `avoir`, `ligne_avoir`
+et `encaissement`. Une erreur se corrige par un avoir. Test : changer raison sociale, NINEA, adresse et régime après
+l'émission laisse le PDF de l'ancienne facture identique octet pour octet.
+
+**Mentions légales en base, plus en variables d'environnement.** Raison sociale, NINEA, RCCM, adresse du siège, régime de
+TVA, taux (points de base, 1800 = 18 %) et mention « TVA non applicable » sont des colonnes de `parametres_site`,
+réglables par `PUT /api/admin/parametres/facturation` (administration ; écran en phase 6). Le contrôle de démarrage lit la
+base : mentions vides = avertissement en développement, démarrage refusé en production (indexation autorisée, ou profil
+`prod` hors démonstration). Les variables `FACTURE_*` disparaissent, sauf `FACTURE_MENTIONS_OBLIGATOIRES`.
+
+**Numérotation sans trou.** Table `compteur_document(type, annee, dernier_numero)`, `FAC` et `AV` séparés, incrément
+`UPDATE … RETURNING` dans la transaction d'émission (ADR 0004 §4) : annulée avec elle, aucun numéro perdu. Appelée hors
+transaction, l'attribution est refusée (`Propagation.MANDATORY`) : un numéro validé seul pourrait laisser un trou.
+
+**Quand une facture est émise** (une par commande, idempotent) :
+- paiement en ligne confirmé : **dans la transaction de `ReceptionPaiementService`**, y compris la réactivation après
+  paiement tardif. Pas de commande payée sans facture, pas de numéro perdu. Contrepartie assumée : un bogue de rendu
+  empêcherait d'enregistrer le paiement (le prestataire réessaie, rien n'est perdu, l'alerte est dans les journaux) ; le
+  rendu est donc volontairement simple et testé, et les caractères impossibles à écrire sont remplacés par « ? » ;
+- paiement à la livraison : au passage à `LIVREE` par `POST /api/admin/commandes/{numero}/livrer`, avec l'encaissement.
+
+**TVA : les prix du site sont TTC.** Régime réglable : « assujetti » (TVA extraite du TTC) ou « TVA non applicable »
+(défaut, en attendant la confirmation du comptable ; la mention « TTC » du site ne s'affiche alors pas). **Méthode
+d'arrondi, à faire valider par le comptable** :
+1. la TVA du document est calculée **une fois sur le total TTC** : `TTC × taux / (1 + taux)`, arrondie au franc le plus
+   proche (demi vers le haut) ;
+2. elle est répartie sur les lignes **au plus fort reste** ; la somme des TVA des lignes égale donc exactement la TVA du
+   total, et HT + TVA = TTC sur chaque ligne et sur le total ; une ligne ne s'écarte jamais de plus d'un franc de sa TVA
+   exacte ;
+3. la remise d'un code promo se répartit de la même façon sur les articles (au prorata de leur montant brut), l'excédent
+   éventuel sur la livraison ; chaque ligne garde son brut, sa remise et son net.
+
+Exemple : 12 000 FCFA TTC à 18 % → TVA 1 831 (1 830,51 arrondi), HT 10 169.
+
+**Encaissement à la livraison.** `encaissement` : montant reçu, moyen (espèces, Wave au livreur, Orange Money au livreur,
+autre + précision obligatoire), personne qui a encaissé (le livreur, ou l'agent par défaut), agent qui a enregistré, date.
+La facture est émise **pour le total de la commande**, l'encaissement réel est enregistré tel quel.
+- montant supérieur au total : refusé (422) ;
+- montant inférieur : accepté avec un **motif obligatoire** (monnaie manquante, article contesté, remise accordée, autre
+  + précision) ; la commande porte alors un **écart d'encaissement à régulariser** (`commande.ecart_encaissement`) et
+  l'administration est alertée. Régularisation plus tard par un avoir ou un encaissement complémentaire (écran en
+  phase 6) ;
+- `LIVREE` depuis `CONFIRMEE`, `PAYEE`, `EN_PREPARATION`, `EXPEDIEE` ; une commande déjà payée en ligne se livre sans
+  encaissement (corps refusé).
+
+**Avoirs.** `POST /api/admin/factures/{numero}/avoirs` (administration seulement) : tout (`total`) ou des lignes
+(`rang`, `quantite`), plafonnés au restant de chaque ligne. Numéro `AV-2026-000001`, identité figée de la facture (jamais
+celle du site d'aujourd'hui). Le dernier avoir d'une ligne reprend **exactement le reste** (montant et TVA) : le cumul
+rejoint la facture au franc près, jamais au-dessus. La commande passe à `REMBOURSEE` quand les avoirs couvrent toute la
+facture. Deux avoirs simultanés : verrou de la commande, un seul passe. **Pièce comptable seule : pas de remise en stock,
+pas de remboursement automatique** (geste « retour client » en phase 6).
+
+**PDF.** `openhtmltopdf` (rendu d'un gabarit XHTML Thymeleaf, `templates/pdf/piece.html`, isolé pour que le comptable le
+fasse modifier). Polices **standard du PDF** (Helvetica, Courier) : rien à incorporer, une facture de 20 lignes pèse
+environ 5 Ko, très en dessous de la limite des pièces jointes. Contrepartie : jeu Windows-1252 (tout le français).
+
+**Accès, toujours en `no-store`.** Lien de suivi (`/api/commandes/suivi/{jeton}/facture`, `…/avoirs/{numero}`, même
+limitation de débit que le suivi) : fonctionne même sans e-mail. Compte connecté (`/api/compte/commandes/{numero}/facture`,
+sa commande seulement ; écran en phase 5). Personnel (`/api/admin/factures/{numero}/pdf`, `/api/admin/avoirs/{numero}/pdf`).
+Une pièce inexistante ou qui n'appartient pas au demandeur donne la même 404.
+
+**E-mails.** Tous en `multipart/alternative` : la version texte est **dérivée du HTML** (`HtmlVersTexte`, liens conservés),
+une seule source par e-mail. Facture et avoir partent en pièce jointe PDF si le client a donné un e-mail (au-delà de
+1 Mo, sans pièce jointe, journalisé).
+
+**Ventes.** `produit.nombre_ventes` augmente à l'émission de la facture (unités des lignes « article »), diminue des
+unités créditées par un avoir, jamais sous zéro. `UPDATE` relatif en SQL dans la transaction de la pièce ; la colonne
+n'est plus modifiable par l'entité (une modification admin ne réécrit pas un compteur périmé). Une commande non payée ou
+non livrée ne compte pas. Les caches publics expirent d'eux-mêmes (10 min).
+
 ## Conséquences
 
 - Le stock vendable est exact à chaque instant : les commandes en attente le réservent, l'expiration le rend.
@@ -236,4 +312,5 @@ Meta, Google Ads), qui couvriront les confirmations faites hors du site, arriven
   paiement est reconnu par sa référence ou marqué « à rembourser ».
 - La carte bancaire n'est pas proposée dans le tunnel tant que le prestataire n'indique pas qu'elle est activée
   sur le compte (4c).
-- Le modèle de facture (mentions légales, HT/TVA/TTC) sera validé par le comptable (4d).
+- Le modèle de facture (mentions légales, régime de TVA, méthode d'arrondi du §11) reste à faire valider par le comptable ; le gabarit est isolé dans `templates/pdf/piece.html`.
+- Un avoir ne remet pas en stock et ne rembourse pas : le geste « retour client » (avoir + remise en stock) est prévu en phase 6.

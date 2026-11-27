@@ -22,7 +22,7 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 ## Phase 4 — panier et commande
 
-- [ ] Factures `FAC-2026-000001` : numérotation chronologique continue **sans trou**, attribuée au paiement
+- [x] Factures `FAC-2026-000001` : numérotation chronologique continue **sans trou**, attribuée au paiement
   confirmé, via une table `compteur_facture` verrouillée (pas une séquence) ; tests de concurrence et
   d'annulation. Les numéros de commande peuvent avoir des trous. — *ADR 0004 §4, bilan 1*
 - [ ] Décrément du stock à la commande : relire le produit si on le renvoie (règle permanente ci-dessus).
@@ -52,10 +52,17 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   validité réelle d'une facture PayDunya (au moins `delai_paiement_mobile_minutes`). — *validation 4b, ADR 0008 §7*
 - [x] 4c — Adresse de retour du prestataire indépendante du jeton de suivi (jeton de retour dédié, empreinte
   stockée, masqué dans les journaux). — *validation 4b, ADR 0008 §7* 
-- [ ] 4d — Version texte des e-mails de commande (`commande-recue.html` n'a que le HTML) : même règle que
+- [x] 4d — Version texte des e-mails de commande (`commande-recue.html` n'a que le HTML) : même règle que
   l'engagement « Sans phase fixée ». — *bilan 1*
 - [ ] Statut `PAYEE` fixé **uniquement** par la vérification serveur à serveur du prestataire (jamais par la page
   de retour du navigateur ni par le seul corps d'une notification). — *décision (plan de la phase 4)*
+- [ ] Phase 4d — **Comptable** : valider le régime de TVA (défaut « TVA non applicable »), la méthode d'arrondi (ADR 0008 §11), les mentions et le gabarit PDF ; passer le régime à « assujetti » le cas échéant (le « TTC » du site apparaît alors). — *décision 2 de la 4d*
+- [ ] Phase 4d — Renseigner raison sociale, NINEA, RCCM et siège (`PUT /api/admin/parametres/facturation`) avant le lancement : le démarrage en production est refusé sinon. — *décision 1 de la 4d*
+- [ ] Phase 5 — Écran « Mes factures » du compte client (les routes `/api/compte/commandes/{numero}/facture` et `/avoirs/{n}` existent). — *4d*
+- [ ] Phase 6 — Écrans admin : mentions de facturation, liste des factures et avoirs, bouton « Livrer et encaisser » (montant, moyen, motif d'écart), émission d'un avoir. — *4d*
+- [ ] Phase 6 — Geste « **retour client** » : crée l'avoir ET la remise en stock en une seule action (aujourd'hui l'avoir est une pièce comptable seule). — *décision 3 de la 4d*
+- [ ] Phase 6 — Écran de régularisation des **écarts d'encaissement** (`commande.ecart_encaissement`) : encaissement complémentaire ou avoir, puis `ecart_regularise_le`. — *décision 4 de la 4d*
+- [ ] Fin de la phase 4 — Captures mobile (360/390/768/1440), Lighthouse et poids du premier chargement de l'accueil (< 1 Mo) sur la page de suivi et l'accueil. — *CLAUDE.md*
 
 ## Phase 5 — compte client
 
@@ -189,7 +196,7 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 - [ ] « Retrouver ma commande » en libre-service pour un invité qui a perdu son lien (numéro de commande +
   téléphone, nouveau lien envoyé). Aujourd'hui seul le service client peut renvoyer le lien. — *corrections de la 4b*
-- [ ] Version texte des e-mails (HTML seulement aujourd'hui). — *bilan 1*
+- [x] Version texte des e-mails : dérivée du HTML (`HtmlVersTexte`), tous les e-mails en multipart/alternative. — *bilan 1* (4d)
 - [ ] Envoi vidéo découpé de plus de 50 minutes : Cloudinary peut refuser les derniers morceaux (signature
   valable 1 h au plus). À surveiller. — *bilan 2*
 - [ ] Corriger ce que signalera le test des résultats enrichis de Google (risques : noms d'auteur des avis,
