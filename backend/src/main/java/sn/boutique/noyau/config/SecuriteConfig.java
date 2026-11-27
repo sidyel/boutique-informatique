@@ -75,6 +75,9 @@ public class SecuriteConfig {
                         // ni le service client ni la gestion du stock
                         .requestMatchers("/api/admin/variantes/**", "/api/admin/parametres/**",
                                 "/api/admin/bannieres/**").hasAnyRole(ROLES_ADMINISTRATION)
+                        // Un avoir est une pièce comptable : réservé à l'administration
+                        .requestMatchers(HttpMethod.POST, "/api/admin/factures/*/avoirs")
+                        .hasAnyRole(ROLES_ADMINISTRATION)
                         .requestMatchers("/api/admin/produits/*/medias/**", "/api/admin/medias/**")
                         .hasAnyRole(ROLES_MEDIAS)
                         .requestMatchers("/api/admin/**").hasAnyRole(ROLES_INTERNES)
