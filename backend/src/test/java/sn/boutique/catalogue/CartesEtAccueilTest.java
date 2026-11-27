@@ -130,6 +130,10 @@ class CartesEtAccueilTest extends CatalogueTestBase {
             p.setMisEnAvant(true);
             p.ajouterVariante(unique("AX55"), "", 45_000, 5).setPrixBarre(52_000L);
         });
+        // Le plus récent de tous, quel que soit l'état laissé par les autres tests (horloge avancée, dates décalées)
+        enTransaction(em -> em.createNativeQuery("update produit set date_creation = "
+                + "(select max(date_creation) from produit) + interval '1 minute' where id = " + misEnAvant.getId())
+                .executeUpdate());
 
         int seuil = proprietesAccueil.seuilMeilleuresVentes();
         long dejaVendus = enTransaction(em -> ((Number) em.createNativeQuery(
@@ -154,7 +158,9 @@ class CartesEtAccueilTest extends CatalogueTestBase {
             for (int i = 0; i < seuil; i++) {
                 vendus.add(produit("Switch " + i, marque, categorie, p -> p.ajouterVariante(unique("SW"), "", 15_000, 5)));
             }
-            enTransaction(em -> em.createNativeQuery("update produit set nombre_ventes = 1000000 + id where id in (:ids)")
+            // Plus vendus que tous les autres produits, quel que soit l'état laissé par les autres tests
+            enTransaction(em -> em.createNativeQuery("update produit set nombre_ventes = "
+                            + "(select coalesce(max(nombre_ventes), 0) from produit) + 1 + id where id in (:ids)")
                     .setParameter("ids", vendus.stream().map(Produit::getId).toList()).executeUpdate());
             sections = corps(lire("/api/accueil")).get("sections");
             assertThat(codes(sections)).contains(AccueilService.MEILLEURES_VENTES).doesNotContain(AccueilService.SELECTION);

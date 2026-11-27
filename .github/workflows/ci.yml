@@ -45,6 +45,12 @@ jobs:
     needs: changements
     if: needs.changements.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    # Les tests tournent dans un ordre aléatoire : trois graines différentes révèlent les dépendances à l'ordre.
+    # Pour rejouer un échec : -Dsurefire.runOrder.random.seed=N -Djunit.jupiter.execution.order.random.seed=N
+    strategy:
+      fail-fast: false
+      matrix:
+        graine: [20261127, 7919, 314159265]
     defaults:
       run:
         working-directory: backend
@@ -58,14 +64,17 @@ jobs:
           cache: maven
 
       # Docker est disponible sur ubuntu-latest : Testcontainers démarre PostgreSQL et Redis.
-      - name: Compilation et tests
-        run: ./mvnw -B verify
+      - name: Compilation et tests (graine ${{ matrix.graine }})
+        run: >-
+          ./mvnw -B verify
+          -Dsurefire.runOrder.random.seed=${{ matrix.graine }}
+          -Djunit.jupiter.execution.order.random.seed=${{ matrix.graine }}
 
       - name: Rapports de tests
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: rapports-tests-backend
+          name: rapports-tests-backend-${{ matrix.graine }}
           path: backend/target/surefire-reports/
 
   frontend:
