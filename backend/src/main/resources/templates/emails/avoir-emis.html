@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p th:if="${!#strings.isEmpty(prenom)}">Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p th:if="${#strings.isEmpty(prenom)}">Bonjour,</p>
+    <p>Nous avons établi l'avoir <strong th:text="${numero}">AV-2026-000001</strong> sur la facture
+       <strong th:text="${numeroFacture}">FAC-2026-000001</strong>, pour un montant de
+       <strong th:text="${total}">450 000 FCFA</strong>. Il est joint à ce message au format PDF.</p>
+    <p>Motif : <span th:text="${motif}">Retour d'un article</span></p>
+    <p style="font-size:13px;color:#5B6573;">Un avoir est un document comptable : le remboursement éventuel vous est
+       confirmé séparément par notre équipe.</p>
+</div>
+</body>
+</html>

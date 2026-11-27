@@ -24,6 +24,7 @@ import sn.boutique.commande.dto.OptionsCommandeReponse;
 import sn.boutique.commande.dto.RetourPaiementReponse;
 import sn.boutique.commande.service.RetourPaiementService;
 import sn.boutique.commande.dto.SuiviCommandeReponse;
+import sn.boutique.commande.facture.DocumentsCommandeService;
 import sn.boutique.commande.service.CommandeService.ContexteRequete;
 import sn.boutique.commande.service.LimitesCommande;
 import sn.boutique.commande.service.OptionsCommandeService;
@@ -52,6 +53,7 @@ public class CommandeControleur {
     private final OptionsCommandeService optionsService;
     private final RetourPaiementService retourService;
     private final LimitesCommande limites;
+    private final DocumentsCommandeService documents;
     private final ProprietesPanier proprietesPanier;
 
     @GetMapping("/options")
@@ -86,6 +88,20 @@ public class CommandeControleur {
     public ResponseEntity<SuiviCommandeReponse> suivi(HttpServletRequest http, @PathVariable String jeton) {
         limites.suivi(http.getRemoteAddr());
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(suiviService.lire(jeton));
+    }
+
+    /** Facture de la commande en PDF, pour le client sans compte (le lien de suivi fait foi). */
+    @GetMapping("/suivi/{jeton}/facture")
+    public ResponseEntity<byte[]> facture(HttpServletRequest http, @PathVariable String jeton) {
+        limites.suivi(http.getRemoteAddr());
+        return ReponsePdf.de(documents.factureParJeton(jeton));
+    }
+
+    @GetMapping("/suivi/{jeton}/avoirs/{numeroAvoir}")
+    public ResponseEntity<byte[]> avoir(HttpServletRequest http, @PathVariable String jeton,
+                                        @PathVariable String numeroAvoir) {
+        limites.suivi(http.getRemoteAddr());
+        return ReponsePdf.de(documents.avoirParJeton(jeton, numeroAvoir));
     }
 
     /** « Reprendre le paiement » : renvoie la nouvelle page de paiement du prestataire. */

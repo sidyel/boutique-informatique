@@ -313,3 +313,17 @@
     min-height: var(--cible-tactile);
   }
 }
+
+.documents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    width: 100%;
+    justify-content: center;
+  }
+}

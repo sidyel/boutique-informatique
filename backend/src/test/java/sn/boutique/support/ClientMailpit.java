@@ -35,7 +35,12 @@ public class ClientMailpit {
     }
 
     /** E-mail reçu, tel que vu par le destinataire. */
-    public record Email(String sujet, String expediteur, String html) {
+    public record Email(String sujet, String expediteur, String html, String texte, List<Piece> pieces,
+                        String brut) {
+
+        /** Pièce jointe vue par le destinataire. */
+        public record Piece(String nom, String type, long taille) {
+        }
 
         /** Jeton contenu dans le lien de l'e-mail. */
         public String jeton() {
@@ -56,8 +61,15 @@ public class ClientMailpit {
                 List<Email> emails = new ArrayList<>();
                 for (JsonNode resume : messages) {
                     JsonNode message = lire("/api/v1/message/" + resume.get("ID").asString());
+                    List<Email.Piece> pieces = new ArrayList<>();
+                    for (JsonNode piece : message.path("Attachments")) {
+                        pieces.add(new Email.Piece(piece.get("FileName").asString(),
+                                piece.get("ContentType").asString(), piece.get("Size").asLong()));
+                    }
                     emails.add(new Email(message.get("Subject").asString(),
-                            message.get("From").get("Address").asString(), message.get("HTML").asString()));
+                            message.get("From").get("Address").asString(), message.get("HTML").asString(),
+                            message.path("Text").asString(""), pieces,
+                            brut(resume.get("ID").asString())));
                 }
                 return emails;
             }
@@ -82,6 +94,19 @@ public class ClientMailpit {
     private JsonNode rechercher(String destinataire) {
         String requete = URLEncoder.encode("to:\"" + destinataire + "\"", StandardCharsets.UTF_8);
         return lire("/api/v1/search?query=" + requete).get("messages");
+    }
+
+    /** Source brute du message (en-têtes MIME compris). */
+    private String brut(String id) {
+        try {
+            return http.send(HttpRequest.newBuilder(URI.create(url + "/api/v1/message/" + id + "/raw")).build(),
+                    HttpResponse.BodyHandlers.ofString()).body();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e);
+        }
     }
 
     private JsonNode lire(String chemin) {

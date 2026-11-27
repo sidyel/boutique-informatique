@@ -19,6 +19,8 @@ import sn.boutique.commande.modele.StatutCommande;
  * @param peutReprendrePaiement paiement en ligne non réglé, commande non expirée
  * @param remboursementEnCours un paiement reçu pour cette commande ne peut pas être honoré (articles épuisés après
  *                             expiration, ou paiement en double) : il sera remboursé
+ * @param numeroFacture        facture émise (paiement confirmé ou livraison encaissée), sinon null : téléchargeable par le lien
+ * @param numerosAvoirs        avoirs émis sur cette facture
  * @param achatASuivre         la commande est réglée ou confirmée et l'événement « achat » n'a pas encore été émis
  *                             pour les régies publicitaires
  */
@@ -42,7 +44,9 @@ public record SuiviCommandeReponse(
         List<Etape> etapes,
         boolean peutReprendrePaiement,
         boolean achatASuivre,
-        boolean remboursementEnCours) {
+        boolean remboursementEnCours,
+        String numeroFacture,
+        List<String> numerosAvoirs) {
 
     public record Ligne(String sku, String nomProduit, String libelleVariante, String imageUrl, long prixUnitaire,
                         int quantite, long totalLigne) {

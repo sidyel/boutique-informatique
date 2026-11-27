@@ -2,6 +2,7 @@ package sn.boutique.noyau.email;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -36,15 +38,28 @@ public class EmailService {
     private final ProprietesEmail proprietes;
     private final ProprietesBoutique proprietesBoutique;
 
+    /** Pièce jointe : nom de fichier, contenu et type MIME. */
+    public record PieceJointe(String nom, byte[] octets, String type) {
+    }
+
     /**
      * @param modele    nom du modèle sous {@code templates/emails/}, sans extension
      * @param variables variables du modèle ; {@code nomSite} et {@code urlSite} sont ajoutées
      */
     public void envoyer(String destinataire, String sujet, String modele, Map<String, Object> variables) {
+        envoyer(destinataire, sujet, modele, variables, List.of());
+    }
+
+    /**
+     * Comme {@link #envoyer(String, String, String, Map)} avec des pièces jointes. Le message est toujours
+     * multipart/alternative : version texte (dérivée du HTML) et version HTML.
+     */
+    public void envoyer(String destinataire, String sujet, String modele, Map<String, Object> variables,
+                        List<PieceJointe> pieces) {
         String html = rendre(modele, sujet, variables);
         for (int tentative = 1; tentative <= proprietes.tentatives(); tentative++) {
             try {
-                expediteurMail.send(message(destinataire, sujet, html));
+                expediteurMail.send(message(destinataire, sujet, html, pieces));
                 log.info("E-mail « {} » envoyé (modèle {})", sujet, modele);
                 return;
             } catch (MailException | MessagingException e) {
@@ -67,13 +82,19 @@ public class EmailService {
         return moteurModeles.process("emails/" + modele, new Context(FRANCAIS, toutes));
     }
 
-    private MimeMessage message(String destinataire, String sujet, String html) throws MessagingException {
+    private MimeMessage message(String destinataire, String sujet, String html, List<PieceJointe> pieces)
+            throws MessagingException {
         MimeMessage message = expediteurMail.createMimeMessage();
-        MimeMessageHelper aide = new MimeMessageHelper(message, false, "UTF-8");
+        MimeMessageHelper aide = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                "UTF-8");
         aide.setFrom(proprietes.expediteur());
         aide.setTo(destinataire);
         aide.setSubject(sujet);
-        aide.setText(html, true);
+        // Texte puis HTML : multipart/alternative
+        aide.setText(HtmlVersTexte.convertir(html), html);
+        for (PieceJointe piece : pieces) {
+            aide.addAttachment(piece.nom(), new ByteArrayResource(piece.octets()), piece.type());
+        }
         return message;
     }
 

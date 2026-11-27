@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import sn.boutique.authentification.securite.GenerateurJetons;
 import sn.boutique.commande.depot.CommandeDepot;
 import sn.boutique.commande.dto.SuiviCommandeReponse;
+import sn.boutique.commande.facture.DocumentsCommandeService;
 import sn.boutique.commande.dto.SuiviCommandeReponse.Etape;
 import sn.boutique.commande.dto.SuiviCommandeReponse.Ligne;
 import sn.boutique.commande.modele.Commande;
@@ -44,6 +45,7 @@ public class SuiviCommandeService {
     private final PaiementService paiementService;
     private final JdbcClient jdbc;
     private final Clock horloge;
+    private final DocumentsCommandeService documents;
 
     @Transactional(readOnly = true)
     public SuiviCommandeReponse lire(String jeton) {
@@ -56,6 +58,7 @@ public class SuiviCommandeService {
                 .map(l -> new Ligne(l.getSku(), l.getNomProduit(), l.getLibelleVariante(), l.getImageUrl(),
                         l.getPrixUnitaire(), l.getQuantite(), l.getTotalLigne()))
                 .toList();
+        var pieces = documents.piecesDe(commande);
         List<Etape> etapes = commande.getHistorique().stream()
                 .map(h -> new Etape(h.getNouveauStatut(), h.getDateCreation()))
                 .toList();
@@ -66,7 +69,8 @@ public class SuiviCommandeService {
                 adresseMasquee(commande), commande.getModePaiement(), lignes, commande.getSousTotal(),
                 commande.getFraisLivraison(), commande.getRemise(), commande.getTotal(), commande.getCodePromo(), etapes,
                 peutReprendre, commande.getAchatSuiviLe() == null && VENTE_ACQUISE.contains(commande.getStatut()),
-                commande.getPaiements().stream().anyMatch(p -> p.getStatut() == StatutPaiement.A_REMBOURSER));
+                commande.getPaiements().stream().anyMatch(p -> p.getStatut() == StatutPaiement.A_REMBOURSER),
+                pieces.numeroFacture(), pieces.numerosAvoirs());
     }
 
     /**

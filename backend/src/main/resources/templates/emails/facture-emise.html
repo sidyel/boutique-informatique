@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p th:if="${!#strings.isEmpty(prenom)}">Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p th:if="${#strings.isEmpty(prenom)}">Bonjour,</p>
+    <p>Voici la facture <strong th:text="${numero}">FAC-2026-000001</strong> de votre commande
+       <strong th:text="${numeroCommande}">CMD-2026-000001</strong>, pour un montant de
+       <strong th:text="${total}">450 000 FCFA</strong>. Elle est jointe à ce message au format PDF.</p>
+    <p>Vous pouvez aussi la télécharger à tout moment depuis la page de suivi de votre commande.</p>
+    <p style="font-size:13px;color:#5B6573;">Conservez ce document : il fait foi pour votre garantie et votre comptabilité.</p>
+</div>
+</body>
+</html>

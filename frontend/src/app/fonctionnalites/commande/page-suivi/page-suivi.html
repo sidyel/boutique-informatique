@@ -136,6 +136,18 @@
       </dl>
     </section>
 
+    @if (c.numeroFacture) {
+      <section class="bloc">
+        <h2 class="bloc__titre">Documents</h2>
+        <ul class="documents">
+          <li><a biBouton variante="contour" [href]="urlFacture()" download>Facture {{ c.numeroFacture }} (PDF)</a></li>
+          @for (avoir of c.numerosAvoirs; track avoir) {
+            <li><a biBouton variante="contour" [href]="urlAvoir(avoir)" download>Avoir {{ avoir }} (PDF)</a></li>
+          }
+        </ul>
+      </section>
+    }
+
     <section class="bloc">
       <h2 class="bloc__titre">Livraison et contact</h2>
       <dl class="infos">

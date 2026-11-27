@@ -134,6 +134,12 @@ public class FactureDepot {
                         """).param("f", factureId).query(LIGNE).list();
     }
 
+    /** Numéro lisible de la commande d'une facture. */
+    public String numeroCommande(long commandeId) {
+        return jdbc.sql("select numero from commande where id = :i").param("i", commandeId).query(String.class)
+                .single();
+    }
+
     /** Le PDF figé de la facture. */
     public Optional<byte[]> pdf(String numero) {
         return jdbc.sql("select pdf from facture where numero = :n").param("n", numero).query(byte[].class).optional();

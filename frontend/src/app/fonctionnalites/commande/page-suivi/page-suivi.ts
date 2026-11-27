@@ -72,6 +72,11 @@ export class PageSuivi {
   });
   protected readonly aLaLivraison = computed(() => this.commande()?.modePaiement === 'A_LA_LIVRAISON');
   protected readonly retrait = computed(() => this.commande()?.modeLivraison === 'RETRAIT_MAGASIN');
+  /** Facture et avoirs : liens directs (une touche ouvre ou télécharge le PDF), sans script. */
+  protected readonly urlFacture = computed(() => `/api/commandes/suivi/${encodeURIComponent(this.jeton())}/facture`);
+  protected urlAvoir(numero: string): string {
+    return `/api/commandes/suivi/${encodeURIComponent(this.jeton())}/avoirs/${encodeURIComponent(numero)}`;
+  }
   protected readonly lienSuivi = computed(() => `${this.document.location?.origin ?? ''}/suivi/${this.jeton()}`);
   protected readonly lienWhatsApp = computed(() => {
     const c = this.commande();

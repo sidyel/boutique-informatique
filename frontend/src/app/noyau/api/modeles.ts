@@ -492,6 +492,9 @@ export interface SuiviCommande {
   achatASuivre: boolean;
   /** Un paiement reçu ne peut pas être honoré : il sera remboursé. */
   remboursementEnCours: boolean;
+  /** Facture émise (paiement confirmé ou livraison encaissée), téléchargeable par le lien de suivi. */
+  numeroFacture: string | null;
+  numerosAvoirs: string[];
 }
 
 /** Retour de la page de paiement du prestataire : statut vérifié par le serveur, rien d'autre. */
