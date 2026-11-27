@@ -140,10 +140,14 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] **Vérifier une vraie notification PayDunya sur le serveur public** (pas de tunnel en local) : adresse de
   notification joignable, contrôle d'authenticité, réponse rapide ; puis un paiement réel de faible montant en
   production. — *décision (4c)*
-- [ ] **Renseigner les mentions légales des factures** : `FACTURE_RAISON_SOCIALE`, `FACTURE_NINEA`,
-  `FACTURE_RCCM`, `FACTURE_TVA` (voir `.env.exemple`). Vides, les factures se génèrent quand même avec un
-  avertissement dans les journaux en développement ; **le démarrage est refusé** si `INDEXATION_AUTORISEE=true`
-  ou en profil `prod` (sauf démonstration) tant qu'une mention manque. À faire valider par le comptable. — *décision (4c)*
+- [ ] **Renseigner les mentions légales des factures** : raison sociale, NINEA, RCCM, adresse du siège, via
+  `PUT /api/admin/parametres/facturation` (elles sont en base, plus en variables d'environnement ; écran en phase 6).
+  Vides, les factures se génèrent quand même avec un avertissement dans les journaux en développement ; **le démarrage
+  est refusé** si `INDEXATION_AUTORISEE=true` ou en profil `prod` (sauf démonstration) tant qu'une mention manque.
+  À faire valider par le comptable. — *décision (4c), déplacé en base (4d)*
+- [ ] **Confirmer le régime de TVA avec le comptable** : par défaut « TVA non applicable » (le site n'affiche pas
+  « TTC »). Passer à « assujetti » (18 %) via la même route, après validation de la méthode d'arrondi (ADR 0008).
+  — *décision (4d)*
 - [ ] Renseigner `PAYDUNYA_*` (clés de production), `EMAIL_ALERTES`, activer le mobile money dans les réglages.
 
 ## Phase 9 — mise en production

@@ -8,10 +8,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Component;
+import sn.boutique.contenu.depot.ParametresSiteDepot;
 import sn.boutique.noyau.config.ProprietesBoutique;
 
 /**
- * Les factures doivent porter les mentions légales du vendeur (raison sociale, NINEA, RCCM, TVA).
+ * Les factures doivent porter les mentions légales du vendeur (raison sociale, NINEA, RCCM, siège), lues dans
+ * {@code parametres_site} (réglées par l'admin).
  * <ul>
  *   <li>Mentions manquantes : avertissement très visible dans les journaux à chaque démarrage, les factures se
  *   génèrent quand même (développement, démonstration).</li>
@@ -27,17 +29,19 @@ public class VerificationMentionsLegales {
     private final ProprietesFacture facture;
     private final ProprietesBoutique boutique;
     private final Environment environnement;
+    private final ParametresSiteDepot parametresDepot;
 
     public VerificationMentionsLegales(ProprietesFacture facture, ProprietesBoutique boutique,
-                                       Environment environnement) {
+                                       Environment environnement, ParametresSiteDepot parametresDepot) {
         this.facture = facture;
         this.boutique = boutique;
         this.environnement = environnement;
+        this.parametresDepot = parametresDepot;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void verifier() {
-        List<String> manquantes = facture.manquantes();
+        List<String> manquantes = MentionsFactureService.manquantes(parametresDepot.lire());
         if (manquantes.isEmpty()) {
             return;
         }
@@ -50,6 +54,7 @@ public class VerificationMentionsLegales {
                 ==========================================================================================
                 AVERTISSEMENT : mentions légales des factures non renseignées ({}).
                 Les factures sont générées sans ces mentions : acceptable en développement uniquement.
+                Renseignez-les : PUT /api/admin/parametres/facturation.
                 Le démarrage sera refusé en production tant qu'elles sont vides.
                 ==========================================================================================""",
                 String.join(", ", manquantes));

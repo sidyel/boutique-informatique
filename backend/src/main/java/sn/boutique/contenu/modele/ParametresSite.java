@@ -170,6 +170,34 @@ public class ParametresSite {
     @Column(length = 120)
     private String delaiLivraison;
 
+    /* --- Mentions légales des factures et régime de TVA (V21), figées sur chaque facture à l'émission --- */
+
+    @Column(length = 160)
+    private String factureRaisonSociale;
+
+    @Column(length = 40)
+    private String factureNinea;
+
+    @Column(length = 60)
+    private String factureRccm;
+
+    /** Adresse du siège social. */
+    @Column(length = 255)
+    private String factureAdresseSiege;
+
+    /** Par défaut « TVA non applicable » en attendant la confirmation du régime fiscal par le comptable. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private RegimeTva factureRegimeTva = RegimeTva.NON_APPLICABLE;
+
+    /** Taux en points de base (1800 = 18 %), utilisé seulement si le régime est ASSUJETTI. */
+    @Column(nullable = false)
+    private int factureTauxTvaBp = 1800;
+
+    /** Mention imprimée sur la facture si la TVA n'est pas applicable. */
+    @Column(nullable = false, length = 255)
+    private String factureMentionTva = "TVA non applicable";
+
     /* --- Politique de retour (JSON-LD MerchantReturnPolicy, V15) --- */
 
     /** Faux : « retours refusés » (MerchantReturnNotPermitted). */
