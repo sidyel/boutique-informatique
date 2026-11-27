@@ -17,8 +17,9 @@
         .etiquette { font-size: 8pt; text-transform: uppercase; color: #5b6573; letter-spacing: 0.4pt; margin: 0 0 2pt 0; }
         .origine { border: 0.8pt solid #1c2128; padding: 5pt 7pt; margin-bottom: 12pt; }
         table.lignes { width: 100%; border-collapse: collapse; }
-        table.lignes th { text-align: left; font-size: 8pt; text-transform: uppercase; color: #5b6573;
+        table.lignes th { text-align: left; font-size: 7pt; text-transform: uppercase; color: #5b6573;
             border-bottom: 1pt solid #1c2128; padding: 4pt 4pt; }
+        table.lignes th.num { text-align: right; }
         table.lignes td { padding: 4pt 4pt; border-bottom: 0.5pt solid #d5d9de; vertical-align: top; }
         .num { text-align: right; white-space: nowrap; }
         .ref { font-family: 'DejaVu Sans', monospace; font-size: 8.5pt; }
@@ -42,7 +43,7 @@
             <h1 th:text="${p.titre}">Facture</h1>
             <div><strong th:text="${p.numero}">FAC-2026-000001</strong></div>
             <div class="petit">Date : <span th:text="${date}">27/11/2026</span></div>
-            <div class="petit" th:if="${p.numeroCommande != null}">Commande : <span th:text="${p.numeroCommande}">CMD-2026-000001</span></div>
+            <div class="petit" style="white-space: nowrap" th:if="${p.numeroCommande != null}">Commande : <span th:text="${p.numeroCommande}">CMD-2026-000001</span></div>
         </td>
     </tr>
 </table>
@@ -74,7 +75,7 @@
         <th>Réf.</th>
         <th>Désignation</th>
         <th class="num">Qté</th>
-        <th class="num">Prix unit. TTC</th>
+        <th class="num">P.U. TTC</th>
         <th class="num" th:if="${p.assujetti()}">TVA</th>
         <th class="num">Total TTC</th>
     </tr>
