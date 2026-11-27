@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${p.titre + ' ' + p.numero}">Facture FAC-2026-000001</title>
+    <style>
+        @page { size: A4; margin: 16mm 14mm 18mm 14mm; }
+        body { font-family: sans-serif; font-size: 9.5pt; color: #1c2128; line-height: 1.35; }
+        h1 { font-size: 20pt; margin: 0 0 2pt 0; letter-spacing: 0.5pt; text-transform: uppercase; }
+        .entete { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
+        .entete td { vertical-align: top; padding: 0; }
+        .droite { text-align: right; }
+        .vendeur { font-size: 12pt; font-weight: bold; margin: 0 0 2pt 0; }
+        .petit { font-size: 8.5pt; color: #5b6573; }
+        .blocs { width: 100%; border-collapse: collapse; margin-bottom: 12pt; }
+        .blocs td { vertical-align: top; width: 50%; padding: 0 8pt 0 0; }
+        .etiquette { font-size: 8pt; text-transform: uppercase; color: #5b6573; letter-spacing: 0.4pt; margin: 0 0 2pt 0; }
+        .origine { border: 0.8pt solid #1c2128; padding: 5pt 7pt; margin-bottom: 12pt; }
+        table.lignes { width: 100%; border-collapse: collapse; }
+        table.lignes th { text-align: left; font-size: 8pt; text-transform: uppercase; color: #5b6573;
+            border-bottom: 1pt solid #1c2128; padding: 4pt 4pt; }
+        table.lignes td { padding: 4pt 4pt; border-bottom: 0.5pt solid #d5d9de; vertical-align: top; }
+        .num { text-align: right; white-space: nowrap; }
+        .ref { font-family: monospace; font-size: 8.5pt; }
+        table.totaux { width: 46%; margin-left: 54%; border-collapse: collapse; margin-top: 8pt; }
+        table.totaux td { padding: 3pt 4pt; }
+        table.totaux tr.total td { border-top: 1pt solid #1c2128; font-weight: bold; font-size: 11pt; padding-top: 5pt; }
+        .mentions { margin-top: 18pt; font-size: 8.5pt; color: #5b6573; }
+        .mentions p { margin: 0 0 3pt 0; }
+    </style>
+</head>
+<body>
+<table class="entete">
+    <tr>
+        <td>
+            <p class="vendeur" th:text="${p.vendeur.raisonSociale}">Boutique Informatique SARL</p>
+            <div class="petit" th:if="${p.vendeur.adresse != null}" th:text="${p.vendeur.adresse}">Dakar</div>
+            <div class="petit" th:if="${p.vendeur.ninea != null}">NINEA : <span th:text="${p.vendeur.ninea}">0012345</span></div>
+            <div class="petit" th:if="${p.vendeur.rccm != null}">RCCM : <span th:text="${p.vendeur.rccm}">SN-DKR-2026-B-1</span></div>
+        </td>
+        <td class="droite">
+            <h1 th:text="${p.titre}">Facture</h1>
+            <div><strong th:text="${p.numero}">FAC-2026-000001</strong></div>
+            <div class="petit">Date : <span th:text="${date}">27/11/2026</span></div>
+            <div class="petit" th:if="${p.numeroCommande != null}">Commande : <span th:text="${p.numeroCommande}">CMD-2026-000001</span></div>
+        </td>
+    </tr>
+</table>
+
+<div class="origine" th:if="${p.estAvoir()}">
+    <strong>Avoir sur la facture <span th:text="${p.factureOrigine}">FAC-2026-000001</span></strong>
+    <div th:if="${p.motif != null}">Motif : <span th:text="${p.motif}">Retour</span></div>
+</div>
+
+<table class="blocs">
+    <tr>
+        <td>
+            <p class="etiquette">Client</p>
+            <div th:if="${p.client.nom != null}"><strong th:text="${p.client.nom}">Awa Diop</strong></div>
+            <div th:text="${p.client.telephone}">+221781234567</div>
+            <div th:if="${p.client.email != null}" th:text="${p.client.email}">awa@exemple.sn</div>
+            <div th:if="${p.client.adresse != null}" th:text="${p.client.adresse}">Médina, Dakar</div>
+        </td>
+        <td>
+            <p class="etiquette">Paiement</p>
+            <div th:text="${p.modePaiement}">À la livraison</div>
+        </td>
+    </tr>
+</table>
+
+<table class="lignes">
+    <thead>
+    <tr>
+        <th>Réf.</th>
+        <th>Désignation</th>
+        <th class="num">Qté</th>
+        <th class="num">Prix unit. TTC</th>
+        <th class="num" th:if="${p.assujetti()}">TVA</th>
+        <th class="num">Total TTC</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="l : ${p.lignes}">
+        <td class="ref" th:text="${l.reference}">ASUS-A15-16-512</td>
+        <td>
+            <span th:text="${l.designation}">PC portable</span>
+            <div class="petit" th:if="${l.remiseTtc > 0}">Remise : -<span
+                    th:text="${T(sn.boutique.commande.facture.RenduPdfService).montant(l.remiseTtc)}">1 000 FCFA</span></div>
+        </td>
+        <td class="num" th:text="${l.quantite}">1</td>
+        <td class="num" th:text="${T(sn.boutique.commande.facture.RenduPdfService).montant(l.prixUnitaireTtc)}">450 000 FCFA</td>
+        <td class="num" th:if="${p.assujetti()}"
+            th:text="${T(sn.boutique.commande.facture.RenduPdfService).montant(l.montantTva)}">68 644 FCFA</td>
+        <td class="num" th:text="${T(sn.boutique.commande.facture.RenduPdfService).montant(l.totalTtc)}">450 000 FCFA</td>
+    </tr>
+    </tbody>
+</table>
+
+<table class="totaux">
+    <tr th:if="${p.assujetti()}">
+        <td>Total HT</td>
+        <td class="num" th:text="${T(sn.boutique.commande.facture.RenduPdfService).montant(p.totalHt)}">381 356 FCFA</td>
+    </tr>
+    <tr th:if="${p.assujetti()}">
+        <td th:text="${'TVA ' + T(sn.boutique.commande.facture.RenduPdfService).taux(p.tauxTvaBp) + ' %'}">TVA 18 %</td>
+        <td class="num" th:text="${T(sn.boutique.commande.facture.RenduPdfService).montant(p.totalTva)}">68 644 FCFA</td>
+    </tr>
+    <tr class="total">
+        <td th:text="${p.assujetti() ? 'Total TTC' : 'Total à payer'}">Total TTC</td>
+        <td class="num" th:text="${T(sn.boutique.commande.facture.RenduPdfService).montant(p.totalTtc)}">450 000 FCFA</td>
+    </tr>
+</table>
+
+<div class="mentions">
+    <p th:if="${!p.assujetti()}" th:text="${p.mentionTva}">TVA non applicable</p>
+    <p th:if="${p.estAvoir()}">Cet avoir réduit d'autant la facture d'origine.</p>
+    <p>Montants en francs CFA (XOF), sans décimales.</p>
+</div>
+</body>
+</html>

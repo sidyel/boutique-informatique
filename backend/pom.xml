@@ -151,6 +151,14 @@
 			</exclusions>
 		</dependency>
 
+		<!-- Factures et avoirs en PDF : rend un gabarit HTML/CSS (Thymeleaf) en PDF, sans navigateur ni service externe.
+		     Polices standard du PDF (Helvetica, Courier) : aucune police à incorporer, fichiers de quelques Ko. -->
+		<dependency>
+			<groupId>io.github.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>1.1.85</version>
+		</dependency>
+
 		<!-- Tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
