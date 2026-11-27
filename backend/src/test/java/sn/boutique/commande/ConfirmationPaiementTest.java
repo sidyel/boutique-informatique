@@ -259,4 +259,27 @@ class ConfirmationPaiementTest extends CommandeTestBase {
                 .andExpect(jsonPath("$.code").value("MODE_PAIEMENT_INDISPONIBLE"));
         commander(jeton, null, cle(), requete(telephone(), "A_LA_LIVRAISON", 12_000)).andExpect(status().isCreated());
     }
+
+    @Autowired
+    org.springframework.cache.CacheManager gestionnaireCaches;
+
+    @Test
+    void leSiteNAnnonceQueLesMoyensDePaiementReellementActifs() throws Exception {
+        try {
+            fournisseur.configurer(false);
+            gestionnaireCaches.getCache(sn.boutique.noyau.cache.CachesPublics.PARAMETRES).invalidate();
+            mockMvc.perform(get("/api/parametres"))
+                    .andExpect(jsonPath("$.modesPaiement.mobileMoney").value(false))
+                    .andExpect(jsonPath("$.modesPaiement.carte").value(false))
+                    .andExpect(jsonPath("$.modesPaiement.livraison").value(true));
+
+            fournisseur.configurer(true);
+            gestionnaireCaches.getCache(sn.boutique.noyau.cache.CachesPublics.PARAMETRES).invalidate();
+            mockMvc.perform(get("/api/parametres"))
+                    .andExpect(jsonPath("$.modesPaiement.mobileMoney").value(true))
+                    .andExpect(jsonPath("$.modesPaiement.carte").value(false));
+        } finally {
+            gestionnaireCaches.getCache(sn.boutique.noyau.cache.CachesPublics.PARAMETRES).invalidate();
+        }
+    }
 }

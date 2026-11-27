@@ -18,9 +18,6 @@ const INFORMATIONS = [
   { slug: 'confidentialite', titre: 'Politique de confidentialité' },
 ];
 
-/** Moyens de paiement proposés (cahier des charges §3), affichés en texte : aucun logo de marque copié. */
-const PAIEMENTS = ['Wave', 'Orange Money', 'Free Money', 'Carte bancaire', 'Paiement à la livraison'];
-
 const RESEAUX: Record<string, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',
@@ -43,7 +40,8 @@ export class PiedDePage {
   private readonly suivi = inject(SuiviService);
 
   protected readonly informations = INFORMATIONS;
-  protected readonly paiements = PAIEMENTS;
+  /** Seulement les moyens réellement actifs, affichés en texte : aucun logo de marque copié. */
+  protected readonly paiements = this.site.moyensPaiement;
   protected readonly annee = new Date().getFullYear();
 
   protected readonly reseaux = computed(() =>

@@ -63,11 +63,13 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Phase 6 — Geste « **retour client** » : crée l'avoir ET la remise en stock en une seule action (aujourd'hui l'avoir est une pièce comptable seule). — *décision 3 de la 4d*
 - [ ] Phase 6 — Écran de régularisation des **écarts d'encaissement** (`commande.ecart_encaissement`) : encaissement complémentaire ou avoir, puis `ecart_regularise_le`. — *décision 4 de la 4d*
 - [x] Fin de la phase 4 — Captures mobile (360/390/768/1440) du panier, du tunnel, de la confirmation, du suivi avec facture et du retour de paiement (`docs/captures/phase-4/`, hors Git) ; accueil mobile 364 Ko ; Lighthouse lu. — *CLAUDE.md* (bilan 4)
-- [ ] Phase 4 (bilan) — Pied de page : les pastilles Wave, Orange Money, Free Money et Carte bancaire s'affichent
-  même quand le mode n'est pas activé. À rendre dépendantes des modes réellement proposés (paramètres publics).
+- [x] Phase 4 (bilan) — Pied de page : les pastilles Wave, Orange Money, Free Money et Carte bancaire s'affichent
+  même quand le mode n'est pas activé. Corrigé : `modesPaiement` dans les paramètres publics (mobile money seulement
+  avec les clés, carte jamais tant qu'elle n'est pas activée), pied de page et bandeau de confiance dynamiques.
   — *captures de recette*
-- [ ] Phase 4 (bilan) — Le bouton WhatsApp flottant recouvre le lien de suivi (page de suivi, 360 px) : le décaler
-  ou le masquer sur cette page. — *captures de recette*
+- [x] Phase 4 (bilan) — Le bouton WhatsApp flottant recouvre le lien de suivi (page de suivi, 360 px) : le décaler
+  ou le masquer sur cette page. Corrigé : bouton flottant masqué sous 64 rem (à 360 px il recouvrait un lien sur
+  toutes les pages au défilement) ; reste visible sur grand écran. — *captures de recette*
 - [ ] Phase 4 (bilan) — Ajouter `/suivi/:jeton` et `/commande/retour/:jeton` au workflow Lighthouse (aujourd'hui :
   accueil, catégorie, fiche, panier, commande). Le SEO à 69 (accueil) et 54 (panier, commande) vient de
   `noindex` en CI (`INDEXATION_AUTORISEE=false`) : à re-mesurer en production. — *Lighthouse, bilan 4*
@@ -76,6 +78,11 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
   exact reste dans la facture archivée. — *test de la police, bilan 4*
 - [ ] Rappel de méthode — Tout champ ajouté à un DTO mis en cache impose de monter `CachesPublics.VERSION_FORMAT`
   et d'ajouter l'empreinte dans `FormatCachesTest` (la CI l'a rappelé : commit « afficherTtc »). — *bilan 4*
+- [ ] Phase 6 — Textes saisis par l'admin (bannières, éléments de confiance, pages) : avertir quand un texte cite Wave,
+  Orange Money, Free Money ou la carte alors que ce moyen n'est pas actif (aujourd'hui seul l'élément « paiement » du
+  bandeau est recalculé automatiquement ; les bannières et pages sont du texte libre). — *correctifs post-phase 4*
+- [ ] Bouton WhatsApp flottant sur grand écran : recouvre parfois une carte produit à 1440 px (accueil). Le déplacer
+  hors de la grille ou le réserver à des pages sans grille. — *audit de recouvrement, correctifs post-phase 4*
 
 ## Phase 5 — compte client
 

@@ -89,6 +89,14 @@ cd backend && ./mvnw verify     # nécessite Docker (Testcontainers)
 cd frontend && npm test
 ```
 
+## Polices et licences
+
+- **Site (frontend)** : Space Grotesk, Inter et JetBrains Mono, hébergées sur le site (`frontend/public/polices/`), licence
+  SIL OFL 1.1 (textes dans `frontend/public/polices/licences/`).
+- **Factures et avoirs PDF (backend)** : **DejaVu Sans** (normale et grasse), incorporée en sous-ensemble dans chaque PDF
+  pour écrire les noms de clients (ŋ, Ɓ, Ɗ, ñ, accents…). Fichiers et licence (Bitstream Vera / DejaVu, libre de
+  redistribution) dans `backend/src/main/resources/polices/pdf/` : `LICENSE_DEJAVU` doit rester à côté des polices.
+
 ## Ports déjà utilisés sur la machine
 
 Les ports par défaut (5432, 6379, 8080, 4200) peuvent être pris par d'autres projets. Ils sont tous configurables :

@@ -135,8 +135,19 @@ export interface ParametresPublics {
    * défaut « TVA non applicable »), la mention n'est pas affichée. Absent (ancien cache) : faux.
    */
   afficherTtc?: boolean;
+  /**
+   * Moyens de paiement réellement proposés : le site n'annonce que ceux-là. Absent (ancien cache) : seulement le
+   * paiement à la livraison.
+   */
+  modesPaiement?: ModesPaiementActifs;
   /** Adresse publique et autorisation d'indexer (configuration du serveur : URL_SITE, INDEXATION_AUTORISEE). */
   site?: { url: string; indexationAutorisee: boolean } | null;
+}
+
+export interface ModesPaiementActifs {
+  mobileMoney: boolean;
+  carte: boolean;
+  livraison: boolean;
 }
 
 export interface PolitiqueRetour {

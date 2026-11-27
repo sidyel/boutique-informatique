@@ -5,9 +5,11 @@ import { SuiviService } from '../../noyau/suivi/suivi.service';
 import { Icone } from '../../partage/composants/icone/icone';
 
 /**
- * Bouton WhatsApp flottant, à portée du pouce (bas droit), au-dessus de la barre de navigation des
- * téléphones (`safe-area-inset-bottom`). Lien `wa.me` : un toucher ouvre directement l'application.
- * Masqué tant qu'aucun numéro WhatsApp n'est saisi dans les paramètres.
+ * Bouton WhatsApp flottant, <strong>sur grand écran seulement</strong> (≥ 64 rem). Sur téléphone et tablette, un
+ * bouton fixe recouvre un lien ou un bouton quelle que soit la page dès qu'on fait défiler (mesuré à 360 px sur toutes
+ * les pages) : WhatsApp y reste accessible par le tiroir, le pied de page, la barre d'achat de la fiche produit et la
+ * page de suivi. Lien `wa.me` : un toucher ouvre directement l'application. Masqué tant qu'aucun numéro WhatsApp n'est
+ * saisi dans les paramètres.
  */
 @Component({
   selector: 'bi-bouton-whatsapp',
@@ -28,6 +30,14 @@ import { Icone } from '../../partage/composants/icone/icone';
     }
   `,
   styles: `
+    :host {
+      display: none;
+
+      @media (width >= 64rem) {
+        display: contents;
+      }
+    }
+
     .whatsapp {
       position: fixed;
       inset-inline-end: var(--espace-4);

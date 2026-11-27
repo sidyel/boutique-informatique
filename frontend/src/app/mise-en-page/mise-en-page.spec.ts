@@ -70,8 +70,25 @@ describe('MiseEnPagePublique', () => {
     // Logo texte provisoire tant qu'aucun logo n'est envoyé
     expect(page.querySelector('.logo__nom')?.textContent).toContain('Boutique');
     // Pied de page : catégories, paiements, réseaux
-    expect(page.querySelector('.pied')?.textContent).toContain('Orange Money');
+    expect(page.querySelector('.pied')?.textContent).toContain('Paiement à la livraison');
     expect(page.querySelector('.pied a[href="https://www.facebook.com/boutique"]')).not.toBeNull();
+  });
+
+  it('le pied de page n’annonce que les moyens de paiement actifs', async () => {
+    const sans = (await rendre(MiseEnPagePublique)).nativeElement.querySelector('.pied')?.textContent ?? '';
+    expect(sans).toContain('Paiement à la livraison');
+    expect(sans).not.toMatch(/Wave|Orange Money|Free Money|Carte bancaire/);
+    TestBed.resetTestingModule();
+
+    const avec = (
+      await rendre(MiseEnPagePublique, {
+        ...PARAMETRES,
+        modesPaiement: { mobileMoney: true, carte: false, livraison: true },
+      })
+    ).nativeElement.querySelector('.pied')?.textContent ?? '';
+    expect(avec).toMatch(/Wave/);
+    expect(avec).toContain('Orange Money');
+    expect(avec).not.toContain('Carte bancaire');
   });
 
   it('n’écrit aucune promesse ni bouton WhatsApp quand les paramètres sont vides', async () => {

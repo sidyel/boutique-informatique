@@ -43,7 +43,8 @@ public class ParametresAdminService {
                 }
                 // Vide aussi le cache des paramètres publics, après la validation
                 evenements.publishEvent(new CatalogueModifie("paramètres du site : " + image.chemin()));
-                return ParametresPublicsReponse.depuis(parametres, parametresService.site());
+                return ParametresPublicsReponse.depuis(parametres, parametresService.site(),
+                        parametresService.modesPaiement(parametres));
             });
         } catch (RuntimeException e) {
             envoiImages.annuler(envoyee, "image « " + image.chemin() + " » des paramètres non enregistrée");

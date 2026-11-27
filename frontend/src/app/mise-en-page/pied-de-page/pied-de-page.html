@@ -55,12 +55,14 @@
     </nav>
 
     <section class="pied__bloc" aria-labelledby="pied-paiement">
-      <h2 id="pied-paiement" class="pied__titre">Paiement</h2>
-      <ul class="pied__paiements" role="list">
-        @for (moyen of paiements; track moyen) {
-          <li class="pied__paiement">{{ moyen }}</li>
-        }
-      </ul>
+      @if (paiements().length) {
+        <h2 id="pied-paiement" class="pied__titre">Paiement</h2>
+        <ul class="pied__paiements" role="list">
+          @for (moyen of paiements(); track moyen) {
+            <li class="pied__paiement">{{ moyen }}</li>
+          }
+        </ul>
+      }
       @if (reseaux().length) {
         <h2 class="pied__titre pied__titre--suite">Suivez-nous</h2>
         <ul class="pied__reseaux" role="list">

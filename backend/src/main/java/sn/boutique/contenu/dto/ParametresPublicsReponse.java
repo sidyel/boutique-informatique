@@ -37,6 +37,7 @@ public record ParametresPublicsReponse(
         AdresseStructuree adresseStructuree,
         BoutiquePhysique boutiquePhysique,
         boolean afficherTtc,
+        ModesPaiement modesPaiement,
         Site site) {
 
     /**
@@ -91,7 +92,19 @@ public record ParametresPublicsReponse(
     public record Verification(String google, String meta) {
     }
 
+    /**
+     * Moyens de paiement réellement proposés : le site n'affiche (pied de page, bandeau de confiance, descriptions) que
+     * ceux-là. Mobile money : seulement si les clés du prestataire sont configurées ; carte : seulement si elle est
+     * activée sur le compte du prestataire ; livraison : selon le réglage de l'admin.
+     */
+    public record ModesPaiement(boolean mobileMoney, boolean carte, boolean livraison) {
+    }
+
     public static ParametresPublicsReponse depuis(ParametresSite p, Site site) {
+        return depuis(p, site, new ModesPaiement(false, false, p.isPaiementLivraisonActif()));
+    }
+
+    public static ParametresPublicsReponse depuis(ParametresSite p, Site site, ModesPaiement modes) {
         // Image de partage : recadrée en 1200 × 630 (format Open Graph)
         return new ParametresPublicsReponse(p.getNomSite(), p.getLogoUrl(), p.getLogoSombreUrl(), p.getFaviconUrl(),
                 Favicons.depuis(p.getFaviconUrl()), TransformationsImages.partage(p.getImagePartageUrl()), p.getTelephone(), p.getWhatsapp(), p.getEmail(), p.getAdresse(),
@@ -106,7 +119,7 @@ public record ParametresPublicsReponse(
                 vide(p.getDelaiLivraison()) ? null : p.getDelaiLivraison().strip(),
                 new PolitiqueRetour(p.isRetoursAcceptes(), p.isRetoursAcceptes() ? p.getDelaiRetourJours() : null,
                         p.getFraisRetour(), p.isRetourEnBoutique(), p.isRetourParLivreur()),
-                adresse(p), boutique(p), p.getFactureRegimeTva() == RegimeTva.ASSUJETTI, site);
+                adresse(p), boutique(p), p.getFactureRegimeTva() == RegimeTva.ASSUJETTI, modes, site);
     }
 
     private static AdresseStructuree adresse(ParametresSite p) {

@@ -17,7 +17,7 @@ public final class CachesPublics {
      * et la nouvelle version du backend partagent Redis sans jamais lire les entrées de l'autre. Les entrées
      * de l'ancien format expirent d'elles-mêmes (durée de vie du cache).
      */
-    public static final int VERSION_FORMAT = 2;
+    public static final int VERSION_FORMAT = 3;
     /** Préfixe des clés Redis : « boutique:v1:fiche-produit::… ». */
     public static final String PREFIXE = "boutique:v" + VERSION_FORMAT + ":";
 

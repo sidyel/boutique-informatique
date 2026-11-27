@@ -82,6 +82,14 @@ public class PaiementService {
     }
 
     /**
+     * La carte bancaire n'est pas proposée tant que le prestataire n'indique pas qu'elle est activée sur le compte
+     * (engagement de la 4c) : le site ne l'annonce donc nulle part.
+     */
+    public boolean carteDisponible() {
+        return false;
+    }
+
+    /**
      * Page de paiement d'une commande qui vient d'être créée : celle d'un paiement déjà démarré s'il existe
      * (requête rejouée, double appui), sinon un nouveau.
      */

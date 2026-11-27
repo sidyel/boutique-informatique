@@ -58,7 +58,7 @@ export class BlocAchat {
   protected readonly whatsappPrincipal = computed(() => this.site.parametres()?.boutonPrincipalFiche === 'WHATSAPP');
   protected readonly delai = computed(() => (this.rupture() ? null : (this.site.parametres()?.delaiLivraison ?? null)));
   protected readonly elementsConfiance = computed(() =>
-    reassurance(this.site.parametres()?.elementsConfiance ?? []).map((e) => ({
+    reassurance(this.site.elementsConfiance()).map((e) => ({
       ...e,
       nomIcone: e.icone ? ICONES_CONFIANCE[e.icone] : null,
     })),

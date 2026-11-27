@@ -54,7 +54,7 @@ export class Accueil {
   protected readonly bannierePromo = computed(() => (this.promo.hasValue() ? (this.promo.value()[0] ?? null) : null));
   protected readonly marques = computed(() => this.catalogue.marques().slice(0, MARQUES_AFFICHEES));
   protected readonly promesses = computed(() =>
-    (this.site.parametres()?.elementsConfiance ?? []).map((e) => ({
+    this.site.elementsConfiance().map((e) => ({
       ...e,
       icone: e.icone ? ICONES_CONFIANCE[e.icone] : null,
     })),
@@ -65,9 +65,10 @@ export class Accueil {
       titre: 'Matériel informatique au Sénégal',
       canonique: '/',
       donneesStructurees: (url) => [siteWeb(this.site.nomSite(), url)],
+      // Aucun moyen de paiement nommé : la description est figée au rendu, avant le chargement des paramètres
       description:
         'PC portables, PC de bureau, composants, écrans, périphériques et réseau au Sénégal. ' +
-        'Prix en FCFA, paiement Wave, Orange Money ou à la livraison.',
+        'Prix en FCFA, livraison à Dakar.',
     });
   }
 }
