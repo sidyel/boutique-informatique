@@ -30,7 +30,8 @@ import sn.boutique.contenu.depot.ParametresSiteDepot;
  * Le profil « demo » charge le catalogue au démarrage (ChargeurDonneesDemo) ; ces tests vérifient
  * le résultat, l'idempotence et la cohérence des données.
  */
-@SpringBootTest(properties = "boutique.demo.admin-mot-de-passe=MotDePasseDemo-2026")
+@SpringBootTest(properties = {"boutique.demo.admin-mot-de-passe=MotDePasseDemo-2026",
+        "boutique.demo.client-mot-de-passe=MotDePasseClient-2026"})
 @ActiveProfiles({"dev", "demo"})
 @Import(TestcontainersConfiguration.class)
 class ImportDonneesDemoTest {
@@ -54,6 +55,28 @@ class ImportDonneesDemoTest {
 
     @Autowired
     private EntityManager em;
+
+    @Autowired
+    private org.springframework.jdbc.core.simple.JdbcClient jdbc;
+
+    @Autowired
+    private CommandesDemoClient commandesDemoClient;
+
+    @Test
+    void leClientDeDemonstrationADesCommandesDontUneLivreeEtFacturee() {
+        Long clientId = utilisateurDepot.trouverParEmail("client@exemple.sn").orElseThrow().getId();
+
+        var statuts = jdbc.sql("select statut from commande where utilisateur_id = :u order by id")
+                .param("u", clientId).query(String.class).list();
+        assertThat(statuts).containsExactly("LIVREE", "CONFIRMEE", "EN_ATTENTE_CONFIRMATION");
+        assertThat(jdbc.sql("select count(*) from facture f join commande c on c.id = f.commande_id "
+                + "where c.utilisateur_id = :u").param("u", clientId).query(Long.class).single()).isEqualTo(1);
+
+        // Idempotent : un second passage ne crée rien
+        commandesDemoClient.creer();
+        assertThat(jdbc.sql("select count(*) from commande where utilisateur_id = :u").param("u", clientId)
+                .query(Long.class).single()).isEqualTo(3);
+    }
 
     @Test
     void unSecondChargementNeCreeRien() {

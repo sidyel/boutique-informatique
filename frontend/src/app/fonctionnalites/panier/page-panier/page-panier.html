@@ -1,10 +1,10 @@
 <div class="conteneur page-panier">
-  <h1 class="page-panier__titre">
-    Mon panier
+  <h1 class="page-panier__titre">Mon panier</h1>
+  <p class="page-panier__nombre">
     @if (panier.nombreArticles(); as n) {
-      <span class="page-panier__nombre">{{ n }} article{{ n > 1 ? 's' : '' }}</span>
+      {{ n }} article{{ n > 1 ? 's' : '' }}
     }
-  </h1>
+  </p>
 
   @for (message of panier.panier()?.avertissements ?? []; track message) {
     <p class="message" role="status">{{ message }}</p>
@@ -137,7 +137,30 @@
           </div>
         }
       </div>
-      <bi-squelette forme="bloc" hauteur="16rem" />
+      <!-- Structure statique du récapitulatif : visible tout de suite, les montants arrivent ensuite -->
+      <aside class="page-panier__cote" aria-label="Récapitulatif">
+        <section class="bloc">
+          <h2 class="bloc__titre">
+            <bi-icone nom="etiquette" taille="1rem" />
+            Code promo
+          </h2>
+          <div class="code-form">
+            <input class="champ-natif__saisie" type="text" disabled placeholder="Votre code" aria-label="Code promo" />
+            <button biBouton variante="secondaire" type="button" disabled>Appliquer</button>
+          </div>
+        </section>
+        <section class="bloc">
+          <h2 class="bloc__titre">
+            <bi-icone nom="livraison" taille="1rem" />
+            Estimer la livraison
+          </h2>
+          <bi-squelette forme="bloc" hauteur="2.75rem" />
+          <p class="bloc__note">Le quartier et l'adresse exacte seront demandés à la commande.</p>
+        </section>
+        <section class="bloc bloc--resume">
+          <bi-squelette forme="bloc" hauteur="7rem" />
+        </section>
+      </aside>
     </div>
   }
 </div>

@@ -11,14 +11,13 @@
 }
 
 .page-panier__titre {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--espace-3);
-  margin: 0 0 var(--espace-4);
+  margin: 0;
 }
 
+// Hauteur réservée : le nombre d'articles arrive après le chargement du panier, sans faire bouger la page
 .page-panier__nombre {
+  min-height: var(--espace-6);
+  margin: 0 0 var(--espace-2);
   font-family: var(--police-mono);
   font-size: var(--taille-sm);
   font-weight: var(--graisse-normale);

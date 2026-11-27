@@ -154,6 +154,52 @@ class DocumentsFactureTest extends CommandeTestBase {
     }
 
     @Test
+    void leClientConnecteRecoitUnVraiPdfAvecLeBonNumeroDeFactureEtDAvoirEtUnAutreCompteAFaitUn404() throws Exception {
+        var client = utilisateur(Role.CLIENT);
+        String acces = acces(client);
+        VarianteProduit variante = variante(10_000, 10);
+        envoyer(MockMvcRequestBuilders.post("/api/panier/lignes"), null, acces,
+                "{\"varianteId\":%d,\"quantite\":1}".formatted(variante.getId())).andExpect(status().isOk());
+        String numero = corps(commander(null, acces, cle(), requete(telephone(), "MOBILE_MONEY", 12_000)
+                .replace("\"awa@exemple.sn\"", "null")).andExpect(status().isCreated())).path("numero").asString();
+        payer(numero);
+        String facture = numeroFacture(numero);
+        avoirTotal(facture);
+        String avoir = corps(mockMvc.perform(get("/api/compte/commandes/{n}", numero)
+                .header(HttpHeaders.AUTHORIZATION, acces)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.numeroFacture").value(facture))).path("numerosAvoirs").get(0).asString();
+
+        byte[] pdfFacture = mockMvc.perform(get("/api/compte/commandes/{n}/facture", numero)
+                        .header(HttpHeaders.AUTHORIZATION, acces))
+                .andExpect(status().isOk()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(new String(pdfFacture, 0, 4)).isEqualTo("%PDF");
+        assertThat(texte(pdfFacture)).contains(facture);
+
+        byte[] pdfAvoir = mockMvc.perform(get("/api/compte/commandes/{n}/avoirs/{a}", numero, avoir)
+                        .header(HttpHeaders.AUTHORIZATION, acces))
+                .andExpect(status().isOk()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(new String(pdfAvoir, 0, 4)).isEqualTo("%PDF");
+        assertThat(texte(pdfAvoir)).contains(avoir).contains(facture);
+
+        // Un autre compte : 404 partout, sans rien révéler
+        String autre = acces(utilisateur(Role.CLIENT));
+        mockMvc.perform(get("/api/compte/commandes/{n}/facture", numero).header(HttpHeaders.AUTHORIZATION, autre))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/compte/commandes/{n}/avoirs/{a}", numero, avoir).header(HttpHeaders.AUTHORIZATION, autre))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/compte/commandes/{n}", numero).header(HttpHeaders.AUTHORIZATION, autre))
+                .andExpect(status().isNotFound());
+    }
+
+    private static String texte(byte[] pdf) throws java.io.IOException {
+        try (var document = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            return new org.apache.pdfbox.text.PDFTextStripper().getText(document);
+        }
+    }
+
+    @Test
     void lePersonnelTelechargeFacturesEtAvoirsLesClientsNonConnectesPas() throws Exception {
         JsonNode commande = commandeInvite(null);
         payer(commande.path("numero").asString());
