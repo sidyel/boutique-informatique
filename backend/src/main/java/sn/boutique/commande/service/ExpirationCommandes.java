@@ -15,6 +15,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import sn.boutique.commande.depot.CommandeDepot;
 import sn.boutique.commande.modele.Commande;
 import sn.boutique.commande.modele.StatutCommande;
+import sn.boutique.commande.paiement.ConfirmationPaiementService;
+import sn.boutique.commande.paiement.PaiementIndisponibleException;
 
 /**
  * Libère le stock des commandes dont la réservation est arrivée à terme :
@@ -39,16 +41,21 @@ public class ExpirationCommandes {
     private final CommandeDepot commandeDepot;
     private final GestionCommandeService gestion;
     private final CleIdempotenceService cles;
+    private final ConfirmationPaiementService confirmation;
+    private final ProprietesCommande proprietes;
     private final Clock horloge;
     private final TransactionTemplate transaction;
 
     public ExpirationCommandes(JdbcClient jdbc, CommandeDepot commandeDepot, GestionCommandeService gestion,
-                               CleIdempotenceService cles, Clock horloge,
+                               CleIdempotenceService cles, ConfirmationPaiementService confirmation,
+                               ProprietesCommande proprietes, Clock horloge,
                                PlatformTransactionManager gestionnaireTransactions) {
         this.jdbc = jdbc;
         this.commandeDepot = commandeDepot;
         this.gestion = gestion;
         this.cles = cles;
+        this.confirmation = confirmation;
+        this.proprietes = proprietes;
         this.horloge = horloge;
         this.transaction = new TransactionTemplate(gestionnaireTransactions);
     }
@@ -58,19 +65,24 @@ public class ExpirationCommandes {
             initialDelayString = "${boutique.planification.expiration-commandes:PT1M}")
     public int expirer() {
         Instant maintenant = horloge.instant();
-        List<String> numeros = jdbc.sql("""
-                        select numero from commande
+        List<EcheanceCommande> echeances = jdbc.sql("""
+                        select numero, statut, expire_le from commande
                          where statut in ('EN_ATTENTE_PAIEMENT', 'EN_ATTENTE_CONFIRMATION') and expire_le <= :maintenant
                          order by expire_le
                          limit :lot
                         """)
                 .param("maintenant", OffsetDateTime.ofInstant(maintenant, ZoneOffset.UTC))
                 .param("lot", LOT)
-                .query(String.class)
+                .query((rs, i) -> new EcheanceCommande(rs.getString(1), rs.getString(2),
+                        rs.getObject(3, OffsetDateTime.class).toInstant()))
                 .list();
         int annulees = 0;
-        for (String numero : numeros) {
+        for (EcheanceCommande echeance : echeances) {
+            String numero = echeance.numero();
             try {
+                if (!paiementVerifie(echeance, maintenant)) {
+                    continue;
+                }
                 if (Boolean.TRUE.equals(transaction.execute(statut -> expirer(numero, maintenant)))) {
                     annulees++;
                 }
@@ -82,6 +94,34 @@ public class ExpirationCommandes {
             log.info("Expiration : {} commande(s) annulée(s), stock remis en vente", annulees);
         }
         return annulees;
+    }
+
+    private record EcheanceCommande(String numero, String statut, Instant expireLe) {
+    }
+
+    /**
+     * Avant d'annuler une commande dont le paiement en ligne n'est pas arrivé, on demande au prestataire si le client
+     * n'a pas payé quand même (notification perdue, client revenu trop tard sur le site). L'appel réseau se fait
+     * <strong>hors transaction</strong> ; la transaction d'annulation, qui suit, revérifie le statut sous verrou.
+     *
+     * @return faux si l'annulation doit attendre le prochain passage (prestataire injoignable, délai de grâce non écoulé)
+     */
+    private boolean paiementVerifie(EcheanceCommande echeance, Instant maintenant) {
+        if (!"EN_ATTENTE_PAIEMENT".equals(echeance.statut())) {
+            return true;
+        }
+        try {
+            confirmation.confirmerCommande(echeance.numero());
+            return true;
+        } catch (PaiementIndisponibleException e) {
+            boolean graceEcoulee = !maintenant.isBefore(echeance.expireLe().plus(proprietes.graceVerificationPaiement()));
+            log.warn("Paiement de la commande {} non vérifiable ({}) : {}", echeance.numero(), e.getMessage(),
+                    graceEcoulee ? "délai de grâce écoulé, annulation" : "annulation reportée");
+            return graceEcoulee;
+        } catch (RuntimeException e) {
+            log.error("Vérification du paiement de la commande {} impossible, annulation reportée", echeance.numero(), e);
+            return false;
+        }
     }
 
     private boolean expirer(String numero, Instant maintenant) {

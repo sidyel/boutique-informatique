@@ -14,6 +14,7 @@ import sn.boutique.commande.depot.CommandeDepot;
 import sn.boutique.commande.modele.Commande;
 import sn.boutique.commande.modele.ModeLivraison;
 import sn.boutique.commande.modele.ModePaiement;
+import sn.boutique.commande.paiement.ReceptionPaiementService;
 import sn.boutique.commande.service.CommandeService.CommandeCreee;
 import sn.boutique.commande.service.CommandeService.LienSuiviRenouvele;
 import sn.boutique.noyau.config.ProprietesBoutique;
@@ -57,6 +58,41 @@ public class NotificationsCommande {
     @TransactionalEventListener
     void surCommandeCreee(CommandeCreee evenement) {
         envoyerCommandeRecue(evenement.commandeId(), evenement.jetonSuivi());
+    }
+
+    @Async
+    @TransactionalEventListener
+    void surPaiementARembourser(ReceptionPaiementService.PaiementARembourser evenement) {
+        informerRemboursement(evenement.commandeId(), evenement.montant());
+    }
+
+    /**
+     * Un paiement reçu ne peut pas être honoré (articles épuisés après l'expiration, paiement en double) : le client
+     * l'apprend tout de suite et sait qu'il sera remboursé. E-mail s'il en a donné un, message au téléphone dans
+     * tous les cas. Aucun lien : la page de suivi affiche aussi « remboursement en cours ».
+     */
+    public void informerRemboursement(long commandeId, long montant) {
+        Optional<Message> message = transaction.execute(statut -> commandeDepot.findById(commandeId)
+                .map(c -> composer(c, null)));
+        message.ifPresent(m -> {
+            Map<String, Object> variables = new java.util.HashMap<>(m.variables());
+            variables.put("montant", FormatFcfa.formater(montant));
+            variables.put("motif", "les articles ne sont plus disponibles ou la commande est déjà réglée");
+            try {
+                if (m.email() != null) {
+                    emailService.envoyer(m.email(), "Remboursement de votre paiement : commande " + m.numero(),
+                            "paiement-a-rembourser", variables);
+                }
+            } catch (RuntimeException e) {
+                log.error("E-mail de remboursement de la commande {} non envoyé", m.numero(), e);
+            }
+            try {
+                notificationClient.envoyer(m.telephone(), "%s : votre paiement de %s pour la commande %s ne peut pas être honoré, il sera remboursé. Nous vous contactons."
+                        .formatted(m.nomSite(), FormatFcfa.formater(montant), m.numero()));
+            } catch (RuntimeException e) {
+                log.error("Notification de remboursement de la commande {} non envoyée", m.numero(), e);
+            }
+        });
     }
 
     @Async
@@ -113,21 +149,21 @@ public class NotificationsCommande {
     }
 
     private Message composer(Commande commande, String jetonSuivi) {
-        String lien = proprietesBoutique.urlSiteSansBarre() + "/suivi/" + jetonSuivi;
+        String lien = jetonSuivi == null ? null : proprietesBoutique.urlSiteSansBarre() + "/suivi/" + jetonSuivi;
         boolean aLaLivraison = commande.getModePaiement() == ModePaiement.A_LA_LIVRAISON;
         List<Map<String, Object>> lignes = commande.getLignes().stream()
                 .map(l -> Map.<String, Object>of("nom", l.getNomProduit(), "variante", l.getLibelleVariante(),
                         "quantite", l.getQuantite(), "total", FormatFcfa.formater(l.getTotalLigne())))
                 .toList();
-        Map<String, Object> variables = Map.of(
-                "prenom", SuiviCommandeService.prenom(commande.getNomClient()) == null ? ""
-                        : SuiviCommandeService.prenom(commande.getNomClient()),
-                "numero", commande.getNumero(),
-                "lignes", lignes,
-                "total", FormatFcfa.formater(commande.getTotal()),
-                "retrait", commande.getModeLivraison() == ModeLivraison.RETRAIT_MAGASIN,
-                "aLaLivraison", aLaLivraison,
-                "lienSuivi", lien);
+        Map<String, Object> variables = new java.util.HashMap<>();
+        variables.put("prenom", SuiviCommandeService.prenom(commande.getNomClient()) == null ? ""
+                : SuiviCommandeService.prenom(commande.getNomClient()));
+        variables.put("numero", commande.getNumero());
+        variables.put("lignes", lignes);
+        variables.put("total", FormatFcfa.formater(commande.getTotal()));
+        variables.put("retrait", commande.getModeLivraison() == ModeLivraison.RETRAIT_MAGASIN);
+        variables.put("aLaLivraison", aLaLivraison);
+        variables.put("lienSuivi", lien);
         return new Message(commande.getNumero(), commande.getEmailClient(), commande.getTelephoneClient(), lien,
                 FormatFcfa.formater(commande.getTotal()), proprietesEmail.nomSite(), variables);
     }

@@ -86,7 +86,11 @@ public class StockService {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public boolean liberer(Commande commande, String auteur, String motif) {
-        if (mouvementDepot.existsByCommandeIdAndType(commande.getId(), TypeMouvementStock.ANNULATION)) {
+        // Une seule libération par réservation : une commande annulée puis réactivée (paiement tardif) peut être
+        // annulée de nouveau, et rend alors son stock une seconde fois
+        long reservations = mouvementDepot.countByCommandeIdAndType(commande.getId(), TypeMouvementStock.SORTIE_VENTE);
+        long liberations = mouvementDepot.countByCommandeIdAndType(commande.getId(), TypeMouvementStock.ANNULATION);
+        if (liberations >= reservations) {
             return false;
         }
         for (LigneCommande ligne : lignesParVariante(commande)) {

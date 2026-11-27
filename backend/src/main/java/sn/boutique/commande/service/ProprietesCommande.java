@@ -20,6 +20,8 @@ import sn.boutique.noyau.limitation.ProprietesLimitation.Regle;
  * @param reservationPaiement durée pendant laquelle une commande est « réservée » le temps de créer sa facture chez le
  *                           prestataire (doit dépasser les délais du client HTTP, sinon deux factures sont possibles)
  * @param pauseAttentePaiement attente entre deux vérifications d'une requête qui trouve la commande réservée
+ * @param graceVerificationPaiement si le prestataire est injoignable au moment d'expirer une commande en attente de
+ *                           paiement, on attend jusqu'à cette durée après l'échéance avant d'annuler quand même
  * @param validiteFacture    durée pendant laquelle une facture du prestataire est réutilisée par « Reprendre le
  *                           paiement » ; à régler sur la validité réelle de la facture chez le prestataire
  *                           (au moins le délai de paiement de la commande, sinon deux factures payables coexistent)
@@ -33,5 +35,6 @@ public record ProprietesCommande(
         @NotNull Duration dureeCleIdempotence,
         @NotNull Duration validiteFacture,
         @NotNull Duration reservationPaiement,
-        @NotNull Duration pauseAttentePaiement) {
+        @NotNull Duration pauseAttentePaiement,
+        @NotNull Duration graceVerificationPaiement) {
 }

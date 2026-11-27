@@ -21,5 +21,10 @@ public interface PaiementDepot extends JpaRepository<Paiement, Long> {
     @Query("select p.commande.numero from Paiement p where p.id = :id")
     Optional<String> numeroCommande(Long id);
 
+    /** Paiements en ligne d'une commande qui ont une facture chez le prestataire et ne sont pas encore réglés. */
+    @Query("select p.id from Paiement p where p.commande.numero = :numero and p.referenceExterne is not null "
+            + "and p.statut in :statuts order by p.dateCreation")
+    List<Long> idsAVerifier(String numero, java.util.Collection<StatutPaiement> statuts);
+
     Page<Paiement> findByStatutOrderByDateCreationAsc(StatutPaiement statut, Pageable pageable);
 }

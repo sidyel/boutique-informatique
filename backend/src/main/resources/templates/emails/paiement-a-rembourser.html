@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p th:if="${!#strings.isEmpty(prenom)}">Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p th:if="${#strings.isEmpty(prenom)}">Bonjour,</p>
+    <p>Nous avons bien reçu votre paiement de <strong th:text="${montant}">450 000 FCFA</strong> pour la commande
+       <strong th:text="${numero}">CMD-2026-000001</strong>, mais nous ne pouvons pas le rattacher à une commande
+       valable : <span th:text="${motif}">les articles ne sont plus disponibles</span>.</p>
+    <p><strong>Ce paiement vous sera remboursé.</strong> Notre équipe vous contactera pour organiser le remboursement ;
+       vous pouvez aussi nous écrire en rappelant le numéro de commande.</p>
+</div>
+</body>
+</html>

@@ -17,6 +17,8 @@ import sn.boutique.commande.modele.StatutCommande;
  * @param adresseMasquee       « Rue ••• , Médina, Dakar » ou le lieu de retrait ; null si rien à afficher
  * @param expireLe             fin de la réservation tant que la commande attend un paiement ou un appel
  * @param peutReprendrePaiement paiement en ligne non réglé, commande non expirée
+ * @param remboursementEnCours un paiement reçu pour cette commande ne peut pas être honoré (articles épuisés après
+ *                             expiration, ou paiement en double) : il sera remboursé
  * @param achatASuivre         la commande est réglée ou confirmée et l'événement « achat » n'a pas encore été émis
  *                             pour les régies publicitaires
  */
@@ -39,7 +41,8 @@ public record SuiviCommandeReponse(
         String codePromo,
         List<Etape> etapes,
         boolean peutReprendrePaiement,
-        boolean achatASuivre) {
+        boolean achatASuivre,
+        boolean remboursementEnCours) {
 
     public record Ligne(String sku, String nomProduit, String libelleVariante, String imageUrl, long prixUnitaire,
                         int quantite, long totalLigne) {

@@ -20,6 +20,7 @@ import sn.boutique.commande.dto.SuiviCommandeReponse.Ligne;
 import sn.boutique.commande.modele.Commande;
 import sn.boutique.commande.modele.ModeLivraison;
 import sn.boutique.commande.modele.StatutCommande;
+import sn.boutique.commande.modele.StatutPaiement;
 import sn.boutique.commande.paiement.PaiementService;
 import sn.boutique.noyau.erreur.RessourceIntrouvableException;
 
@@ -64,7 +65,8 @@ public class SuiviCommandeService {
                 commande.getZoneLivraison() == null ? null : commande.getZoneLivraison().getNom(),
                 adresseMasquee(commande), commande.getModePaiement(), lignes, commande.getSousTotal(),
                 commande.getFraisLivraison(), commande.getRemise(), commande.getTotal(), commande.getCodePromo(), etapes,
-                peutReprendre, commande.getAchatSuiviLe() == null && VENTE_ACQUISE.contains(commande.getStatut()));
+                peutReprendre, commande.getAchatSuiviLe() == null && VENTE_ACQUISE.contains(commande.getStatut()),
+                commande.getPaiements().stream().anyMatch(p -> p.getStatut() == StatutPaiement.A_REMBOURSER));
     }
 
     /**
