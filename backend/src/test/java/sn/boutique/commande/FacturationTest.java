@@ -59,6 +59,26 @@ class FacturationTest extends CommandeTestBase {
         confirmation.confirmer(paiementId);
     }
 
+    @Test
+    void unNomWolofOuArabeNeFaitJamaisEchouerLePaiementNiLaFacture() throws Exception {
+        for (String nom : new String[]{"Ibrahima Ŋgom Sène", "محمد الأمين", "Ñaare 😀 Ɓa"}) {
+            VarianteProduit variante = variante(10_000, 10);
+            String jeton = panierAvec(variante, 1);
+            String numero = corps(commander(jeton, null, cle(),
+                    requete(telephone(), "MOBILE_MONEY", 12_000, nom, "client@exemple.sn"))
+                    .andExpect(status().isCreated())).path("numero").asString();
+
+            payerEnLigne(numero);
+
+            assertThat(jdbc.sql("select statut from commande where numero = :n").param("n", numero)
+                    .query(String.class).single()).isEqualTo("PAYEE");
+            FactureArchivee f = facture(numero);
+            // Le nom exact est conservé tel quel dans la facture archivée ; seul le PDF le simplifie
+            assertThat(f.clientNom()).isEqualTo(nom);
+            assertThat(texte(factures.pdf(f.numero()).orElseThrow())).contains("CLIENT");
+        }
+    }
+
     private long idCommande(String numero) {
         return jdbc.sql("select id from commande where numero = :n").param("n", numero).query(Long.class).single();
     }

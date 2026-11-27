@@ -106,6 +106,63 @@ class RenduPdfTest {
         assertThat(texte).contains("Ndiaye", "« sans fil » – 2,4 GHz", "?");
     }
 
+    private byte[] pdfPourClient(String nom, String adresse, String designation) {
+        var client = new PieceImprimable.Client(nom, "+221781234567", "client@exemple.sn", adresse);
+        var lignes = List.of(new PieceImprimable.Ligne("REF-1", designation, 1, 9_000, 0, 9_000, 9_000, 0));
+        return service().rendre(new PieceImprimable("Facture", "FAC-2026-000003", Instant.parse("2026-11-27T10:00:00Z"),
+                "CMD-2026-000043", null, null, vendeur(), client, "En ligne", RegimeTva.NON_APPLICABLE, 1800,
+                "TVA non applicable", lignes, 9_000, 9_000, 0));
+    }
+
+    @Test
+    void lesAccentsLesApostrophesTypographiquesEtLesLettresWolofSontEcritsTelsQuels() throws IOException {
+        byte[] pdf = pdfPourClient("Ibrahima Ndiaye-Sène, Mbaye Ŋgom",
+                "Rue 10 x 11, Médina – Dakar ; Fass, Mermoz ’Villa n°5’ ; Ñandé ë ç è Ɓ Ɗ Ŋ ŋ",
+                "Clavier « AZERTY » d’origine – l’Ñ de España, ç, ë");
+
+        String texte = texte(pdf);
+
+        assertThat(texte).contains("Ndiaye-Sène", "Ŋgom", "Médina – Dakar", "’Villa", "n°5’", "Ñandé ë ç è Ɓ Ɗ Ŋ ŋ",
+                "« AZERTY » d’origine", "l’Ñ de España");
+        assertThat(texte).doesNotContain("?");
+        assertThat(pdf.length).as("police incorporée en sous-ensemble : le PDF reste léger").isLessThan(100 * 1024);
+    }
+
+    @Test
+    void unNomEnArabeEstRemplacePropermentParUnPointDInterrogationSansFaireEchouerLEmission() throws IOException {
+        byte[] pdf = pdfPourClient("محمد الأمين", "شارع الحبيب بورقيبة, Dakar", "Routeur Wi-Fi 6");
+
+        String texte = texte(pdf);
+
+        assertThat(texte).contains("???", "Dakar", "Routeur Wi-Fi 6");
+        assertThat(texte).doesNotContain("محمد");
+        assertThat(pdf.length).isLessThan(100 * 1024);
+    }
+
+    @Test
+    void desEntreesAbsurdesNeFontJamaisEchouerLEmission() {
+        String[] entrees = {"", " ", "\uD83D", "😀😀😀", "\u0000\u0001\u0007‮ reversé", "a​b‏c",
+                "漢字かな한국어", "x".repeat(5_000), "Ünï̈cödé combiné é", "<b>&amp; \"quote\" 'apostrophe'</b>",
+                "\t\r\n tabulations"};
+        for (String entree : entrees) {
+            byte[] pdf = pdfPourClient(entree, entree, entree);
+            assertThat(pdf).isNotEmpty();
+            assertThat(new String(pdf, 0, 5, java.nio.charset.StandardCharsets.ISO_8859_1)).isEqualTo("%PDF-");
+        }
+    }
+
+    @Test
+    void lesTextesSontNormalisesEtLesEcrituresComplexesRemplacees() {
+        assertThat(RenduPdfService.couvert("é")).isEqualTo("é");
+        assertThat(RenduPdfService.couvert("Aïssatou Ŋ")).isEqualTo("Aïssatou Ŋ");
+        assertThat(RenduPdfService.couvert("مرحبا")).isEqualTo("?????");
+        assertThat(RenduPdfService.couvert("ก")).isEqualTo("?");
+        assertThat(RenduPdfService.couvert("a\u0000b")).isEqualTo("a b");
+        assertThat(RenduPdfService.couvert(null)).isNull();
+        // Repli (polices standard) : Windows-1252 conservé, le reste en « ? »
+        assertThat(RenduPdfService.encodable("é « » – ŋ")).isEqualTo("é « » – ?");
+    }
+
     @Test
     void uneFactureDeVingtLignesResteLegere() throws IOException {
         List<PieceImprimable.Ligne> lignes = new ArrayList<>();
