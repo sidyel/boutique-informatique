@@ -110,6 +110,11 @@ public class SecuriteCompteService {
         if (!trouve.estUtilisable(maintenant) || !utilisateur.isActif()) {
             throw new JetonInvalideException("jeton de réinitialisation expiré, utilisé ou compte désactivé");
         }
+        if (utilisateur.getRole().estInterne() && nouveauMotDePasse.codePointCount(0, nouveauMotDePasse.length()) < 12) {
+            // Avant de consommer le lien : l'invité peut en choisir un plus long avec le même lien
+            throw new sn.boutique.noyau.erreur.RegleMetierException("MOT_DE_PASSE_EQUIPE_TROP_COURT",
+                    "Le mot de passe d'un compte de l'équipe doit compter au moins 12 caractères.");
+        }
         trouve.marquerUtilise(maintenant);
         utilisateur.setMotDePasseHash(encodeur.encode(nouveauMotDePasse));
         utilisateur.setEmailVerifie(true);

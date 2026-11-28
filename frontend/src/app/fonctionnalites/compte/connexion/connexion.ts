@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { lireErreur, retourSur } from '../../../noyau/auth/erreurs-api';
 import { focaliserPremiereErreur } from '../../../noyau/auth/focus-erreur';
-import { SessionService } from '../../../noyau/auth/session.service';
+import { EtapeEquipeRequise, SessionService } from '../../../noyau/auth/session.service';
 import { PanierService } from '../../../noyau/panier/panier.service';
 import { SeoService } from '../../../noyau/seo/seo.service';
 import { Bouton } from '../../../partage/composants/bouton/bouton';
@@ -100,6 +100,11 @@ export class Connexion implements OnInit {
       await this.panier.charger();
       await this.router.navigateByUrl(retourSur(this.retour));
     } catch (e) {
+      if (e instanceof EtapeEquipeRequise) {
+        // Compte de l'équipe : la suite (code TOTP) se fait sur la page d'administration
+        await this.router.navigate(['/admin/connexion'], { state: { etape: e.etape, email: this.formulaire.getRawValue().email.trim() } });
+        return;
+      }
       this.erreur.set(lireErreur(e).message);
       // Identifiants refusés : le focus revient sur le mot de passe, prêt à être ressaisi
       const champ = this.racine.querySelector<HTMLInputElement>('input[name=motDePasse]');

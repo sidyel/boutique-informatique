@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:replace="~{emails/mise-en-page :: page(~{::contenu})}">
+<body>
+<div th:fragment="contenu">
+    <p>Bonjour <span th:text="${prenom}">Awa</span>,</p>
+    <p>Un super-administrateur a réinitialisé la double authentification de votre accès à l'administration. Vous avez été
+       déconnecté de tous vos appareils. À votre prochaine connexion, vous devrez enregistrer de nouveau votre application
+       d'authentification et imprimer de nouveaux codes de secours.</p>
+    <th:block th:replace="~{emails/bouton :: bouton(${lienConnexion}, 'Me connecter')}"></th:block>
+    <p style="font-size:13px;color:#5B6573;"><strong>Vous n'avez rien demandé ?</strong> Prévenez sans attendre un
+       super-administrateur : votre mot de passe est peut-être connu d'un tiers.</p>
+</div>
+</body>
+</html>

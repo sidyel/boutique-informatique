@@ -1,9 +1,13 @@
 package sn.boutique.commande.web;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.Valid;
+import sn.boutique.administration.journal.JournalAdministration;
+import sn.boutique.administration.securite.ReauthentificationRequise;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,13 +39,18 @@ public class AdminAvoirControleur {
     private final AvoirService avoirService;
     private final AvoirDepot avoirDepot;
     private final FactureDepot factureDepot;
+    private final JournalAdministration journal;
 
+    @Transactional
+    @ReauthentificationRequise
     @PostMapping
     public ResponseEntity<AvoirArchive> emettre(@AuthenticationPrincipal Jwt jwt, @PathVariable String numero,
                                                 @Valid @RequestBody AvoirRequete requete) {
         String auteur = jwt.getClaimAsString(JetonAccesService.REVENDICATION_EMAIL);
-        return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore())
-                .body(avoirService.emettre(numero, auteur, requete));
+        AvoirArchive avoir = avoirService.emettre(numero, auteur, requete);
+        journal.enregistrer("AVOIR_EMIS", "Facture", numero, null, Map.of("avoir", String.valueOf(avoir.numero())),
+                requete.motif());
+        return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore()).body(avoir);
     }
 
     @GetMapping

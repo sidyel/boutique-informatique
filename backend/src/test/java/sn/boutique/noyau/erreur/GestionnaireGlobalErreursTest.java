@@ -46,6 +46,14 @@ class GestionnaireGlobalErreursTest {
     @MockitoBean
     private JwtDecoder decodeurJwt;
 
+    // Les intercepteurs d'administration (ADR 0009) sont chargés par la tranche WebMvc : leurs dépendances sont simulées
+    @MockitoBean
+    private sn.boutique.administration.journal.JournalAdministration journalAdministration;
+    @MockitoBean
+    private sn.boutique.administration.securite.ReauthentificationService reauthentificationService;
+    @MockitoBean
+    private org.springframework.jdbc.core.simple.JdbcClient jdbcClient;
+
     @Test
     void ressourceIntrouvableRenvoie404() throws Exception {
         mockMvc.perform(get("/api/essai/produits/asus-inconnu"))

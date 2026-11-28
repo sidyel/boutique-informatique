@@ -23,6 +23,7 @@
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 		<cloudinary.version>2.6.0</cloudinary.version>
 		<tika.version>4.2.0</tika.version>
+		<zxing.version>3.5.3</zxing.version>
 	</properties>
 
 	<dependencies>
@@ -130,6 +131,13 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
 			<version>${tika.version}</version>
+		</dependency>
+
+		<!-- QR code d'enrôlement du second facteur (TOTP) : généré ici en SVG, le secret ne passe pas par le navigateur (ADR 0009) -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>${zxing.version}</version>
 		</dependency>
 
 		<!-- Dimensions des images lues dans les en-têtes (JPEG, PNG, WebP), sans décoder les pixels -->

@@ -156,8 +156,23 @@ abstract class CommandeTestBase {
         });
     }
 
+    /**
+     * Jeton d'accès d'un compte, comme après une connexion : avec une session et, pour l'équipe, une fenêtre de
+     * réauthentification déjà ouverte (le code TOTP est testé à part, dans {@code ReauthentificationTest}).
+     */
     String acces(Utilisateur utilisateur) {
-        return "Bearer " + jetons.emettre(utilisateur).valeur();
+        java.util.UUID famille = java.util.UUID.randomUUID();
+        if (utilisateur.getRole().estInterne()) {
+            jdbc.sql("insert into reauthentification (famille, utilisateur_id, valide_jusqu) "
+                            + "values (:famille, :utilisateur, timestamptz '2100-01-01 00:00:00+00')")
+                    .param("famille", famille).param("utilisateur", utilisateur.getId()).update();
+        }
+        return "Bearer " + jetons.emettre(utilisateur, famille).valeur();
+    }
+
+    /** Jeton d'un compte de l'équipe qui vient de se connecter : aucune fenêtre de réauthentification. */
+    String accesSansReauthentification(Utilisateur utilisateur) {
+        return "Bearer " + jetons.emettre(utilisateur, java.util.UUID.randomUUID()).valeur();
     }
 
     // ------------------------------------------------------------------ requêtes

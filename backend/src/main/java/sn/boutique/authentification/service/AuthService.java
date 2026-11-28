@@ -19,6 +19,7 @@ import sn.boutique.authentification.dto.ConnexionRequete;
 import sn.boutique.authentification.dto.InscriptionRequete;
 import sn.boutique.authentification.evenement.InscriptionAvecEmailExistant;
 import sn.boutique.authentification.evenement.InscriptionEffectuee;
+import sn.boutique.authentification.service.SecondFacteurService.EtapeSuivante;
 import sn.boutique.authentification.service.SessionService.Contexte;
 import sn.boutique.authentification.service.SessionService.Session;
 import sn.boutique.compte.depot.UtilisateurDepot;
@@ -60,13 +61,14 @@ public class AuthService {
     private final Clock horloge;
     private final ConsentementMarketingService consentement;
     private final RattachementCommandesService rattachement;
+    private final SecondFacteurService secondFacteur;
     /** Empreinte factice comparée quand l'e-mail est inconnu, pour un temps de réponse constant. */
     private final String empreinteLeurre;
 
     public AuthService(UtilisateurDepot utilisateurDepot, PasswordEncoder encodeur, SessionService sessionService,
                        ApplicationEventPublisher evenements, ProprietesAuthentification proprietes,
                        EchecConnexionDepot echecs, Clock horloge, ConsentementMarketingService consentement,
-                       RattachementCommandesService rattachement) {
+                       RattachementCommandesService rattachement, SecondFacteurService secondFacteur) {
         this.utilisateurDepot = utilisateurDepot;
         this.encodeur = encodeur;
         this.sessionService = sessionService;
@@ -76,6 +78,7 @@ public class AuthService {
         this.horloge = horloge;
         this.consentement = consentement;
         this.rattachement = rattachement;
+        this.secondFacteur = secondFacteur;
         this.empreinteLeurre = encodeur.encode("leurre-anti-enumeration-" + System.nanoTime());
     }
 
@@ -103,7 +106,7 @@ public class AuthService {
      * enregistrés malgré l'exception : la transaction est validée.
      */
     @Transactional(noRollbackFor = IdentifiantsInvalidesException.class)
-    public Session connecter(ConnexionRequete requete, Contexte contexte) {
+    public ResultatConnexion connecter(ConnexionRequete requete, Contexte contexte) {
         Instant maintenant = horloge.instant();
         String motDePasse = requete.motDePasse();
         boolean longueurAcceptable = motDePasse.getBytes(StandardCharsets.UTF_8).length <= OCTETS_MAX_MOT_DE_PASSE;
@@ -143,8 +146,16 @@ public class AuthService {
             throw new IdentifiantsInvalidesException("compte " + utilisateur.getId() + " désactivé");
         }
         echecs.effacer(empreinteEmail, ip);
+        if (utilisateur.getRole().estInterne()) {
+            // Compte de l'équipe : le mot de passe ne donne aucun accès, seulement l'étape du second facteur (ADR 0009)
+            return new ResultatConnexion(null, secondFacteur.ouvrirEtape(utilisateur, contexte));
+        }
         // Commandes passées en invité depuis la dernière connexion (adresse vérifiée seulement)
         rattachement.rattacher(utilisateur, Declencheur.CONNEXION);
-        return sessionService.ouvrir(utilisateur, contexte);
+        return new ResultatConnexion(sessionService.ouvrir(utilisateur, contexte, false), null);
+    }
+
+    /** Une session (clients) ou l'étape suivante du second facteur (comptes internes) : jamais les deux. */
+    public record ResultatConnexion(Session session, EtapeSuivante etape) {
     }
 }

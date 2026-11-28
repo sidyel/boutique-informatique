@@ -123,6 +123,16 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 - [ ] Double authentification TOTP **obligatoire** pour SERVICE_CLIENT, GESTIONNAIRE_STOCK, ADMIN et
   SUPER_ADMIN : connexion en deux temps, enrôlement imposé, secret chiffré, codes de secours, limitation et
   anti-rejeu, réinitialisation par SUPER_ADMIN seulement. — *ADR 0003 « À traiter », section Phase 6*
+  **6a : backend fait** (ADR 0009) ; reste l'interface (`/admin/connexion`, invitation, réauthentification, utilisateurs, journal,
+  mon compte), nginx `/admin`, `robots.txt`, Lighthouse admin, captures.
+- [ ] 6b — E-mail à l'équipe pour chaque nouvelle commande (priorité à celles à confirmer, paiement à la livraison),
+  destinataires configurables dans les paramètres ; actualisation de la liste toutes les 30 s avec ETag/If-None-Match. — *décision 6a*
+- [ ] Plus tard — notification **WhatsApp** à l'équipe quand l'API WhatsApp sera disponible. — *décision 6a*
+- [ ] 6b/6c — Lignes de journal **détaillées** (avant/après) pour les routes qui n'ont encore que la ligne générique :
+  médias produit, images des paramètres, images de bannières. — *ADR 0009 §9*
+- [ ] 6b — Réauthentification TOTP aussi pour : marquage « remboursé », avoirs et retours clients, exports de données clients,
+  réglages de paiement (annoter `@ReauthentificationRequise` et compléter `MatriceAdministrationTest`). — *ADR 0009 §8*
+- [ ] 6b — Notifier le client (e-mail + NotificationClient) à la confirmation d'une commande à la livraison et à l'annulation (avec motif). — *décision 6a*
 - [ ] Supprimer un produit déjà commandé = **désactiver** (`200 {"action":"DESACTIVE"}`, sinon `204`) ; même
   règle pour une variante (`existsByVarianteId`, attention à `orphanRemoval`) ; test des deux chemins.
   — *ADR 0004 §1, bilan 1*

@@ -57,6 +57,8 @@ import sn.boutique.marketing.depot.CodePromoDepot;
 import sn.boutique.marketing.depot.CollectionDepot;
 import sn.boutique.marketing.modele.Banniere;
 import sn.boutique.marketing.modele.CodePromo;
+import sn.boutique.authentification.config.ProprietesSecondFacteur;
+import sn.boutique.authentification.securite.ChiffrementSecrets;
 import sn.boutique.marketing.modele.Collection;
 import sn.boutique.stock.depot.MouvementStockDepot;
 import sn.boutique.stock.modele.MouvementStock;
@@ -104,6 +106,8 @@ public class ImportDonneesDemo {
     private final ParametresSiteDepot parametresDepot;
     private final UtilisateurDepot utilisateurDepot;
     private final ApplicationEventPublisher evenements;
+    private final ProprietesSecondFacteur secondFacteur;
+    private final ChiffrementSecrets chiffrement;
 
     /** Résumé de ce qui a été créé lors d'un chargement. */
     public record Bilan(int marques, int categories, int produits, int variantes, int autres, boolean admin) {
@@ -391,7 +395,9 @@ public class ImportDonneesDemo {
             throw new IllegalStateException("DEMO_ADMIN_MOT_DE_PASSE doit contenir au moins %d caractères."
                     .formatted(LONGUEUR_MIN_MOT_DE_PASSE_ADMIN));
         }
-        if (utilisateurDepot.emailExiste(proprietes.adminEmail())) {
+        var existant = utilisateurDepot.trouverParEmail(proprietes.adminEmail());
+        if (existant.isPresent()) {
+            preEnroler(existant.get());
             return false;
         }
         Utilisateur admin = new Utilisateur(proprietes.adminEmail(), encodeurMotDePasse.encode(motDePasse),
@@ -399,8 +405,26 @@ public class ImportDonneesDemo {
         admin.setRole(Role.SUPER_ADMIN);
         admin.setEmailVerifie(true);
         utilisateurDepot.save(admin);
+        preEnroler(admin);
         log.info("Compte administrateur de démonstration créé : {}", admin.getEmail());
         return true;
+    }
+
+    /**
+     * Second facteur du compte de démonstration avec un secret fixe (DEMO_ADMIN_TOTP_SECRET) : la CI de performance et les
+     * captures calculent le code TOTP sans passer par l'enrôlement. Sans cette variable, le compte s'enrôle à sa première
+     * connexion comme tout compte de l'équipe. Le démarrage est refusé en production quand la variable est définie
+     * ({@code VerificationSecretTotpDemo}).
+     */
+    private void preEnroler(Utilisateur admin) {
+        if (!secondFacteur.secretFixeDemoDefini() || admin.secondFacteurActif()) {
+            return;
+        }
+        admin.activerSecondFacteur(chiffrement.chiffrer(secondFacteur.secretFixeDemo().strip(), admin.getId()),
+                horloge.instant());
+        admin.confirmerCodesSecours(horloge.instant());
+        utilisateurDepot.save(admin);
+        log.warn("Second facteur du compte de démonstration pré-enrôlé avec un secret FIXE (jamais en production).");
     }
 
     /** Compte client vérifié, dédié aux mesures Lighthouse connectées : jamais utilisé pour autre chose. */

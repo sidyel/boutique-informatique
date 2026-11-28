@@ -26,6 +26,9 @@ import sn.boutique.catalogue.service.VarianteAdminService;
 class AdminVarianteTest extends CatalogueTestBase {
 
     @Autowired
+    org.springframework.jdbc.core.simple.JdbcClient jdbc;
+
+    @Autowired
     VarianteAdminService varianteAdminService;
 
     private Categorie categorie;
@@ -137,7 +140,7 @@ class AdminVarianteTest extends CatalogueTestBase {
 
     private ResultActions modifier(long id, String json, String role) throws Exception {
         return mockMvc.perform(patch("/api/admin/variantes/{id}", id)
-                .with(jwt().jwt(j -> j.subject("1")).authorities(new SimpleGrantedAuthority("ROLE_" + role)))
+                .with(sn.boutique.support.JwtEquipe.pour(jdbc, role))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json));
     }

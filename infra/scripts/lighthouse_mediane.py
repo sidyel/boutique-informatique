@@ -26,6 +26,11 @@ Le tableau récapitulatif est ajouté au résumé du job GitHub Actions (GITHUB_
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
+import hmac
+import struct
+import time
 import ssl
 import json
 import os
@@ -123,8 +128,55 @@ def ouvrir_session(base: str, email: str, mot_de_passe: str, certificat_autosign
     return jeton
 
 
+_dernier_pas_totp = 0
+
+
+def code_totp(secret_base32: str) -> str:
+    """Code TOTP (RFC 6238, 6 chiffres, 30 s) du secret fixe de démonstration. Un même pas ne sert qu'une fois (anti-rejeu
+    du serveur) : on attend le pas suivant si le pas courant a déjà été utilisé."""
+    global _dernier_pas_totp
+    pas = int(time.time() // 30)
+    if pas <= _dernier_pas_totp:
+        time.sleep((_dernier_pas_totp + 1) * 30 - time.time() + 0.5)
+        pas = int(time.time() // 30)
+    _dernier_pas_totp = pas
+    cle = base64.b32decode(secret_base32.replace(" ", "").upper() + "=" * (-len(secret_base32) % 8))
+    digest = hmac.new(cle, struct.pack(">Q", pas), hashlib.sha1).digest()
+    decalage = digest[-1] & 0x0F
+    valeur = (struct.unpack(">I", digest[decalage:decalage + 4])[0] & 0x7FFFFFFF) % 1_000_000
+    return f"{valeur:06d}"
+
+
+def ouvrir_session_equipe(base: str, email: str, mot_de_passe: str, secret_totp: str, certificat_autosigne: bool) -> str:
+    """Connexion d'un compte de l'équipe en deux temps (ADR 0009) : mot de passe, puis code TOTP du secret de démonstration.
+    Renvoie le cookie de rafraîchissement, comme `ouvrir_session`."""
+    contexte = ssl._create_unverified_context() if certificat_autosigne else None
+    racine = base.rstrip("/")
+
+    def poster(chemin: str, corps: dict):
+        requete = urllib.request.Request(
+            f"{racine}{chemin}",
+            data=json.dumps(corps).encode(),
+            headers={"Content-Type": "application/json", "Origin": racine},
+            method="POST",
+        )
+        with urllib.request.urlopen(requete, timeout=60, context=contexte) as reponse:
+            return json.loads(reponse.read().decode() or "{}"), reponse.headers.get("Set-Cookie", "")
+
+    etape, _ = poster("/api/auth/connexion", {"email": email, "motDePasse": mot_de_passe})
+    if etape.get("etape") != "CODE_REQUIS":
+        raise SystemExit(f"Compte d'équipe de test non pré-enrôlé (étape reçue : {etape.get('etape')})")
+    _, cookie = poster("/api/auth/second-facteur/verifier",
+                       {"jetonEtape": etape["jetonEtape"], "code": code_totp(secret_totp)})
+    jeton = cookie.split(";", 1)[0]
+    if not jeton.startswith("jeton_rafraichissement="):
+        raise SystemExit("Connexion de l'équipe impossible (pas de cookie de rafraîchissement)")
+    return jeton
+
+
 def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, certificat_autosigne: bool,
-                 entetes: dict | None = None, compte: tuple[str, str] | None = None) -> dict:
+                 entetes: dict | None = None, compte: tuple[str, str] | None = None,
+                 secret_totp: str | None = None) -> dict:
     url = base.rstrip("/") + chemin
     # Chauffe : le premier rendu SSR (compilation à la volée de Node) ne doit pas fausser le 1er passage
     contexte = ssl._create_unverified_context() if certificat_autosigne else None
@@ -137,7 +189,10 @@ def mesurer_page(base: str, nom: str, chemin: str, passages: int, sortie: Path, 
         entetes_passage = entetes
         if compte:
             # Session neuve à chaque passage ; le cookie du panier (s'il y en a un) est conservé
-            session = ouvrir_session(base, compte[0], compte[1], certificat_autosigne)
+            if secret_totp:
+                session = ouvrir_session_equipe(base, compte[0], compte[1], secret_totp, certificat_autosigne)
+            else:
+                session = ouvrir_session(base, compte[0], compte[1], certificat_autosigne)
             entetes_passage = {"Cookie": "; ".join(filter(None, [(entetes or {}).get("Cookie"), session]))}
         resultats.append(metriques(lancer_lighthouse(url, destination, certificat_autosigne, entetes_passage)))
 
@@ -196,6 +251,9 @@ def main() -> int:
                                 "mot de passe dans la variable LIGHTHOUSE_COMPTE_MOT_DE_PASSE (répétable)")
     analyseur.add_argument("--page-connectee-panier", action="append", default=[],
                            help="comme --page-connectee, avec en plus le panier de démonstration")
+    analyseur.add_argument("--page-equipe", action="append", default=[],
+                           help="nom=/chemin mesuré connecté avec le compte administrateur de démonstration (deux temps) ; "
+                                "variables LIGHTHOUSE_ADMIN_EMAIL, LIGHTHOUSE_ADMIN_MOT_DE_PASSE, DEMO_ADMIN_TOTP_SECRET")
     analyseur.add_argument("--compte-email", default="client@exemple.sn", help="e-mail du compte de test")
     analyseur.add_argument("--variante-demo", help="slug du produit mis dans le panier de démonstration")
     analyseur.add_argument("--passages", type=int, default=7)
@@ -242,6 +300,19 @@ def main() -> int:
             entetes = creer_panier_demo(args.base, args.variante_demo, args.certificat_autosigne) if panier else None
             pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie, args.certificat_autosigne,
                                       entetes, compte))
+
+    if args.page_equipe:
+        email = os.environ.get("LIGHTHOUSE_ADMIN_EMAIL", "")
+        mot_de_passe = os.environ.get("LIGHTHOUSE_ADMIN_MOT_DE_PASSE", "")
+        secret = os.environ.get("DEMO_ADMIN_TOTP_SECRET", "")
+        if not (email and mot_de_passe and secret):
+            analyseur.error("--page-equipe exige LIGHTHOUSE_ADMIN_EMAIL, LIGHTHOUSE_ADMIN_MOT_DE_PASSE et DEMO_ADMIN_TOTP_SECRET")
+        for definition in args.page_equipe:
+            nom, _, chemin = definition.partition("=")
+            if not nom or not chemin.startswith("/"):
+                analyseur.error(f"page invalide : « {definition} » (attendu : nom=/chemin)")
+            pages.append(mesurer_page(args.base, nom, chemin, args.passages, sortie, args.certificat_autosigne,
+                                      None, (email, mot_de_passe), secret))
 
     resume = tableau(pages, args.passages)
     print(resume)

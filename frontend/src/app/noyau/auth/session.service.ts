@@ -19,10 +19,25 @@ export interface Profil {
   sourceConsentement: 'INSCRIPTION' | 'COMPTE' | 'ADMIN' | null;
 }
 
-interface ReponseConnexion {
+export interface ReponseConnexion {
   jetonAcces: string;
   expireDans: number;
   utilisateur: Profil;
+}
+
+/** Étape du second facteur d'un compte de l'équipe (ADR 0009) : le mot de passe est bon, aucune session n'est ouverte. */
+export type EtapeEquipe = 'ENROLEMENT_REQUIS' | 'CODE_REQUIS' | 'CODES_SECOURS_A_CONFIRMER';
+
+export interface ReponseEtape {
+  etape: EtapeEquipe;
+  jetonEtape: string;
+}
+
+/** Levée par `connecter` quand le compte est un compte de l'équipe : l'interface continue sur `/admin/connexion`. */
+export class EtapeEquipeRequise extends Error {
+  constructor(readonly etape: ReponseEtape) {
+    super('Second facteur requis');
+  }
 }
 
 /** Message échangé entre onglets (même origine). Le jeton d'accès y circule en mémoire, il n'est jamais stocké. */
@@ -92,9 +107,25 @@ export class SessionService {
   }
 
   async connecter(email: string, motDePasse: string): Promise<Profil> {
+    const reponse = await this.connecterAvecEtape(email, motDePasse);
+    if ('etape' in reponse) throw new EtapeEquipeRequise(reponse);
+    return reponse.utilisateur;
+  }
+
+  /** Mot de passe : soit une session (client), soit l'étape suivante du second facteur (équipe). */
+  async connecterAvecEtape(email: string, motDePasse: string): Promise<ReponseConnexion | ReponseEtape> {
     const reponse = await firstValueFrom(
-      this.http.post<ReponseConnexion>('/api/auth/connexion', { email, motDePasse }),
+      this.http.post<ReponseConnexion | ReponseEtape>('/api/auth/connexion', { email, motDePasse }),
     );
+    if (!('etape' in reponse)) {
+      this.ouvrirCanal();
+      this.adopter(reponse);
+    }
+    return reponse;
+  }
+
+  /** Une étape du second facteur a ouvert la session : le jeton d'accès et le profil sont adoptés. */
+  ouvrirSessionEquipe(reponse: ReponseConnexion): Profil {
     this.ouvrirCanal();
     this.adopter(reponse);
     return reponse.utilisateur;

@@ -160,6 +160,18 @@ boutique:
       nom: jeton_rafraichissement
       chemin: /api/auth
       secure: true
+  # Second facteur des comptes internes (ADR 0009). ADMIN_CLE_CHIFFREMENT est obligatoire : openssl rand -base64 32
+  second-facteur:
+    cle-chiffrement: ${ADMIN_CLE_CHIFFREMENT:}
+    cle-chiffrement-precedente: ${ADMIN_CLE_CHIFFREMENT_PRECEDENTE:}
+    emetteur: ${NOM_SITE:Boutique informatique}
+    secret-fixe-demo: ${DEMO_ADMIN_TOTP_SECRET:}
+    duree-etape: 5m
+    duree-etape-maximale: 30m
+    essais-par-etape: 5
+    duree-reauthentification: 10m
+    duree-invitation: 48h
+    conservation-journal: 1095d
   # Médias : Cloudinary (CLOUDINARY_URL, jamais dans Git) et contrôles des fichiers envoyés (ADR 0005)
   # Panier (phase 4a) : cookie du panier invité (jeton aléatoire, seule son empreinte est en base),
   # purge des paniers invités abandonnés, limite des essais de codes promo (anti-énumération ; par IP,

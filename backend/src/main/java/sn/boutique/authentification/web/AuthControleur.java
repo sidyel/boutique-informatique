@@ -21,12 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import sn.boutique.authentification.dto.ConnexionReponse;
 import sn.boutique.authentification.dto.ConnexionRequete;
 import sn.boutique.authentification.dto.EmailRequete;
+import sn.boutique.authentification.dto.EtapeConnexionReponse;
 import sn.boutique.authentification.dto.InscriptionRequete;
 import sn.boutique.authentification.dto.JetonRequete;
 import sn.boutique.authentification.dto.MessageReponse;
 import sn.boutique.authentification.dto.ReinitialisationRequete;
 import sn.boutique.authentification.securite.LimitesAuthentification;
 import sn.boutique.authentification.service.AuthService;
+import sn.boutique.authentification.service.AuthService.ResultatConnexion;
 import sn.boutique.authentification.service.IdentifiantsInvalidesException;
 import sn.boutique.authentification.service.JetonInvalideException;
 import sn.boutique.authentification.service.SecuriteCompteService;
@@ -79,12 +81,18 @@ public class AuthControleur {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageReponse(MESSAGE_INSCRIPTION));
     }
 
-    @Operation(summary = "Se connecter", description = "Renvoie le jeton d'accès et pose le cookie de rafraîchissement.")
+    @Operation(summary = "Se connecter",
+            description = "Client : renvoie le jeton d'accès et pose le cookie de rafraîchissement. Compte interne : renvoie "
+                    + "seulement l'étape suivante et un jeton d'étape (second facteur obligatoire, voir ADR 0009).")
     @PostMapping("/connexion")
-    public ResponseEntity<ConnexionReponse> connecter(@Valid @RequestBody ConnexionRequete requete,
-                                                      HttpServletRequest http) {
+    public ResponseEntity<?> connecter(@Valid @RequestBody ConnexionRequete requete, HttpServletRequest http) {
         limites.connexion(http.getRemoteAddr(), requete.email());
-        return reponseSession(authService.connecter(requete, contexte(http)));
+        ResultatConnexion resultat = authService.connecter(requete, contexte(http));
+        if (resultat.etape() != null) {
+            return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "no-store")
+                    .body(new EtapeConnexionReponse(resultat.etape().etape(), resultat.etape().jetonEtape()));
+        }
+        return reponseSession(resultat.session());
     }
 
     @Operation(summary = "Obtenir un nouveau jeton d'accès (rotation du jeton de rafraîchissement)")

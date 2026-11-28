@@ -38,7 +38,8 @@ public class VerificationLimitationDebit {
                 ==========================================================================================""");
     }
 
-    static boolean miseEnProduction(ProprietesBoutique boutique, Environment environnement) {
+    /** Vrai sur un environnement de production : indexation autorisée, ou profil prod sans le profil demo. */
+    public static boolean miseEnProduction(ProprietesBoutique boutique, Environment environnement) {
         return boutique.indexationAutorisee()
                 || (environnement.acceptsProfiles(Profiles.of("prod")) && !environnement.acceptsProfiles(Profiles.of("demo")));
     }

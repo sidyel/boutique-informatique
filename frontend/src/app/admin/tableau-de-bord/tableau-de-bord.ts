@@ -11,7 +11,7 @@ import { SeoService } from '../../noyau/seo/seo.service';
   template: `
     <section class="conteneur tableau-de-bord">
       <h1>Administration</h1>
-      <p>Le tableau de bord sera disponible après la mise en place de l'authentification.</p>
+      <p>Vous êtes connecté. Les écrans de gestion arrivent par étapes (commandes, produits, clients).</p>
     </section>
   `,
   styles: `

@@ -34,9 +34,20 @@ public class SessionService {
     private final ProprietesAuthentification proprietes;
     private final Clock horloge;
 
-    /** Ouvre une session (nouvelle famille de jetons) après une connexion réussie. */
+    /**
+     * Ouvre une session (nouvelle famille de jetons) après une connexion réussie.
+     * <p>
+     * <strong>Invariant (ADR 0009 §1)</strong> : un rôle interne n'obtient jamais de session sans second facteur vérifié.
+     * C'est le seul chemin qui émet des jetons pour un nouvel appareil ({@link #rafraichir} prolonge une famille existante).
+     *
+     * @param secondFacteurVerifie vrai seulement quand un code TOTP ou de secours vient d'être accepté
+     */
     @Transactional
-    public Session ouvrir(Utilisateur utilisateur, Contexte contexte) {
+    public Session ouvrir(Utilisateur utilisateur, Contexte contexte, boolean secondFacteurVerifie) {
+        if (utilisateur.getRole().estInterne() && !secondFacteurVerifie) {
+            throw new IllegalStateException("Session refusée : le second facteur du compte " + utilisateur.getId()
+                    + " n'est pas vérifié");
+        }
         Instant maintenant = maintenant();
         Instant expiration = maintenant.plus(proprietes.dureeSession(utilisateur.getRole()));
         return emettre(utilisateur, UUID.randomUUID(), expiration, contexte, maintenant);

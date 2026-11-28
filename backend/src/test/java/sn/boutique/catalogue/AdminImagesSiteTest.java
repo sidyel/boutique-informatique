@@ -155,7 +155,7 @@ class AdminImagesSiteTest extends CatalogueTestBase {
                 .andExpect(jsonPath("$.code").value("IMAGE_TROP_PETITE"));
         banniere(svg(), "ORDINATEUR", "ADMIN").andExpect(status().isUnprocessableContent());
         mockMvc.perform(multipart("/api/admin/bannieres/images").file(fichier(png(1920, 600)))
-                        .with(jwt().jwt(j -> j.subject("1")).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                        .with(sn.boutique.support.JwtEquipe.pour(jdbc, "ADMIN")))
                 .andExpect(status().isBadRequest());
         banniere(png(1920, 600), "ORDINATEUR", "GESTIONNAIRE_STOCK").andExpect(status().isForbidden());
     }
@@ -179,9 +179,9 @@ class AdminImagesSiteTest extends CatalogueTestBase {
                 .param("format", format), role));
     }
 
-    private static MockMultipartHttpServletRequestBuilder avecRole(MockMultipartHttpServletRequestBuilder requete,
+    private MockMultipartHttpServletRequestBuilder avecRole(MockMultipartHttpServletRequestBuilder requete,
                                                                    String role) {
-        requete.with(jwt().jwt(j -> j.subject("1")).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
+        requete.with(sn.boutique.support.JwtEquipe.pour(jdbc, role));
         return requete;
     }
 

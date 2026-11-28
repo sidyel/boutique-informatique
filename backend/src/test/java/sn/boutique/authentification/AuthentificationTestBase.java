@@ -22,6 +22,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import sn.boutique.TestcontainersConfiguration;
+import sn.boutique.authentification.securite.Base32;
+import sn.boutique.authentification.securite.ChiffrementSecrets;
+import sn.boutique.authentification.securite.Totp;
 import sn.boutique.compte.depot.UtilisateurDepot;
 import sn.boutique.compte.modele.Role;
 import sn.boutique.compte.modele.Utilisateur;
@@ -38,6 +41,8 @@ abstract class AuthentificationTestBase {
     static final String ORIGINE_SITE = "http://localhost:4200";
     static final String MOT_DE_PASSE = "Thieboudienne-2026";
     static final String NOM_COOKIE = "jeton_rafraichissement";
+    /** Secret TOTP (Base32) des comptes internes créés par les tests : connu, donc les codes se calculent. */
+    static final String SECRET_TOTP_TEST = "JBSWY3DPEHPK3PXP";
     private static final java.util.Random ALEATOIRE = new java.util.Random();
 
     @Autowired
@@ -52,6 +57,8 @@ abstract class AuthentificationTestBase {
     PasswordEncoder encodeur;
     @Autowired
     JdbcTemplate jdbc;
+    @Autowired
+    ChiffrementSecrets chiffrement;
 
     /** IP différente pour chaque test : les compteurs de limitation du débit (Redis) ne se mélangent pas. */
     String ipClient;
@@ -97,15 +104,56 @@ abstract class AuthentificationTestBase {
         return mockMvc.perform(get("/api/compte/profil").header(HttpHeaders.AUTHORIZATION, "Bearer " + jetonAcces));
     }
 
-    /** Crée directement un compte (rôle au choix) et renvoie la réponse de connexion. */
+    /**
+     * Crée directement un compte (rôle au choix) et renvoie la réponse de connexion. Un compte interne est déjà enrôlé
+     * (secret {@link #SECRET_TOTP_TEST}, codes de secours confirmés) et passe le second facteur : la réponse est celle de la session.
+     */
     MvcResult creerEtConnecter(Role role) throws Exception {
         String email = emailUnique();
         Utilisateur utilisateur = new Utilisateur(email, encodeur.encode(MOT_DE_PASSE), "Moussa", "Ndiaye");
         utilisateur.setRole(role);
         utilisateurDepot.save(utilisateur);
+        if (role.estInterne()) {
+            enroler(utilisateur);
+            return connecterCompteInterne(email);
+        }
         MvcResult resultat = connecter(email, MOT_DE_PASSE).andReturn();
         assertThat(resultat.getResponse().getStatus()).isEqualTo(200);
         return resultat;
+    }
+
+    /** Active le second facteur du compte avec le secret de test et confirme ses codes de secours. */
+    void enroler(Utilisateur utilisateur) {
+        utilisateur.activerSecondFacteur(chiffrement.chiffrer(SECRET_TOTP_TEST, utilisateur.getId()), horloge.instant());
+        utilisateur.confirmerCodesSecours(horloge.instant());
+        utilisateurDepot.save(utilisateur);
+    }
+
+    /** Code TOTP valide à l'instant de l'horloge réglable, pour le secret de test. */
+    String codeTotp() {
+        return codeTotpAu(0);
+    }
+
+    /** Code du pas voisin ({@code decalagePas} = -1, 0 ou 1). */
+    String codeTotpAu(int decalagePas) {
+        return Totp.code(Base32.decoder(SECRET_TOTP_TEST), Totp.pas(horloge.instant()) + decalagePas, Totp.CHIFFRES);
+    }
+
+    /** Mot de passe puis code TOTP : renvoie la réponse de la session. */
+    MvcResult connecterCompteInterne(String email) throws Exception {
+        MvcResult etape = connecter(email, MOT_DE_PASSE).andReturn();
+        assertThat(etape.getResponse().getStatus()).isEqualTo(200);
+        assertThat(corps(etape).get("etape").asString()).isEqualTo("CODE_REQUIS");
+        MvcResult session = verifierSecondFacteur(corps(etape).get("jetonEtape").asString(), codeTotp()).andReturn();
+        assertThat(session.getResponse().getStatus()).as(session.getResponse().getContentAsString()).isEqualTo(200);
+        return session;
+    }
+
+    ResultActions verifierSecondFacteur(String jetonEtape, String code) throws Exception {
+        return mockMvc.perform(post("/api/auth/second-facteur/verifier").with(depuisIpClient())
+                .header(HttpHeaders.ORIGIN, ORIGINE_SITE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of("jetonEtape", jetonEtape, "code", code))));
     }
 
     String jetonAcces(MvcResult resultat) throws Exception {

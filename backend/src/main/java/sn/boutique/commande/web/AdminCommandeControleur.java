@@ -1,11 +1,15 @@
 package sn.boutique.commande.web;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
+import sn.boutique.administration.journal.JournalAdministration;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.http.CacheControl;
@@ -47,6 +51,7 @@ public class AdminCommandeControleur {
     private final CommandeDepot commandeDepot;
     private final GestionCommandeService gestion;
     private final EncaissementService encaissement;
+    private final JournalAdministration journal;
 
     /**
      * @param telephone numéro complet : le service client doit pouvoir rappeler le client
@@ -81,18 +86,24 @@ public class AdminCommandeControleur {
                 resultat.getTotalElements()));
     }
 
+    @Transactional
     @PostMapping("/{numero}/confirmer")
     public ResponseEntity<CommandeAdminResume> confirmer(@AuthenticationPrincipal Jwt jwt,
                                                          @PathVariable String numero) {
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
-                .body(CommandeAdminResume.de(gestion.confirmer(numero, auteur(jwt))));
+        Commande commande = gestion.confirmer(numero, auteur(jwt));
+        journal.enregistrer("COMMANDE_CONFIRMEE", "Commande", numero,
+                Map.of("statut", StatutCommande.EN_ATTENTE_CONFIRMATION.name()), Map.of("statut", commande.getStatut().name()));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(CommandeAdminResume.de(commande));
     }
 
+    @Transactional
     @PostMapping("/{numero}/annuler")
     public ResponseEntity<CommandeAdminResume> annuler(@AuthenticationPrincipal Jwt jwt, @PathVariable String numero,
                                                        @Valid @RequestBody AnnulationRequete requete) {
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
-                .body(CommandeAdminResume.de(gestion.annuler(numero, auteur(jwt), requete.motif())));
+        Commande commande = gestion.annuler(numero, auteur(jwt), requete.motif());
+        journal.enregistrer("COMMANDE_ANNULEE", "Commande", numero, null, Map.of("statut", commande.getStatut().name()),
+                requete.motif());
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(CommandeAdminResume.de(commande));
     }
 
     /**
@@ -100,20 +111,29 @@ public class AdminCommandeControleur {
      * si le montant est inférieur au total) ; la facture est émise à ce moment. Commande déjà payée en ligne : pas de
      * corps. Un montant supérieur au total est refusé (422).
      */
+    @Transactional
     @PostMapping("/{numero}/livrer")
     public ResponseEntity<LivraisonResultat> livrer(@AuthenticationPrincipal Jwt jwt, @PathVariable String numero,
                                                     @RequestBody(required = false) LivraisonRequete requete) {
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
-                .body(encaissement.livrer(numero, auteur(jwt), Long.valueOf(jwt.getSubject()), requete));
+        LivraisonResultat resultat = encaissement.livrer(numero, auteur(jwt), Long.valueOf(jwt.getSubject()), requete);
+        Map<String, Object> apres = new LinkedHashMap<>();
+        apres.put("statut", StatutCommande.LIVREE.name());
+        apres.put("total", resultat.total());
+        apres.put("montantRecu", resultat.montantRecu());
+        apres.put("ecartEncaissement", resultat.ecartEncaissement());
+        journal.enregistrer("COMMANDE_LIVREE", "Commande", numero, null, apres);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(resultat);
     }
 
     /**
      * Le client a perdu son lien : un nouveau lien lui est envoyé (e-mail et message). L'ancien cesse de
      * fonctionner ; le lien n'est jamais renvoyé dans la réponse.
      */
+    @Transactional
     @PostMapping("/{numero}/renvoyer-lien-suivi")
     public ResponseEntity<Void> renvoyerLienSuivi(@AuthenticationPrincipal Jwt jwt, @PathVariable String numero) {
         gestion.renvoyerLienSuivi(numero, auteur(jwt));
+        journal.enregistrer("LIEN_SUIVI_RENVOYE", "Commande", numero, null, null);
         return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
     }
 

@@ -34,7 +34,7 @@ public class SecuriteConfig {
 
     /** Routes qui reposent sur un cookie : Origin obligatoire sur toute requête qui modifie un état (CSRF). */
     public static final List<String> ROUTES_AVEC_COOKIE = List.of("/api/auth/rafraichir", "/api/auth/deconnexion",
-            "/api/panier", "/api/panier/**", "/api/commandes", "/api/commandes/**");
+            "/api/auth/second-facteur/**", "/api/panier", "/api/panier/**", "/api/commandes", "/api/commandes/**");
 
     private static final String[] ROUTES_DOCUMENTATION = {
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
@@ -75,6 +75,9 @@ public class SecuriteConfig {
                         // ni le service client ni la gestion du stock
                         .requestMatchers("/api/admin/variantes/**", "/api/admin/parametres/**",
                                 "/api/admin/bannieres/**").hasAnyRole(ROLES_ADMINISTRATION)
+                        // Comptes de l'équipe et journal des actions : super-administrateur seulement (ADR 0009 §6)
+                        .requestMatchers("/api/admin/utilisateurs/**", "/api/admin/utilisateurs", "/api/admin/journal/**",
+                                "/api/admin/journal").hasRole(Role.SUPER_ADMIN.name())
                         // Un avoir est une pièce comptable : réservé à l'administration
                         .requestMatchers(HttpMethod.POST, "/api/admin/factures/*/avoirs")
                         .hasAnyRole(ROLES_ADMINISTRATION)

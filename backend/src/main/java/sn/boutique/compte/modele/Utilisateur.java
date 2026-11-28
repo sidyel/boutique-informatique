@@ -79,6 +79,61 @@ public class Utilisateur extends EntiteAuditee {
         this.telephone = TelephoneSenegal.normaliserFacultatif(telephone);
     }
 
+    /** Secret TOTP chiffré (AES-GCM, ADR 0009) ; absent tant que le second facteur n'est pas activé. */
+    @Setter(AccessLevel.NONE)
+    @Column(length = 400)
+    private String totpSecretChiffre;
+
+    @Setter(AccessLevel.NONE)
+    private Instant totpActiveLe;
+
+    /** Dernier pas de 30 s accepté : un code ne sert qu'une fois (anti-rejeu). Mis à jour par une requête atomique. */
+    @Setter(AccessLevel.NONE)
+    @Column(insertable = false, updatable = false)
+    private Long totpDernierPas;
+
+    /** Date à laquelle l'utilisateur a confirmé avoir enregistré ses codes de secours ; absente : à présenter à la connexion. */
+    @Setter(AccessLevel.NONE)
+    private Instant codesSecoursConfirmesLe;
+
+    public boolean secondFacteurActif() {
+        return totpActiveLe != null && totpSecretChiffre != null;
+    }
+
+    /** Active le second facteur avec le secret (déjà chiffré) dont un premier code vient d'être vérifié. */
+    public void activerSecondFacteur(String secretChiffre, Instant maintenant) {
+        this.totpSecretChiffre = secretChiffre;
+        this.totpActiveLe = maintenant;
+        this.codesSecoursConfirmesLe = null;
+    }
+
+    /** Remplace le secret par une version rechiffrée (rotation de la clé) sans changer l'état du second facteur. */
+    public void remplacerSecretChiffre(String secretChiffre) {
+        this.totpSecretChiffre = secretChiffre;
+    }
+
+    public void desactiverSecondFacteur() {
+        this.totpSecretChiffre = null;
+        this.totpActiveLe = null;
+        this.codesSecoursConfirmesLe = null;
+    }
+
+    public void confirmerCodesSecours(Instant maintenant) {
+        this.codesSecoursConfirmesLe = maintenant;
+    }
+
+    public void invalideCodesSecours() {
+        this.codesSecoursConfirmesLe = null;
+    }
+
+    /** Compte créé par invitation, dont le titulaire n'a pas encore choisi son mot de passe. */
+    public boolean invitationEnAttente() {
+        return motDePasseHash != null && motDePasseHash.startsWith(PREFIXE_INVITATION);
+    }
+
+    /** Aucun hachage BCrypt ne commence par « ! » : le mot de passe d'une invitation en attente ne correspond à rien. */
+    public static final String PREFIXE_INVITATION = "!invitation";
+
     /** D'où vient la dernière décision de consentement (inscription, espace client, administrateur). */
     @Setter(AccessLevel.NONE)
     @Enumerated(EnumType.STRING)

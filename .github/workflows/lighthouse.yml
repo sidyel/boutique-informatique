@@ -49,11 +49,26 @@ jobs:
           cp .env.exemple .env
           sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')|" .env
           grep -q '^JWT_SECRET=.\+' .env
+          # Clé de chiffrement des secrets TOTP de l'équipe (obligatoire au démarrage) : jetable, propre à ce job
+          sed -i "s|^ADMIN_CLE_CHIFFREMENT=.*|ADMIN_CLE_CHIFFREMENT=$(openssl rand -base64 32 | tr -d '\n')|" .env
+          grep -q '^ADMIN_CLE_CHIFFREMENT=.\+' .env
           # Compte client de test, dédié à ce job : mot de passe jetable, jamais affiché (masqué dans les journaux)
           MOT_DE_PASSE_COMPTE="$(openssl rand -hex 16)Aa1"
           echo "::add-mask::${MOT_DE_PASSE_COMPTE}"
           echo "DEMO_CLIENT_MOT_DE_PASSE=${MOT_DE_PASSE_COMPTE}" >> .env
           echo "LIGHTHOUSE_COMPTE_MOT_DE_PASSE=${MOT_DE_PASSE_COMPTE}" >> "$GITHUB_ENV"
+          # Compte administrateur de test (pages /admin) : mot de passe et secret TOTP jetables, masqués, propres à ce job
+          MOT_DE_PASSE_ADMIN="$(openssl rand -hex 16)Aa1"
+          SECRET_TOTP_ADMIN="$(openssl rand 20 | base32 | tr -d '=\n')"
+          echo "::add-mask::${MOT_DE_PASSE_ADMIN}"
+          echo "::add-mask::${SECRET_TOTP_ADMIN}"
+          sed -i "s|^DEMO_ADMIN_MOT_DE_PASSE=.*|DEMO_ADMIN_MOT_DE_PASSE=${MOT_DE_PASSE_ADMIN}|" .env
+          sed -i "s|^DEMO_ADMIN_TOTP_SECRET=.*|DEMO_ADMIN_TOTP_SECRET=${SECRET_TOTP_ADMIN}|" .env
+          grep -q '^DEMO_ADMIN_MOT_DE_PASSE=.\+' .env
+          grep -q '^DEMO_ADMIN_TOTP_SECRET=.\+' .env
+          echo "LIGHTHOUSE_ADMIN_EMAIL=admin@exemple.sn" >> "$GITHUB_ENV"
+          echo "LIGHTHOUSE_ADMIN_MOT_DE_PASSE=${MOT_DE_PASSE_ADMIN}" >> "$GITHUB_ENV"
+          echo "DEMO_ADMIN_TOTP_SECRET=${SECRET_TOTP_ADMIN}" >> "$GITHUB_ENV"
 
       # Seule différence avec la production : le certificat (Let's Encrypt en phase 9). Clé jetable.
       - name: Certificat autosigné pour nginx
@@ -110,6 +125,8 @@ jobs:
           --page-connectee compte=/compte
           --page-connectee commandes=/compte/commandes
           --page-connectee-panier commande-connecte=/commande
+          --page-equipe admin-tableau=/admin
+          --page-equipe admin-compte=/admin/mon-compte
 
       - name: Rapports Lighthouse
         if: always()

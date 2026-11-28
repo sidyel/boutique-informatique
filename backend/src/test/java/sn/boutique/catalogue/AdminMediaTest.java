@@ -446,8 +446,7 @@ class AdminMediaTest extends CatalogueTestBase {
     }
 
     private ResultActions envoyer(AbstractMockHttpServletRequestBuilder<?> requete, String role) throws Exception {
-        return mockMvc.perform(requete.with(jwt().jwt(j -> j.subject("1"))
-                .authorities(new SimpleGrantedAuthority("ROLE_" + role))));
+        return mockMvc.perform(requete.with(sn.boutique.support.JwtEquipe.pour(jdbc, role)));
     }
 
     private List<Long> idsMedias(Produit produit) {
