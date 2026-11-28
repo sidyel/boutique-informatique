@@ -7,10 +7,9 @@
   </p>
 
   <!-- Texte statique du rendu serveur : premier élément de contenu visible, avant l'arrivée du panier -->
-  <p class="page-panier__info">
-    Livraison à Dakar en 24 h. Le paiement à la livraison est possible : vous réglez à la réception de votre
-    commande, après l'avoir vérifiée.
-  </p>
+  @if (information(); as texte) {
+    <p class="page-panier__info">{{ texte }}</p>
+  }
 
   @for (message of panier.panier()?.avertissements ?? []; track message) {
     <p class="message" role="status">{{ message }}</p>

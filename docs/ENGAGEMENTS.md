@@ -193,6 +193,12 @@ Mis à jour à la fin de la phase 3 (2026-11-26).
 
 ## Phase 9 — mise en production
 
+- [ ] Passe de performance : CLS du panier (0,036 dans Lighthouse, seuil « bon » 0,1). Cause identifiée : le contenu du
+  panier est chargé dans le navigateur (données personnelles, pas de rendu serveur) ; une ligne d'article fait 159 px,
+  mais 204 px avec « Plus que quelques exemplaires » (MacBook de la CI), et le récapitulatif en dessous descend à
+  l'arrivée des données. Pistes : réserver la ligne d'avertissement (trou de 45 px sous les articles sans message),
+  ou rendre le panier côté serveur à partir du cookie de session. À mesurer avec le vrai trafic avant d'arbitrer.
+  — *bilan phase 5*
 - [ ] `INDEXATION_AUTORISEE=true` en production **uniquement** ; vérifier `/robots.txt`, soumettre
   `/sitemap.xml` dans la Search Console. — *ADR 0007 §1, décision (3d), README*
 - [ ] Exclure `public/demo` de l'image Docker de production ; aucune donnée en base ne pointe vers

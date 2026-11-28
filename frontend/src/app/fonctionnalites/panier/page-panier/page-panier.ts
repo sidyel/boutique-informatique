@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, afterNextRender, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, afterNextRender, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { ZoneLivraison } from '../../../noyau/api/modeles';
+import { ParametresSiteService, phraseInformationPanier } from '../../../noyau/donnees/parametres-site.service';
 import { articlesSuivis, valeurSuivie } from '../../../noyau/panier/articles-suivis';
 import { PanierService } from '../../../noyau/panier/panier.service';
 import { SeoService } from '../../../noyau/seo/seo.service';
@@ -31,6 +32,13 @@ export class PagePanier {
   protected readonly panier = inject(PanierService);
   private readonly http = inject(HttpClient);
   private readonly suivi = inject(SuiviService);
+  private readonly site = inject(ParametresSiteService);
+
+  /** Délai de livraison et moyens de paiement d'après les paramètres du site ; rien tant qu'ils ne sont pas connus. */
+  protected readonly information = computed(() => {
+    const parametres = this.site.parametres();
+    return parametres ? phraseInformationPanier(parametres.delaiLivraison, this.site.modesPaiement()) : null;
+  });
 
   protected readonly zones = signal<ZoneLivraison[]>([]);
   protected readonly saisieCode = signal('');

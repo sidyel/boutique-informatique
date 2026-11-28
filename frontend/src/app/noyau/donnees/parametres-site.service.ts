@@ -72,6 +72,30 @@ export function elementsConfianceAffiches(
   });
 }
 
+/**
+ * Phrase d'information de la page panier, construite uniquement d'après la configuration : le délai de livraison saisi
+ * dans les paramètres et les moyens de paiement réellement actifs. Chaque partie disparaît si elle n'est pas
+ * configurée ou pas active ; `null` s'il ne reste rien à dire.
+ */
+export function phraseInformationPanier(
+  delaiLivraison: string | null | undefined,
+  modes: ModesPaiementActifs,
+): string | null {
+  const delai = delaiLivraison?.trim().replace(/[.\s]+$/, '');
+  const enLigne = [
+    ...(modes.mobileMoney ? ['Wave', 'Orange Money', 'Free Money'] : []),
+    ...(modes.carte ? ['carte bancaire'] : []),
+  ];
+  let paiement: string | null = null;
+  if (enLigne.length) {
+    paiement = `Paiement par ${enLigne.join(', ')}${modes.livraison ? ' ou à la livraison' : ''}.`;
+  } else if (modes.livraison) {
+    paiement = "Paiement à la livraison : vous réglez à la réception de votre commande, après l'avoir vérifiée.";
+  }
+  const morceaux = [delai ? `${delai}.` : null, paiement].filter((m): m is string => !!m);
+  return morceaux.length ? morceaux.join(' ') : null;
+}
+
 export function lienTelephone(numero: string | null | undefined): string | null {
   return numero ? `tel:${numero}` : null;
 }
