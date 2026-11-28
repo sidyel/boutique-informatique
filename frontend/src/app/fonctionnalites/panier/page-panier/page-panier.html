@@ -13,22 +13,48 @@
     <p class="message message--erreur" role="alert">{{ erreur }}</p>
   }
 
-  @if (panier.panier(); as p) {
-    @if (p.lignes.length) {
-      <div class="page-panier__grille">
+  @let p = panier.panier();
+  @if (p && !p.lignes.length) {
+    <div class="vide">
+      <bi-icone nom="panier" taille="3rem" />
+      <p class="vide__titre">Votre panier est vide.</p>
+      <p>Parcourez nos rayons : PC portables, composants, écrans, réseau…</p>
+      <a biBouton variante="principal" routerLink="/">Voir les produits</a>
+    </div>
+  } @else {
+    <!--
+      Une seule structure pour l'attente et pour le panier rempli : le récapitulatif n'est jamais remplacé, seul son
+      contenu change. Ainsi le texte statique reste le même élément (le LCP ne se déplace pas à l'arrivée des données).
+    -->
+    <div class="page-panier__grille" [attr.aria-busy]="p ? null : true">
+      @if (p) {
         <section class="page-panier__lignes" aria-label="Articles du panier">
           @for (ligne of p.lignes; track ligne.id) {
             <bi-ligne-panier [ligne]="ligne" />
           }
           <a class="page-panier__continuer" routerLink="/">Continuer mes achats</a>
         </section>
+      } @else {
+        <div>
+          @for (i of [1, 2, 3]; track i) {
+            <div class="squelette-ligne">
+              <bi-squelette forme="bloc" largeur="4.5rem" hauteur="4.5rem" />
+              <div>
+                <bi-squelette forme="ligne" largeur="70%" />
+                <bi-squelette forme="ligne" largeur="35%" />
+              </div>
+            </div>
+          }
+        </div>
+      }
 
-        <aside class="page-panier__cote" aria-label="Récapitulatif">
-          <section class="bloc">
-            <h2 class="bloc__titre">
-              <bi-icone nom="etiquette" taille="1rem" />
-              Code promo
-            </h2>
+      <aside class="page-panier__cote" aria-label="Récapitulatif">
+        <section class="bloc">
+          <h2 class="bloc__titre">
+            <bi-icone nom="etiquette" taille="1rem" />
+            Code promo
+          </h2>
+          @if (p) {
             @if (p.codePromo; as code) {
               <div class="code" [class.code--invalide]="!code.valide">
                 <p class="code__texte">
@@ -67,13 +93,20 @@
                 <p class="code-form__erreur" id="code-promo-erreur" role="alert">{{ message }}</p>
               }
             }
-          </section>
+          } @else {
+            <div class="code-form">
+              <input class="champ-natif__saisie" type="text" disabled placeholder="Votre code" aria-label="Code promo" />
+              <button biBouton variante="secondaire" type="button" disabled>Appliquer</button>
+            </div>
+          }
+        </section>
 
-          <section class="bloc">
-            <h2 class="bloc__titre">
-              <bi-icone nom="livraison" taille="1rem" />
-              <label for="zone-livraison">Estimer la livraison</label>
-            </h2>
+        <section class="bloc">
+          <h2 class="bloc__titre">
+            <bi-icone nom="livraison" taille="1rem" />
+            <label for="zone-livraison">Estimer la livraison</label>
+          </h2>
+          @if (p) {
             <select id="zone-livraison" class="champ-natif__saisie" autocomplete="off"
               (change)="choisirZone($any($event.target).value)">
               <option value="" [selected]="panier.zoneId() === null">Choisir une zone</option>
@@ -83,10 +116,14 @@
                 </option>
               }
             </select>
-            <p class="bloc__note">Le quartier et l'adresse exacte seront demandés à la commande.</p>
-          </section>
+          } @else {
+            <bi-squelette forme="bloc" hauteur="2.75rem" />
+          }
+          <p class="bloc__note">Le quartier et l'adresse exacte seront demandés à la commande.</p>
+        </section>
 
-          <section class="bloc bloc--resume">
+        <section class="bloc bloc--resume">
+          @if (p) {
             <bi-resume-panier [panier]="p" />
             <div class="page-panier__commander">
               @if (p.commandable) {
@@ -100,10 +137,14 @@
                 <p class="bloc__note">Corrigez les articles signalés pour pouvoir commander.</p>
               }
             </div>
-          </section>
-        </aside>
-      </div>
+          } @else {
+            <bi-squelette forme="bloc" hauteur="7rem" />
+          }
+        </section>
+      </aside>
+    </div>
 
+    @if (p) {
       <!-- Mobile : total et bouton principal à portée du pouce -->
       <div class="barre-mobile">
         <div class="barre-mobile__total">
@@ -116,51 +157,6 @@
           <button biBouton variante="principal" taille="lg" type="button" disabled>Commander</button>
         }
       </div>
-    } @else {
-      <div class="vide">
-        <bi-icone nom="panier" taille="3rem" />
-        <p class="vide__titre">Votre panier est vide.</p>
-        <p>Parcourez nos rayons : PC portables, composants, écrans, réseau…</p>
-        <a biBouton variante="principal" routerLink="/">Voir les produits</a>
-      </div>
     }
-  } @else {
-    <div class="page-panier__grille" aria-busy="true">
-      <div>
-        @for (i of [1, 2, 3]; track i) {
-          <div class="squelette-ligne">
-            <bi-squelette forme="bloc" largeur="4.5rem" hauteur="4.5rem" />
-            <div>
-              <bi-squelette forme="ligne" largeur="70%" />
-              <bi-squelette forme="ligne" largeur="35%" />
-            </div>
-          </div>
-        }
-      </div>
-      <!-- Structure statique du récapitulatif : visible tout de suite, les montants arrivent ensuite -->
-      <aside class="page-panier__cote" aria-label="Récapitulatif">
-        <section class="bloc">
-          <h2 class="bloc__titre">
-            <bi-icone nom="etiquette" taille="1rem" />
-            Code promo
-          </h2>
-          <div class="code-form">
-            <input class="champ-natif__saisie" type="text" disabled placeholder="Votre code" aria-label="Code promo" />
-            <button biBouton variante="secondaire" type="button" disabled>Appliquer</button>
-          </div>
-        </section>
-        <section class="bloc">
-          <h2 class="bloc__titre">
-            <bi-icone nom="livraison" taille="1rem" />
-            Estimer la livraison
-          </h2>
-          <bi-squelette forme="bloc" hauteur="2.75rem" />
-          <p class="bloc__note">Le quartier et l'adresse exacte seront demandés à la commande.</p>
-        </section>
-        <section class="bloc bloc--resume">
-          <bi-squelette forme="bloc" hauteur="7rem" />
-        </section>
-      </aside>
-    </div>
   }
 </div>
