@@ -33,15 +33,12 @@
       contenu change. Ainsi le texte statique reste le même élément (le LCP ne se déplace pas à l'arrivée des données).
     -->
     <div class="page-panier__grille" [attr.aria-busy]="p ? null : true">
-      @if (p) {
-        <section class="page-panier__lignes" aria-label="Articles du panier">
+      <section class="page-panier__lignes" aria-label="Articles du panier">
+        @if (p) {
           @for (ligne of p.lignes; track ligne.id) {
             <bi-ligne-panier [ligne]="ligne" />
           }
-          <a class="page-panier__continuer" routerLink="/">Continuer mes achats</a>
-        </section>
-      } @else {
-        <div>
+        } @else {
           <div class="squelette-ligne">
             <bi-squelette forme="bloc" largeur="4.5rem" hauteur="4.5rem" />
             <div>
@@ -49,8 +46,9 @@
               <bi-squelette forme="ligne" largeur="35%" />
             </div>
           </div>
-        </div>
-      }
+        }
+        <a class="page-panier__continuer" routerLink="/">Continuer mes achats</a>
+      </section>
 
       <aside class="page-panier__cote" aria-label="Récapitulatif">
         <section class="bloc">
