@@ -6,6 +6,12 @@
     }
   </p>
 
+  <!-- Texte statique du rendu serveur : premier élément de contenu visible, avant l'arrivée du panier -->
+  <p class="page-panier__info">
+    Livraison à Dakar en 24 h. Le paiement à la livraison est possible : vous réglez à la réception de votre
+    commande, après l'avoir vérifiée.
+  </p>
+
   @for (message of panier.panier()?.avertissements ?? []; track message) {
     <p class="message" role="status">{{ message }}</p>
   }
@@ -36,15 +42,13 @@
         </section>
       } @else {
         <div>
-          @for (i of [1, 2, 3]; track i) {
-            <div class="squelette-ligne">
-              <bi-squelette forme="bloc" largeur="4.5rem" hauteur="4.5rem" />
-              <div>
-                <bi-squelette forme="ligne" largeur="70%" />
-                <bi-squelette forme="ligne" largeur="35%" />
-              </div>
+          <div class="squelette-ligne">
+            <bi-squelette forme="bloc" largeur="4.5rem" hauteur="4.5rem" />
+            <div>
+              <bi-squelette forme="ligne" largeur="70%" />
+              <bi-squelette forme="ligne" largeur="35%" />
             </div>
-          }
+          </div>
         </div>
       }
 
